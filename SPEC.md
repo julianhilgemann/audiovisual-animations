@@ -1,7 +1,7 @@
 # Datapipe — Audio-reactive Blender Shorts
 
-**Spec v0.2 · 2026-10-19 · Status: draft for review**
-*v0.2: TouchDesigner becomes the reactivity-tuning tool (§6); project skeleton, git and agent docs in place.*
+**Spec v0.3 · 2026-10-19 · Status: draft for review**
+*v0.3: Phase 0 done; FFmpeg comes from PyAV inside the venv instead of a system install. v0.2: TouchDesigner becomes the reactivity-tuning tool (§6).*
 
 Drop an audio or video file into a folder → the pipeline analyzes its rhythm and spectrum → a Blender scene is animated from those features plus a hand-tuned look preset → one headless render produces a finished YouTube Short (video + audio) with no further editing.
 
@@ -38,7 +38,7 @@ Drop an audio or video file into a folder → the pipeline analyzes its rhythm a
 | Hardware | NVIDIA RTX 5060 Laptop GPU, 8 GB (Blender runs on it, not the AMD iGPU). |
 | Measured speed | **~0.98 s/frame** at 4K, render only (first frame 2.1 s for shader compile). No thermal throttling over 360 frames (56–69 °C). GPU averaged 66% load, so part of each frame is CPU-bound. H.264 4K encode on CPU took ~0.16 s/frame. |
 | Reference render | `reference/neon_tunnel_5x.mp4`: 30 s, the 6 s loop repeated 5×, 423 MB. |
-| Software | Blender **5.2.2 LTS** (bundled Python 3.13.13, numpy 2.3.4). **TouchDesigner 2025.32820** (bundled Python 3.11, numpy 2.1.2). System Python 3.14.5, Git, Node. **Missing: `ffmpeg`, `uv`.** |
+| Software | Blender **5.2.2 LTS** (bundled Python 3.13.13, numpy 2.3.4). **TouchDesigner 2025.32820** (bundled Python 3.11, numpy 2.1.2). System Python 3.14.5 (untouched), Git, Node. **Pipeline env:** uv 0.13.1 (winget, user scope) with a uv-managed Python 3.12.15 in `.venv`. FFmpeg comes from PyAV inside the venv; there is no system ffmpeg. `uv run datapipe doctor` checks the whole toolchain. |
 | Blender bridge | The Blender Lab MCP add-on listens on `localhost:9876` and runs Python sent to it. This lets Claude (or any script) tweak the open scene live. Helper: `tools/blender_bridge.py`. It also works with a headless server (`blender -b <file> --online-mode -c blender_mcp`). |
 | Repo | Git, branch `main`. Agent context lives in `CLAUDE.md`. |
 
@@ -50,7 +50,7 @@ Drop an audio or video file into a folder → the pipeline analyzes its rhythm a
  inbox/                          work/<job-id>/                                    output/
 ┌──────────────┐  1 ingest   ┌─────────────────┐  2 analyze  ┌───────────────┐
 │ song.mp4     │────────────▶│ audio_full.wav  │────────────▶│ features.json │
-│ song.toml ?  │  (ffmpeg)   │ (48 kHz stereo) │  (librosa)  │ report.png    │
+│ song.toml ?  │  (PyAV)     │ (48 kHz stereo) │  (librosa)  │ report.png    │
 └──────────────┘             └─────────────────┘             └──────┬────────┘
                                                                     │ 3 window + arc
  presets/<look>.json ──┐                                            ▼
@@ -107,7 +107,7 @@ datapipe/
 │  └─ neon_tunnel_5x.mp4
 ├─ src/datapipe/                # pipeline package (runs in the uv environment)
 │  ├─ cli.py                    # `datapipe run | watch | analyze | rerender | preview`
-│  ├─ ingest.py                 # ffmpeg decode, trim, fades, optional loudness normalize
+│  ├─ ingest.py                 # PyAV decode, trim, fades, optional loudness normalize
 │  ├─ analysis.py               # librosa: bands, onsets, beats, bars, sections
 │  ├─ window.py                 # fixed-length excerpt selection
 │  ├─ arc.py                    # song structure → story arc envelopes
@@ -137,7 +137,7 @@ datapipe/
 ### 5.1 Ingest
 
 - Accept `.mp4 .mov .mkv .webm .wav .mp3 .flac .m4a .aac .ogg`. Ignore video streams.
-- Decode with `ffmpeg` to 48 kHz, stereo, 32-bit float WAV. Analysis runs on a mono downmix; the render uses stereo.
+- Decode with PyAV (bundled FFmpeg libraries) and its resampler to 48 kHz, stereo, 32-bit float WAV, written with soundfile. Analysis runs on a mono downmix; the render uses stereo.
 - Only start a job once the file in `inbox/` has stopped changing size for 5 s, so a file that is still copying isn't picked up.
 - Reject audio shorter than `min_len_s` (default 5 s) and files with no audio stream: move them to `inbox/failed/` and write an `.error.txt` next to them.
 - Optional (`loudnorm = true`, default off): normalize `audio_final.wav` to −14 LUFS integrated and −1 dBTP. Default off keeps the artist's master untouched.
@@ -428,10 +428,10 @@ That's enough to reproduce any output exactly.
 |---|---|---|
 | Blender | 5.2.2 LTS (installed), pinned | Its API changed in 5.x (`sequences` → `strips`, `image_settings.media_type`), so scripts target 5.2. The Blender version is recorded in `job.json`. |
 | TouchDesigner | 2025.32820 (installed) | Reactivity Lab (§6.1). Its bundled Python 3.11 and numpy 2.1.2 run `mapping.py`. The free Non-Commercial licence restricts use, so check its terms if the channel is monetized or run by a business. |
-| Pipeline Python | **3.12 via `uv`** (to install) | not the system Python 3.14, to avoid librosa/numba compatibility risk |
+| Pipeline Python | **3.12.15 via `uv` 0.13.1**, in `.venv` | Kept separate from the system Python 3.14 to avoid librosa/numba compatibility risk. Remove it all with: delete `.venv`, `uv python uninstall 3.12`, `uv cache clean`, `winget uninstall astral-sh.uv`. |
 | Python packages | numpy, scipy, librosa, soundfile, matplotlib | `tomllib` is built into the standard library for config |
 | Shared mapping code | numpy-only, Python 3.11 syntax, numpy ≥ 2.1 | runs unchanged in the uv environment (3.12), Blender (3.13) and TouchDesigner (3.11) |
-| Media | **ffmpeg** (to install, e.g. `winget install Gyan.FFmpeg`) | decode, trim, fade, loudness, `ffprobe` checks |
+| Media | **PyAV** (`av`), which bundles the FFmpeg libraries | Decodes any container and probes outputs in tests. Pinned in `uv.lock` and lives only in the venv. If an ffmpeg command-line tool is ever needed, `imageio-ffmpeg` adds one inside the venv too. |
 | Version control | Git (installed) | the `datapipe/` folder becomes a repo. Renders, `work/`, `cache/` and `inbox/` are git-ignored. |
 | Optional | beat_this (downbeats), Demucs (drum stems) | Phase 7 |
 
@@ -459,7 +459,7 @@ That's enough to reproduce any output exactly.
 | **Audio-visual sync** | Render the click track at 25% resolution with a "flash on kick" mapping, decode the MP4, measure mean brightness per frame | brightness peaks within **±1 frame** of the kick times |
 | Loop closure | Render frames 1 and N+1, compute the pixel difference (the method used on 2026-10-19) | mean absolute difference < 0.001 |
 | Rig parity | Phase 1 Director rig vs the original drivers at frames 1, 120 and 360 | mean absolute difference < 0.005 |
-| Export | `ffprobe` on the output | 2160×3840, 60 fps, frames = round(length × 60), AAC 48 kHz stereo, duration within ±1 frame |
+| Export | PyAV probe of the output | 2160×3840, 60 fps, frames = round(length × 60), AAC 48 kHz stereo, duration within ±1 frame |
 | Mapping unit tests | pytest on smoothing, normalization, limits, integration and loop closure | flash limiter never exceeds 3 per second; tracks stay within schema min/max |
 | Watch | Drop 3 valid files and 1 broken file | 3 outputs; 1 file in `failed/` with a readable error |
 
@@ -469,7 +469,7 @@ That's enough to reproduce any output exactly.
 
 | Phase | Scope | Done when |
 |---|---|---|
-| **P0 Foundations** | *done 2026-10-19:* folder structure, git, `CLAUDE.md`, README, bridge helper. *Open:* install uv and ffmpeg; `pyproject.toml`, `pipeline.toml`, CLI stub | `uv run datapipe --help` works; `ffprobe` works; Blender path resolves |
+| **P0 Foundations** | *done 2026-10-19:* folder structure, git, `CLAUDE.md`, README, bridge helper, uv + `.venv`, `pyproject.toml`, `pipeline.toml`, CLI with `doctor` | `uv run datapipe doctor` passes (PyAV decode, Blender 5.2, paths); `uv run pytest` green. **Both met.** |
 | **P1 Template rig** | add the `Director` empty; replace the frame drivers with Director drivers; store periods; test π vs 6π periodicity | rig parity and loop tests pass; `rig.py` can redo it on any template |
 | **P2 Analysis** | ingest, features, beats and bars, sections, drop, `report.png`, cache | click-track golden test passes; reports from 3 real tracks reviewed and judged plausible |
 | **P3 Map, bake, render** | `mapping.py`, `window.py`, `arc.py`, loop closure, limits, `build_and_render.py`, draft and final profiles, audio in the MP4 | `datapipe run song.mp4 --length 30` produces an MP4 that passes the export and sync tests |
@@ -503,7 +503,7 @@ The pipeline produces usable Shorts after **P3**, with the fixed tunnel shape an
 
 1. When Blender's video editor holds **only sound strips**, a headless render still renders the 3D camera and muxes the audio into the MP4 (Phase 3).
 2. The tunnel also loops seamlessly after a travel of **π** (one portal) with no rotation, which gives finer loop closure; otherwise 6π (Phase 1).
-3. librosa runs cleanly on Python 3.12 on Windows with this setup (Phase 0).
+3. ~~librosa runs cleanly on Python 3.12 on Windows with this setup.~~ Verified 2026-10-19: librosa 1.0.0 with numba 0.68 imports and runs under `doctor`.
 4. How YouTube currently handles 4K uploads for Shorts. This doesn't block anything; the 1080p profile exists either way.
 5. A TouchDesigner Script CHOP can import `src/datapipe/mapping.py` from the repo (via `sys.path`) and recompute a whole song's tracks fast enough to feel instant while dragging a slider (P6).
 

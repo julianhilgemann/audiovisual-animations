@@ -1,0 +1,48 @@
+# Global defaults (SPEC §5, §7). Per-file overrides: a sidecar <name>.toml next to the file in inbox/.
+# Relative paths resolve against the repo root.
+
+[paths]
+blender = 'C:\Program Files\Blender Foundation\Blender 5.2\blender.exe'
+touchdesigner = 'C:\Program Files\Derivative\TouchDesigner\bin\TouchDesigner.exe'
+template = "scenes/neon_tunnel.blend"
+inbox = "inbox"
+work = "work"
+cache = "cache"
+output = "output"
+archive = "archive"
+
+[grid]
+fps = 60
+sample_rate = 48000          # hop = sample_rate / fps = 800 samples = exactly one video frame
+sync_offset_frames = 0       # negative = visuals react slightly before the sound
+
+[length]
+mode = "fixed"               # full | fixed
+length_s = 30
+max_len_s = 60               # Shorts over 60 s with an active Content ID claim are blocked
+hard_max_s = 180             # Shorts maximum
+min_len_s = 5
+fade_out_s = 2.0
+fade_in_ms = 10              # anti-click only, the hook must hit at once
+
+[audio]
+loudnorm = false             # true = normalize audio_final.wav to -14 LUFS / -1 dBTP
+
+[encode]
+container = "MPEG4"
+codec = "H264"
+gop = 30                     # half the frame rate (YouTube upload recommendation)
+max_b_frames = 2
+audio_codec = "AAC"
+audio_bitrate_kbps = 320
+audio_mixrate = 48000
+
+[profile.draft]
+resolution = [1080, 1920]
+eevee_samples = 16
+crf = "MEDIUM"
+
+[profile.final]
+resolution = [2160, 3840]
+eevee_samples = 48
+crf = "HIGH"

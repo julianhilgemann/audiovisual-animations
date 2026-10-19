@@ -6,13 +6,15 @@ Audio-reactive YouTube Shorts: a file dropped in `inbox/` is analyzed, mapped on
 
 ## Status
 
-Phase 0 (SPEC §11): folder skeleton, git, agent docs and `tools/blender_bridge.py` are done. Still open: uv, ffmpeg, `pyproject.toml`, CLI stub. Installing software on this machine needs the user's go-ahead.
+Phase 0 is done; next is Phase 1, the Director rig (SPEC §11). `uv run datapipe doctor` checks the whole toolchain, and `uv run pytest` runs the tests.
+
+The user wants this machine left intact. Python packages go into `.venv` through `pyproject.toml` and `uv`. FFmpeg comes from PyAV (`av`) inside the venv, not a system ffmpeg. Anything installed outside the repo needs the user's go-ahead first.
 
 Work phase by phase. A phase is done when its "Done when" column in SPEC §11 holds, shown by running the named test and reporting its output.
 
 ## One mapping engine, three hosts
 
-`src/datapipe/mapping.py` runs unchanged in the uv env (Python 3.12), Blender (3.13, numpy 2.3) and TouchDesigner (3.11, numpy 2.1). Keep it numpy-only, with Python 3.11 syntax and the numpy ≥ 2.1 API. A recipe tuned in TouchDesigner means the same thing in a Blender render only because all three hosts run this one file.
+`src/datapipe/mapping.py` runs unchanged in the uv env (Python 3.12), Blender (3.13, numpy 2.3) and TouchDesigner (3.11, numpy 2.1). Keep it numpy-only, with Python 3.11 syntax and the numpy ≥ 2.1 API. A recipe tuned in TouchDesigner means the same thing in a Blender render only because all three hosts run this one file. The venv has numpy 2.5, so a passing venv test doesn't prove the file still works on numpy 2.1. Run the mapping tests under Blender's Python as well.
 
 ## Environment (Windows 11, PowerShell 5.1)
 

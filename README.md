@@ -2,7 +2,17 @@
 
 Audio-reactive YouTube Shorts rendered with Blender. Drop a song into `inbox/` and get a finished 9:16 MP4 in `output/`.
 
-> **Status:** Phase 0, project skeleton. The pipeline itself isn't built yet. Design and roadmap: [SPEC.md](SPEC.md).
+> **Status:** Phase 0 done: toolchain and skeleton. The pipeline stages come next. Design and roadmap: [SPEC.md](SPEC.md).
+
+## Setup
+
+```powershell
+uv sync                    # creates .venv with Python 3.12 and all libraries (nothing installed system-wide)
+uv run datapipe doctor     # checks Python libs, PyAV/FFmpeg, Blender, TouchDesigner, GPU
+uv run pytest              # runs the tests
+```
+
+Requirements: [uv](https://docs.astral.sh/uv/) (`winget install astral-sh.uv`), Blender 5.2 LTS, and optionally TouchDesigner 2025.
 
 ## Folders
 
