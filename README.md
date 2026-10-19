@@ -24,6 +24,7 @@ Requirements: [uv](https://docs.astral.sh/uv/) (`winget install astral-sh.uv`), 
 | `presets/` | Shape and look presets, saved from the Blender side panel |
 | `config/mappings/` | Reactivity recipes, exported from TouchDesigner or hand-edited |
 | `touchdesigner/` | The TouchDesigner Reactivity Lab project |
+| `projects/` | Standalone TouchDesigner projects that aren't part of the pipeline (see [projects/README.md](projects/README.md)) |
 | `reference/` | Reference renders |
 | `work/`, `cache/`, `archive/` | Pipeline internals |
 

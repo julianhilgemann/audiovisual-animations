@@ -1,0 +1,2356 @@
+format: tdxn
+version: '2.1'
+build: 3
+generator: Embody/6.2.68
+td_build: 099.2025.32820
+network_path: /project1/audioreactor
+options:
+  include_dat_content: false
+  include_storage: true
+type_defaults:
+  audiofilterCHOP:
+    parameters:
+      autoexportroot: =parent()
+      units: frequency
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  audiospectrumCHOP:
+    parameters:
+      autoexportroot: =parent()
+      frequencylog: 0
+      highfreqboost: 0
+      outputmenu: setmanually
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  baseCOMP:
+    size: [160, 130]
+    color: [0.67, 0.67, 0.67]
+  blurTOP:
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  choptoTOP:
+    parameters:
+      format: rgba32float
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  constantCHOP:
+    parameters:
+      autoexportroot: =parent()
+      rate: =me.time.rate
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  constantTOP:
+    parameters:
+      alpha: 0
+      colorb: 0
+      colorg: 0
+      colorr: 0
+      format: rgba16float
+      outputresolution: custom
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  feedbackTOP:
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  glslTOP:
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  glslmultiTOP:
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  infoDAT:
+    flags:
+    - viewer
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  mergeCHOP:
+    parameters:
+      autoexportroot: =parent()
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  nullCHOP:
+    parameters:
+      autoexportroot: =parent()
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  nullTOP:
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  outDAT:
+    parameters:
+      label: =me.name
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  outTOP:
+    parameters:
+      label: =me.name
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  scriptCHOP:
+    parameters:
+      autoexportroot: =parent()
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  scriptDAT:
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  selectCHOP:
+    parameters:
+      autoexportroot: =parent()
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  speedCHOP:
+    parameters:
+      autoexportroot: =parent()
+      limittype: loop
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  textDAT:
+    size: [130, 90]
+type: baseCOMP
+custom_pars:
+  Data:
+  - name: Seriesid
+    style: Str
+    label: Series Key
+    default: BBIM1/M.DE.B.A2C.A.B.A.2250.EUR.N
+    help: Bundesbank time-series key as FLOW/KEY (statistiken.bundesbank.de). Default BBIM1/M.DE.B.A2C.A.B.A.2250.EUR.N = new business volume of housing loans to households, Germany, EUR mn per month.
+  - name: Fetch
+    style: Pulse
+    label: Fetch Series
+    help: Request the series from the Bundesbank REST API (CSV, asynchronous Web Client DAT) and rebuild the cleaned numeric table.
+  - name: Status
+    style: Str
+    readOnly: true
+    help: 'Result of the last API request: months parsed and date range, or the HTTP error.'
+    value: 284 months 2003-01 .. 2026-08
+  Wavetable:
+  - name: Start
+    style: Float
+    label: Window Start (months)
+    startSection: true
+    clampMin: true
+    normMax: 280.0
+    help: First month of the loop window, counted from the first observation (0 = Jan 2003). The window is played as ONE cycle of the wavetable. With Scan on, the scan offset is added to this.
+    value: 35
+  - name: Length
+    style: Int
+    label: Window Length (months)
+    default: 96
+    min: 4.0
+    clampMin: true
+    normMin: 4.0
+    normMax: 300.0
+    help: Months in the loop window (one oscillator cycle). Clipped to the months available after Window Start.
+    value: 49
+  - name: Loopmode
+    style: Menu
+    label: Loop Mode
+    default: forward
+    menuNames:
+    - forward
+    - pingpong
+    menuLabels:
+    - Forward (wrap)
+    - Ping-Pong (mirror)
+    help: Forward plays the window start to end and wraps; Ping-Pong plays it forward then backward, which closes the loop without a jump and keeps only odd-symmetric content.
+    value: pingpong
+  - name: Detrend
+    style: Menu
+    default: linear
+    menuNames:
+    - mean
+    - linear
+    menuLabels:
+    - Mean (DC only)
+    - Linear (close the loop)
+    help: Mean removes only the average (DC). Linear also removes the straight line from the first to the last month, so the wrap has no step and the cycle shows the deviation from trend.
+    value: mean
+  - name: Interp
+    style: Menu
+    label: Interpolation
+    default: cubic
+    menuNames:
+    - step
+    - linear
+    - cubic
+    menuLabels:
+    - Step (sample & hold)
+    - Linear
+    - Cubic (smooth)
+    help: How the monthly values are resampled to the 2048-sample table. Step keeps the monthly staircase (bright, buzzy), Cubic is the smoothest.
+  - name: Scan
+    style: Toggle
+    label: Scan History
+    startSection: true
+    default: true
+    help: Slide the loop window through the whole history, so the timbre morphs from 2003 to today like a wavetable scan.
+  - name: Scandir
+    style: Menu
+    label: Scan Direction
+    default: pingpong
+    menuNames:
+    - pingpong
+    - forward
+    - backward
+    menuLabels:
+    - Ping-Pong (back and forth)
+    - Forward (wrap to 2003)
+    - Backward (wrap to today)
+    help: 'How the window travels through history: back and forth, always forward in time (jumps back to the start at the end), or always backward.'
+    value: backward
+  - name: Scanrate
+    style: Float
+    label: Scan Rate (months/s)
+    default: 4
+    clampMin: true
+    normMax: 24.0
+    help: Months per second the window moves while Scan History is on. Camera motion adds to it (Sound Mod > Motion -> Scan).
+    value: 7.6
+  Shape:
+  - name: Shapemode
+    style: Menu
+    label: Shaper
+    default: soft
+    menuNames:
+    - soft
+    - hard
+    - fold
+    - crush
+    menuLabels:
+    - Soft Clip (tanh)
+    - Hard Clip
+    - Wavefold (sine)
+    - Bitcrush
+    help: 'Waveshaper applied to the cycle after normalisation: adds upper harmonics. Bitcrush maps Drive to bit depth (0 dB = 8 bit, 36 dB = 2 bit).'
+  - name: Drive
+    style: Float
+    label: Drive (dB)
+    default: 9
+    max: 48.0
+    clampMin: true
+    clampMax: true
+    normMax: 36.0
+    help: Gain into the shaper in dB; more drive means more and stronger upper harmonics. Microphone level adds to it (Sound Mod > Mic -> Drive).
+    value: 5.7
+  - name: Bias
+    style: Float
+    label: Asymmetry
+    min: -1.0
+    clampMin: true
+    clampMax: true
+    normMin: -1.0
+    help: Offset added before the shaper. Non-zero values clip one side harder and add even harmonics (DC is removed afterwards).
+    value: -0.15
+  - name: Mix
+    style: Float
+    default: 1
+    clampMin: true
+    clampMax: true
+    help: Dry/wet between the raw cycle (0) and the shaped cycle (1).
+    value: 0.884
+  - name: Bandlimit
+    style: Toggle
+    label: Band-limit to Pitch
+    default: true
+    help: Remove harmonics above Nyquist for the current pitch so high notes do not alias. Off lets aliasing through for a harsher digital sound.
+  Pitch:
+  - name: Note
+    style: Float
+    label: Note (MIDI)
+    default: 45
+    min: 12.0
+    max: 108.0
+    clampMin: true
+    clampMax: true
+    normMin: 24.0
+    normMax: 84.0
+    help: Drone pitch as a MIDI note number (45 = A2 = 110 Hz, 57 = A3, 69 = A4 = 440 Hz). The wavetable shape is kept; only the playback rate changes.
+    value: 25.6
+  - name: Fine
+    style: Float
+    label: Fine (cents)
+    min: -100.0
+    max: 100.0
+    clampMin: true
+    clampMax: true
+    normMin: -100.0
+    normMax: 100.0
+    help: Fine tuning in cents (1/100 semitone).
+    value: -11
+  - name: Glide
+    style: Float
+    label: Glide (s)
+    default: 0.08
+    max: 4.0
+    clampMin: true
+    clampMax: true
+    help: 'Portamento time: seconds the frequency takes to slide to a new note.'
+    value: 0.295
+  Filter:
+  - name: Filtertype
+    style: Menu
+    label: Filter Type
+    default: lowpass
+    menuNames:
+    - lowpass
+    - highpass
+    - bandpass
+    - bandreject
+    menuLabels:
+    - Low Pass
+    - High Pass
+    - Band Pass
+    - Band Reject
+    help: Response of the audio filter after the shaper.
+  - name: Cutoff
+    style: Float
+    label: Cutoff (Hz)
+    default: 1200
+    min: 20.0
+    max: 20000.0
+    clampMin: true
+    clampMax: true
+    normMin: 20.0
+    normMax: 6000.0
+    help: Filter cutoff in Hz before drift and proximity modulation.
+    value: 6000
+  - name: Resonance
+    style: Float
+    default: 0.35
+    clampMin: true
+    clampMax: true
+    help: Boost around the cutoff frequency (0 = none).
+    value: 0.055
+  - name: Rolloff
+    style: Menu
+    label: Roll-off
+    default: '24'
+    menuNames:
+    - '12'
+    - '24'
+    menuLabels:
+    - 12 dB/oct
+    - 24 dB/oct
+    help: Steepness of the filter slope.
+  - name: Drift
+    style: Float
+    label: Drift (oct)
+    startSection: true
+    default: 0.6
+    max: 4.0
+    clampMin: true
+    clampMax: true
+    normMax: 3.0
+    help: Depth of the slow cutoff wander in octaves (0 = static filter). Two de-synced sines, so the drone keeps breathing with nobody in the room.
+    value: 0.02
+  - name: Driftrate
+    style: Float
+    label: Drift Rate (Hz)
+    default: 0.05
+    min: 0.001
+    max: 2.0
+    clampMin: true
+    clampMax: true
+    normMin: 0.005
+    normMax: 0.5
+    help: 'Speed of the cutoff wander: cycles per second of the main drift sine.'
+    value: 0.141
+  Output:
+  - name: Audio
+    style: Toggle
+    label: Audio Out
+    default: true
+    help: Sends the drone to the default audio device.
+  - name: Volume
+    style: Float
+    default: 0.3
+    clampMin: true
+    clampMax: true
+    help: Output gain (linear, 0-1) before the safety limiter.
+    value: 0.459
+  Visual:
+  - name: Palette
+    style: Menu
+    label: Color Scale
+    default: inferno
+    menuNames:
+    - inferno
+    - magma
+    - viridis
+    - turbo
+    - ice
+    - mono
+    menuLabels:
+    - Inferno
+    - Magma
+    - Viridis
+    - Turbo
+    - Ice
+    - Mono
+    help: Color scale the sonogram level is mapped through (quiet -> loud).
+  - name: Paletteshift
+    style: Float
+    label: Scale Offset
+    min: -1.0
+    clampMin: true
+    clampMax: true
+    normMin: -0.5
+    normMax: 0.5
+    help: 'Slides the level along the color scale: positive values show quieter content brighter, negative values darken everything but the peaks.'
+    value: 0.377
+  - name: Contrast
+    style: Float
+    label: Level Contrast
+    default: 2
+    min: 0.2
+    max: 4.0
+    clampMin: true
+    clampMax: true
+    normMin: 0.4
+    normMax: 3.0
+    help: Gamma on the sonogram level before the color scale (1 = linear dB; higher hides the quiet bins and isolates the strong partials).
+    value: 1.47
+  - name: Direction
+    style: Menu
+    label: Flow Direction
+    startSection: true
+    default: left
+    menuNames:
+    - left
+    - right
+    - up
+    - down
+    menuLabels:
+    - Left
+    - Right
+    - Up
+    - Down
+    help: 'Where the history flows: new sound enters at the opposite edge and travels this way. Left/Right put frequency on the vertical axis, Up/Down on the horizontal axis.'
+    value: down
+  - name: Speed
+    style: Float
+    label: Flow Speed
+    default: 1
+    max: 6.0
+    clampMin: true
+    clampMax: true
+    normMax: 4.0
+    help: 'Screen crossings per 10 seconds of the sonogram/scope history (0 = static: nothing travels, the whole field breathes with the live sound).'
+    value: 4
+  - name: Depth
+    style: Float
+    label: Scope Depth
+    default: 1
+    max: 4.0
+    clampMin: true
+    clampMax: true
+    normMax: 3.0
+    help: How far the oscilloscope history pushes the cloud in depth.
+    value: 0
+  - name: Thickness
+    style: Float
+    label: Cloud Thickness
+    default: 0.6
+    max: 3.0
+    clampMin: true
+    clampMax: true
+    normMax: 2.0
+    help: Depth spacing between the three layers of the cloud (0 = one flat sheet).
+    value: 0.73
+  - name: Scatter
+    style: Float
+    default: 0.45
+    max: 2.0
+    clampMin: true
+    clampMax: true
+    normMax: 1.5
+    help: Fixed random offset of each point, which turns the grid into a cloud.
+    value: 0.11
+  - name: Pointsize
+    style: Float
+    label: Point Size
+    default: 1
+    min: 0.1
+    max: 6.0
+    clampMin: true
+    clampMax: true
+    normMin: 0.2
+    normMax: 3.0
+    help: Size multiplier of the rendered points.
+    value: 0.74
+  - name: Sway
+    style: Float
+    label: Camera Sway
+    startSection: true
+    default: 1
+    max: 3.0
+    clampMin: true
+    clampMax: true
+    normMax: 2.0
+    help: Amount of the slow, eased camera sway around the cloud (0 = locked camera).
+    value: 0.25
+  - name: Swayspeed
+    style: Float
+    label: Sway Speed
+    default: 1
+    max: 5.0
+    clampMin: true
+    clampMax: true
+    normMax: 3.0
+    help: Speed multiplier of the camera sway and of the idle breathing noise.
+    value: 3
+  - name: Glow
+    style: Float
+    default: 1
+    max: 3.0
+    clampMin: true
+    clampMax: true
+    help: Base strength of the bloom (the low band of the microphone adds to it).
+    value: 0.89
+  - name: Dof
+    style: Float
+    label: Depth of Field
+    default: 1
+    max: 4.0
+    clampMin: true
+    clampMax: true
+    normMax: 3.0
+    help: Blur of points in front of and behind the focus plane (soft bokeh discs). The mid band of the microphone adds to it.
+    value: 0.06
+  Reactivity:
+  - name: Reach
+    style: Float
+    label: Silhouette Reach
+    default: 1
+    max: 4.0
+    clampMin: true
+    clampMax: true
+    normMax: 3.0
+    help: How far the points inside a visitor's silhouette come toward the screen; grows with proximity, so a hand close to the camera pulls the cloud to it.
+    value: 0.04
+  - name: Imprint
+    style: Float
+    label: Silhouette Imprint
+    default: 0.5
+    clampMin: true
+    clampMax: true
+    help: How strongly the silhouette lifts its points up the color scale and enlarges them.
+    value: 0.199
+  - name: Ripple
+    style: Float
+    label: Motion Ripple
+    default: 1
+    max: 4.0
+    clampMin: true
+    clampMax: true
+    normMax: 3.0
+    help: Turbulence the camera motion trail stirs into the cloud where people move.
+    value: 3
+  - name: Chaos
+    style: Float
+    label: Noise Chaos
+    startSection: true
+    default: 1
+    max: 4.0
+    clampMin: true
+    clampMax: true
+    normMax: 3.0
+    help: 'Master amount for everything the room microphone does to the image: louder = messier, silence = clear patterns.'
+    value: 1.66
+  - name: Lowbloom
+    style: Float
+    label: Low -> Bloom
+    default: 1
+    max: 3.0
+    clampMin: true
+    clampMax: true
+    help: 'Low band (< 250 Hz) of the microphone: bloom and a depth pump.'
+    value: 0.671
+  - name: Midblur
+    style: Float
+    label: Mid -> Blur
+    default: 1
+    max: 3.0
+    clampMin: true
+    clampMax: true
+    help: 'Mid band (250 Hz - 4 kHz) of the microphone: defocus blur and a looser cloud.'
+    value: 0.24
+  - name: Highjitter
+    style: Float
+    label: High -> Jitter
+    default: 1
+    max: 3.0
+    clampMin: true
+    clampMax: true
+    help: 'High band (> 4 kHz) of the microphone: per-frame point jitter and grain.'
+    value: 0.103
+  - name: Kick
+    style: Float
+    label: Transient -> Kick
+    default: 1
+    max: 3.0
+    clampMin: true
+    clampMax: true
+    help: 'Sudden sounds (claps, knocks): a radial shock through the cloud and a brief color split.'
+    value: 0.247
+  - name: Micsono
+    style: Float
+    label: Mic -> Sonogram
+    default: 0.6
+    clampMin: true
+    clampMax: true
+    help: 'How much of the room sound is written into the sonogram history: the market noise that covers up the patterns in the data.'
+    value: 0.034
+  Sound Mod:
+  - name: Proxcutoff
+    style: Float
+    label: Proximity -> Cutoff (oct)
+    default: 2
+    min: -6.0
+    max: 6.0
+    clampMin: true
+    clampMax: true
+    normMin: -4.0
+    normMax: 4.0
+    help: Octaves the filter opens when a visitor fills the camera frame (negative closes it).
+    value: 4
+  - name: Motionscan
+    style: Float
+    label: Motion -> Scan (months/s)
+    default: 24
+    max: 120.0
+    clampMin: true
+    clampMax: true
+    normMax: 60.0
+    help: 'Extra scan speed at full camera motion: moving makes the drone travel faster through the history.'
+    value: 3.7
+  - name: Posstart
+    style: Float
+    label: Position -> Window (months)
+    default: 48
+    max: 240.0
+    clampMin: true
+    clampMax: true
+    normMax: 120.0
+    help: 'Window offset (in months) from walking left to right in front of the camera: the horizontal position scrubs through the years.'
+    value: 46
+  - name: Micdrive
+    style: Float
+    label: Mic -> Drive (dB)
+    default: 4
+    max: 24.0
+    clampMin: true
+    clampMax: true
+    normMax: 12.0
+    help: Extra shaper drive at full room loudness (the drone gets rougher when the room is loud).
+    value: 6.08
+  Inputs:
+  - name: Camera
+    style: Toggle
+    default: true
+    help: 'Use the camera (sense/videoin_cam: pick the device there). Off = no silhouette, no motion.'
+  - name: Mirror
+    style: Toggle
+    default: true
+    help: Mirror the camera horizontally so the cloud follows visitors like a mirror.
+  - name: Keymode
+    style: Menu
+    label: Silhouette Key
+    default: bgdiff
+    menuNames:
+    - bgdiff
+    - dark
+    menuLabels:
+    - Background Difference
+    - Dark on Light (white room)
+    help: 'How a visitor is separated from the room: difference to a captured empty-room background, or simply anything darker than a white wall.'
+  - name: Keythreshold
+    style: Float
+    label: Key Threshold
+    default: 0.12
+    clampMin: true
+    clampMax: true
+    normMax: 0.5
+    help: Difference (or darkness) above which a pixel counts as visitor.
+    value: 0.5
+  - name: Keysoftness
+    style: Float
+    label: Key Softness
+    default: 0.08
+    min: 0.001
+    max: 0.5
+    clampMin: true
+    clampMax: true
+    normMax: 0.3
+    help: Width of the soft edge around the threshold.
+    value: 0.125
+  - name: Bglearn
+    style: Float
+    label: Background Learn (s)
+    default: 40
+    max: 600.0
+    clampMin: true
+    clampMax: true
+    normMax: 120.0
+    help: Time constant in seconds with which the background slowly absorbs the room (lighting drift, moved furniture). 0 = never learn, only Capture.
+    value: 55.9
+  - name: Capturebg
+    style: Pulse
+    label: Capture Background
+    help: Take the current camera image as the empty-room background. Press it with nobody in front of the camera.
+  - name: Motiondecay
+    style: Float
+    label: Motion Trail (s)
+    default: 0.8
+    min: 0.05
+    max: 5.0
+    clampMin: true
+    clampMax: true
+    normMax: 3.0
+    help: Seconds the motion trail takes to fade.
+    value: 0.05
+  - name: Mic
+    style: Toggle
+    label: Microphone
+    startSection: true
+    default: true
+    help: 'Use the room microphone (sense/audiodevin_mic: pick the device there).'
+  - name: Micgain
+    style: Float
+    label: Mic Gain (dB)
+    default: 12
+    min: -24.0
+    max: 48.0
+    clampMin: true
+    clampMax: true
+    normMin: -12.0
+    normMax: 36.0
+    help: Input gain before the band levels are measured.
+    value: -4.8
+  - name: Floortime
+    style: Float
+    label: Floor Adapt (s)
+    default: 8
+    max: 120.0
+    clampMin: true
+    clampMax: true
+    normMax: 30.0
+    help: Time the adaptive floor needs to absorb a constant sound (the drone from the speakers, air conditioning). Only sound above the floor makes noise. 0 = no floor.
+    value: 9
+  - name: Micsmooth
+    style: Float
+    label: Mic Release (s)
+    default: 0.35
+    min: 0.01
+    max: 4.0
+    clampMin: true
+    clampMax: true
+    normMax: 2.0
+    help: Release time of the band envelopes (attack is fixed and fast).
+    value: 0.25
+  Monitor:
+  - name: Monpresence
+    style: Float
+    label: Presence
+    readOnly: true
+    help: 'Read-only: 0-1, someone is in front of the camera.'
+    value: =float(me.op('sense/null_features')['presence'] or 0) if me.op('sense/null_features') is not None else 0.0
+  - name: Monprox
+    style: Float
+    label: Proximity
+    readOnly: true
+    help: 'Read-only: 0-1, how much of the frame the silhouette fills (closer = higher).'
+    value: =float(me.op('sense/null_features')['prox'] or 0) if me.op('sense/null_features') is not None else 0.0
+  - name: Monposx
+    style: Float
+    label: Position X
+    readOnly: true
+    help: 'Read-only: 0-1, horizontal center of the silhouette (mirrored like the image).'
+    value: =float(me.op('sense/null_features')['cx'] or 0) if me.op('sense/null_features') is not None else 0.0
+  - name: Monmotion
+    style: Float
+    label: Motion
+    readOnly: true
+    help: 'Read-only: 0-1, amount of movement in the camera image.'
+    value: =float(me.op('sense/null_features')['motion'] or 0) if me.op('sense/null_features') is not None else 0.0
+  - name: Monlow
+    style: Float
+    label: Mic Low
+    startSection: true
+    readOnly: true
+    help: 'Read-only: 0-1, low band above the adaptive floor.'
+    value: =float(me.op('sense/null_features')['low'] or 0) if me.op('sense/null_features') is not None else 0.0
+  - name: Monmid
+    style: Float
+    label: Mic Mid
+    readOnly: true
+    help: 'Read-only: 0-1, mid band above the adaptive floor.'
+    value: =float(me.op('sense/null_features')['mid'] or 0) if me.op('sense/null_features') is not None else 0.0
+  - name: Monhigh
+    style: Float
+    label: Mic High
+    readOnly: true
+    help: 'Read-only: 0-1, high band above the adaptive floor.'
+    value: =float(me.op('sense/null_features')['high'] or 0) if me.op('sense/null_features') is not None else 0.0
+  - name: Montransient
+    style: Float
+    label: Mic Transient
+    readOnly: true
+    help: 'Read-only: 0-1, sudden onsets (fast envelope over slow envelope).'
+    value: =float(me.op('sense/null_features')['transient'] or 0) if me.op('sense/null_features') is not None else 0.0
+parameters:
+  parentshortcut: Reactor
+sequences:
+  ext:
+  - object: op('./AudioReactorExt').module.AudioReactorExt(me)
+    name: Reactor
+    promote: true
+flags:
+- -allowCooking
+color: [0.3, 0.5, 0.9]
+tags:
+- tdxn
+operators:
+- name: viz
+  type: baseCOMP
+  position: [1000, 0]
+  children:
+  - name: out1
+    type: outTOP
+    position: [7300, -400]
+    inputs:
+    - null_out
+  - name: cam_view
+    type: cameraCOMP
+    parameters:
+      xord: trs
+      tz: =5.4 * (1.0 - 0.1 * me.parent().op('select_features')['prox'])
+      rx: =-9.0 + parent.Reactor.par.Sway * (4.0 * math.sin(6.2831853 * me.parent().op('speed_flow')['swayy']) + 1.2 * math.sin(6.2831853 * 2.0 * me.parent().op('speed_flow')['swayy'] + 0.7))
+      ry: =parent.Reactor.par.Sway * (8.0 * math.sin(6.2831853 * me.parent().op('speed_flow')['swayx']) + 2.0 * math.sin(6.2831853 * 3.0 * me.parent().op('speed_flow')['swayx'] + 1.3))
+      fov: 50
+      near: 0.05
+      far: 60
+    position: [4900, 0]
+    size: [160, 130]
+    color: [0.67, 0.67, 0.67]
+    children:
+    - name: file1
+      type: fileinPOP
+      parameters:
+        file: =app.samplesFolder + '/Geo/defcam.tog'
+      flags:
+      - display
+      - viewer
+      size: [130, 90]
+      color: [0.67, 0.67, 0.67]
+  - name: null_out
+    type: nullTOP
+    position: [6900, -400]
+    inputs:
+    - glsl_post
+  - name: geo_cloud
+    type: geometryCOMP
+    parameters:
+      instancing: true
+      instancecountmode: manual
+      numinstances: =me.parent().op('null_field').width * me.parent().op('null_field').height
+      material: mat_cloud
+    position: [4900, -400]
+    size: [160, 130]
+    color: [0.67, 0.67, 0.67]
+    children:
+    - name: rect
+      type: rectangleSOP
+      flags:
+      - display
+      - render
+      position: [200, 0]
+      size: [130, 90]
+      color: [0.67, 0.67, 0.67]
+  - name: glsl_post
+    type: glslmultiTOP
+    parameters:
+      pixeldat: glsl_post_pixel
+    sequences:
+      vec:
+      - name: uPost
+        valuex: =min(1.0, op('const_react')['mid'] * 0.8)
+        valuey: =op('const_react')['kick']
+        valuez: =0.015 + 0.08 * op('const_react')['high']
+        valuew: 1
+      - name: uTime
+        valuex: =absTime.frame % 10000
+    position: [6500, -400]
+    inputs:
+    - bloom_cloud
+    - blur_defocus
+  - name: mat_cloud
+    type: glslMAT
+    parameters:
+      vdat: mat_cloud_vertex
+      pdat: mat_cloud_pixel
+      skelrootpath: =parent()
+      blending: true
+      destblend: one
+      depthtest: false
+      depthwriting: false
+      cullface: neither
+    sequences:
+      mattr:
+      - comps: 2
+        cols: 2
+      sampler:
+      - name: sPos
+        top: null_field
+        filter: nearest
+      - name: sCol
+        top: null_color
+        filter: nearest
+      vec:
+      - name: uFade
+        valuex: 5
+        valuey: 8.5
+        valuez: 0.15
+        valuew: 1.5
+      - name: uDof
+        valuex: =op('cam_view').par.tz
+        valuey: =0.012 * parent.Reactor.par.Dof * (1.0 + 2.0 * op('const_react')['mid'])
+        valuez: 0.12
+        valuew: 0
+    position: [4900, -800]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  - name: const_flow
+    type: constantCHOP
+    sequences:
+      const:
+      - name: head
+        value: =parent.Reactor.par.Speed * 0.1
+      - name: swayx
+        value: =0.019 * parent.Reactor.par.Swayspeed
+      - name: swayy
+        value: =0.013 * parent.Reactor.par.Swayspeed
+      - name: breath
+        value: =0.023 * parent.Reactor.par.Swayspeed
+    position: [0, -1200]
+  - name: glsl_field
+    type: glslmultiTOP
+    parameters:
+      pixeldat: glsl_field_pixel
+      numcolorbufs: 2
+      outputresolution: custom
+      resolutionw: 192
+      resolutionh: 324
+      format: rgba32float
+    sequences:
+      vec:
+      - name: uFlow
+        valuex: =op('speed_flow')['head'] * op('glsl_history').par.resolutionw
+        valuey: =parent.Reactor.par.Direction.menuIndex
+        valuez: =float(parent.Reactor.par.Mirror)
+        valuew: =op('speed_flow')['breath']
+      - name: uShape
+        valuex: =parent.Reactor.par.Depth
+        valuey: =parent.Reactor.par.Thickness
+        valuez: =parent.Reactor.par.Scatter
+        valuew: =parent.Reactor.par.Pointsize
+      - name: uReact
+        valuex: =parent.Reactor.par.Reach
+        valuey: =parent.Reactor.par.Imprint
+        valuez: =parent.Reactor.par.Ripple
+        valuew: =op('select_features')['prox']
+      - name: uNoise
+        valuex: =op('const_react')['low']
+        valuey: =op('const_react')['mid']
+        valuez: =op('const_react')['high']
+        valuew: =op('const_react')['kick']
+      - name: uPal
+        valuex: =parent.Reactor.par.Palette.menuIndex
+        valuey: =parent.Reactor.par.Paletteshift
+        valuez: =parent.Reactor.par.Contrast
+        valuew: =parent.Reactor.par.Micsono
+      - name: uMisc
+        valuex: =absTime.frame % 10000
+        valuez: 1.6
+        valuew: 1.77778
+    position: [3200, -400]
+    inputs:
+    - null_history
+    - select_presence
+  - name: null_color
+    type: nullTOP
+    position: [4000, -800]
+    inputs:
+    - renderselect_color
+  - name: null_field
+    type: nullTOP
+    position: [3600, -400]
+    inputs:
+    - glsl_field
+  - name: speed_flow
+    type: speedCHOP
+    position: [400, -1200]
+    inputs:
+    - const_flow
+  - name: bloom_cloud
+    type: bloomTOP
+    parameters:
+      bloomthreshold: 0.6
+      bloomintensity: =0.35 * parent.Reactor.par.Glow + 0.6 * op('const_react')['low']
+      format: rgba16float
+    position: [5700, -400]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+    inputs:
+    - render_cloud
+  - name: const_react
+    type: constantCHOP
+    sequences:
+      const:
+      - name: low
+        value: =op('select_features')['low'] * parent.Reactor.par.Lowbloom * parent.Reactor.par.Chaos
+      - name: mid
+        value: =op('select_features')['mid'] * parent.Reactor.par.Midblur * parent.Reactor.par.Chaos
+      - name: high
+        value: =op('select_features')['high'] * parent.Reactor.par.Highjitter * parent.Reactor.par.Chaos
+      - name: kick
+        value: =op('select_features')['transient'] * parent.Reactor.par.Kick * parent.Reactor.par.Chaos
+    position: [400, -1600]
+  - name: blur_defocus
+    type: blurTOP
+    parameters:
+      size: =int(4 + 30 * min(1.0, op('const_react')['mid']))
+    position: [6100, -800]
+    inputs:
+    - bloom_cloud
+  - name: chopto_scope
+    type: choptoTOP
+    parameters:
+      chop: ../engine/null_scope
+    position: [1200, -800]
+  - name: glsl_history
+    type: glslmultiTOP
+    parameters:
+      pixeldat: glsl_history_pixel
+      outputresolution: custom
+      format: rgba16float
+    sequences:
+      vec:
+      - name: uHead
+        valuex: =op('speed_flow')['head'] * me.par.resolutionw
+        valuey: =parent.Reactor.par.Speed * 0.1 * me.par.resolutionw / me.time.rate
+        valuez: =1.0 if parent.Reactor.par.Speed < 0.001 else 0.0
+      - name: uSono
+        valuex: 30
+        valuey: 16000
+        valuez: 22050
+        valuew: 0.031
+    position: [2400, -400]
+    inputs:
+    - null_specsmooth
+    - null_micsmooth
+    - chopto_scope
+    - feedback_history
+  - name: null_history
+    type: nullTOP
+    position: [2800, -400]
+    inputs:
+    - glsl_history
+  - name: render_cloud
+    type: renderTOP
+    parameters:
+      camera: cam_view
+      geometry: geo_cloud
+      lights: ''
+      bgcolora: 1
+      format: rgba16float
+    position: [5300, -400]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  - name: const_history
+    type: constantTOP
+    position: [1200, -1200]
+  - name: feedback_spec
+    type: feedbackTOP
+    parameters:
+      top: null_specsmooth
+    position: [400, 0]
+    inputs:
+    - chopto_spectrum
+  - name: chopto_micspec
+    type: choptoTOP
+    parameters:
+      chop: ../sense/null_micspectrum
+    position: [0, -400]
+  - name: glsl_micsmooth
+    type: glslTOP
+    parameters:
+      pixeldat: glsl_specsmooth_pixel
+      format: rgba32float
+    sequences:
+      vec:
+      - name: uSmooth
+        valuex: 0.6
+        valuey: 0.12
+        valuez: 0.004
+        valuew: =14.0 + parent.Reactor.par.Micgain
+    position: [800, -400]
+    inputs:
+    - chopto_micspec
+    - feedback_micspec
+  - name: glsl_post_info
+    type: infoDAT
+    parameters:
+      op: glsl_post
+    position: [6425, -520]
+    dock: glsl_post
+    dat_read_only: true
+  - name: mat_cloud_info
+    type: infoDAT
+    parameters:
+      op: mat_cloud
+    position: [4750, -920]
+    dock: mat_cloud
+    dat_read_only: true
+  - name: null_micsmooth
+    type: nullTOP
+    position: [1200, -400]
+    inputs:
+    - glsl_micsmooth
+  - name: chopto_spectrum
+    type: choptoTOP
+    parameters:
+      chop: ../engine/null_spectrum
+  - name: glsl_field_info
+    type: infoDAT
+    parameters:
+      op: glsl_field
+    position: [3125, -520]
+    dock: glsl_field
+    dat_read_only: true
+  - name: glsl_post_pixel
+    type: textDAT
+    parameters:
+      file: project1/audioreactor/viz/glsl_post_pixel.glsl
+      syncfile: true
+      language: glsl
+      extension: frag
+    flags:
+    - viewer
+    position: [6575, -520]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - glsl
+    dock: glsl_post
+  - name: glsl_specsmooth
+    type: glslTOP
+    parameters:
+      pixeldat: glsl_specsmooth_pixel
+      format: rgba32float
+    sequences:
+      vec:
+      - name: uSmooth
+        valuex: 0.6
+        valuey: 0.12
+        valuez: 0.004
+        valuew: 14
+    position: [800, 0]
+    inputs:
+    - chopto_spectrum
+    - feedback_spec
+  - name: mat_cloud_pixel
+    type: textDAT
+    parameters:
+      file: project1/audioreactor/viz/mat_cloud_pixel.glsl
+      syncfile: true
+      language: glsl
+      extension: frag
+    flags:
+    - viewer
+    position: [4900, -920]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - glsl
+    dock: mat_cloud
+  - name: null_specsmooth
+    type: nullTOP
+    position: [1200, 0]
+    inputs:
+    - glsl_specsmooth
+  - name: select_features
+    type: selectCHOP
+    parameters:
+      chops: ../sense/null_features
+    position: [0, -1600]
+  - name: select_presence
+    type: selectTOP
+    parameters:
+      top: ../sense/null_presence_soft
+    position: [2800, -800]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  - name: feedback_history
+    type: feedbackTOP
+    parameters:
+      top: null_history
+    position: [2000, -1200]
+    inputs:
+    - const_history
+  - name: feedback_micspec
+    type: feedbackTOP
+    parameters:
+      top: null_micsmooth
+    position: [400, -400]
+    inputs:
+    - chopto_micspec
+  - name: glsl_field_pixel
+    type: textDAT
+    parameters:
+      file: project1/audioreactor/viz/glsl_field_pixel.glsl
+      syncfile: true
+      language: glsl
+      extension: frag
+    flags:
+    - viewer
+    position: [3275, -520]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - glsl
+    dock: glsl_field
+  - name: mat_cloud_vertex
+    type: textDAT
+    parameters:
+      file: project1/audioreactor/viz/mat_cloud_vertex.glsl
+      syncfile: true
+      language: glsl
+      extension: vert
+    flags:
+    - viewer
+    position: [5050, -920]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - glsl
+    dock: mat_cloud
+  - name: glsl_history_info
+    type: infoDAT
+    parameters:
+      op: glsl_history
+    position: [2325, -520]
+    dock: glsl_history
+    dat_read_only: true
+  - name: glsl_history_pixel
+    type: textDAT
+    parameters:
+      file: project1/audioreactor/viz/glsl_history_pixel.glsl
+      syncfile: true
+      language: glsl
+      extension: frag
+    flags:
+    - viewer
+    position: [2475, -520]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - glsl
+    dock: glsl_history
+  - name: renderselect_color
+    type: renderselectTOP
+    parameters:
+      top: glsl_field
+      bufferindex: 1
+      format: rgba32float
+    position: [3600, -800]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  - name: glsl_micsmooth_info
+    type: infoDAT
+    parameters:
+      op: glsl_micsmooth
+    position: [800, -520]
+    dock: glsl_micsmooth
+    dat_read_only: true
+  - name: glsl_specsmooth_info
+    type: infoDAT
+    parameters:
+      op: glsl_specsmooth
+    position: [725, -120]
+    dock: glsl_specsmooth
+    dat_read_only: true
+  - name: glsl_specsmooth_pixel
+    type: textDAT
+    parameters:
+      file: project1/audioreactor/viz/glsl_specsmooth_pixel.glsl
+      syncfile: true
+      language: glsl
+      extension: frag
+    flags:
+    - viewer
+    position: [875, -120]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - glsl
+    dock: glsl_specsmooth
+  annotations:
+  - name: annotate1
+    mode: annotate
+    title: 'Inputs: spectra, scope, flow phases, reactivity'
+    text: 'Drone spectrum and room-mic spectrum -> glsl_specsmooth (one shared shader DAT) -> dB levels 0-1 (R smoothed). chopto_scope = one synced drone cycle. const_flow/speed_flow integrate Flow Speed (head) and the sway/breath phases, all looping 0-1. const_react = mic bands x their amounts x Chaos: the single place the noise mapping lives.'
+    position: [-70, -1670]
+    size: [1470, 1930]
+    color: [0.2, 0.2, 0.28]
+  - name: annotate2
+    mode: annotate
+    title: History ring buffer -> point field
+    text: 'glsl_history writes the live sonogram (R drone, G room, log 30 Hz-16 kHz) and scope (B) into column `head` of a 256x256 ring; Speed 0 = static (columns relax toward the live sound). glsl_field turns it into 192x108x3 points: buffer 0 position+radius (null_field), buffer 1 colour (renderselect_color -> null_color). Direction picks which screen axis is time.'
+    position: [1930, -1270]
+    size: [2340, 1130]
+    color: [0.27, 0.1, 0.24]
+  - name: annotate3
+    mode: annotate
+    title: Render + finish
+    text: 'geo_cloud = 62k instances of one quad; mat_cloud billboards them from null_field/null_color, additive, depth-of-field bokeh and distance fade. cam_view sways (Sway) and dollies in with proximity. bloom (Glow + low band) -> blur_defocus (mid band) -> glsl_post: defocus mix, colour split on transients, grain on highs, ACES tone map, vignette -> out1.'
+    position: [4680, -990]
+    size: [2820, 1290]
+    color: [0.08, 0.24, 0.28]
+- name: data
+  type: baseCOMP
+  position: [200, 0]
+  children:
+  - name: raw_csv
+    type: textDAT
+    position: [600, 0]
+    color: [0.67, 0.67, 0.67]
+    dat_content: |
+      "",BBIM1.M.DE.B.A2C.A.B.A.2250.EUR.N,BBIM1.M.DE.B.A2C.A.B.A.2250.EUR.N_FLAGS
+      "",New business (volumes) of German banks / Housing loans to households / SUD231,
+      Comment (in english),"The MFI interest rate statistics gathered on a harmonised basis in the euro area are collected in Germany on a sample basis (stratified sample). The reported volumes of new business are grossed up to form total results for Germany. Up to May 2010 the weighting scheme followed the Horvitz-Thomson estimator (an individual expansion factor for each reporting agent). From June 2010 for each stratum an individual expansion factor is used to gross-up the reported volumes of all reporting agents of the same stratum. Then the grossed-up volumes per stratum are added to calculate the aggregated volume of new business. Secured and unsecured loans for home purchase, including building and home improvements; including loans granted by building and loan associations and interim credits as well as transmitted loans granted by the reporting agents in their own name and for their own account. Excluding overdrafts.",
+      Decimals,0,
+      Time format code,P1M,
+      category,ZREK,
+      unit,EURO,
+      unit multiplier,Millions,
+      last update,2026-10-01 15:04:43,
+      2003-01,15547,
+      2003-02,12498,
+      2003-03,14210,
+      2003-04,16540,
+      2003-05,12279,
+      2003-06,13149,
+      2003-07,17231,
+      2003-08,13437,
+      2003-09,14926,
+      2003-10,15156,
+      2003-11,13245,
+      2003-12,17441,
+      2004-01,15286,
+      2004-02,11346,
+      2004-03,14144,
+      2004-04,13903,
+      2004-05,12177,
+      2004-06,14019,
+      2004-07,15348,
+      2004-08,10854,
+      2004-09,11119,
+      2004-10,12241,
+      2004-11,11143,
+      2004-12,13789,
+      2005-01,12926,
+      2005-02,9950,
+      2005-03,12844,
+      2005-04,13669,
+      2005-05,12015,
+      2005-06,14434,
+      2005-07,16593,
+      2005-08,14853,
+      2005-09,14204,
+      2005-10,14545,
+      2005-11,15980,
+      2005-12,19719,
+      2006-01,20235,
+      2006-02,14884,
+      2006-03,17351,
+      2006-04,16110,
+      2006-05,15761,
+      2006-06,15743,
+      2006-07,15445,
+      2006-08,14902,
+      2006-09,13132,
+      2006-10,15171,
+      2006-11,14420,
+      2006-12,15001,
+      2007-01,17214,
+      2007-02,12763,
+      2007-03,16403,
+      2007-04,16257,
+      2007-05,15696,
+      2007-06,16110,
+      2007-07,17313,
+      2007-08,14888,
+      2007-09,13166,
+      2007-10,15253,
+      2007-11,13623,
+      2007-12,13088,
+      2008-01,16211,
+      2008-02,12265,
+      2008-03,12444,
+      2008-04,16717,
+      2008-05,14133,
+      2008-06,15739,
+      2008-07,17390,
+      2008-08,13063,
+      2008-09,14136,
+      2008-10,15692,
+      2008-11,13446,
+      2008-12,15160,
+      2009-01,16761,
+      2009-02,13850,
+      2009-03,17570,
+      2009-04,18398,
+      2009-05,16194,
+      2009-06,17816,
+      2009-07,19866,
+      2009-08,15779,
+      2009-09,14807,
+      2009-10,15955,
+      2009-11,13720,
+      2009-12,14486,
+      2010-01,13789,
+      2010-02,11896,
+      2010-03,15310,
+      2010-04,14797,
+      2010-05,13846,
+      2010-06,14619,comment
+      2010-07,17726,
+      2010-08,14765,
+      2010-09,15880,
+      2010-10,16502,
+      2010-11,15880,
+      2010-12,17413,
+      2011-01,16627,
+      2011-02,14116,
+      2011-03,17046,
+      2011-04,16160,
+      2011-05,15927,
+      2011-06,13517,
+      2011-07,15501,
+      2011-08,15053,
+      2011-09,15004,
+      2011-10,15908,
+      2011-11,15885,
+      2011-12,16409,
+      2012-01,15200,
+      2012-02,13738,
+      2012-03,15889,
+      2012-04,15188,
+      2012-05,14935,
+      2012-06,16205,
+      2012-07,18522,
+      2012-08,17336,
+      2012-09,14897,
+      2012-10,17057,
+      2012-11,16258,
+      2012-12,14067,
+      2013-01,17097,
+      2013-02,14257,
+      2013-03,15371,
+      2013-04,17941,
+      2013-05,15495,
+      2013-06,16483,
+      2013-07,20820,
+      2013-08,16515,
+      2013-09,15228,
+      2013-10,16797,
+      2013-11,14089,
+      2013-12,14949,
+      2014-01,16476,
+      2014-02,14619,
+      2014-03,16104,
+      2014-04,17601,
+      2014-05,15743,
+      2014-06,15574,
+      2014-07,19021,
+      2014-08,15858,
+      2014-09,16458,
+      2014-10,17938,
+      2014-11,16120,
+      2014-12,18500,
+      2015-01,19769,
+      2015-02,17048,
+      2015-03,21134,
+      2015-04,20486,
+      2015-05,19549,
+      2015-06,24015,
+      2015-07,25310,
+      2015-08,19745,
+      2015-09,19161,
+      2015-10,19874,
+      2015-11,18426,
+      2015-12,19521,
+      2016-01,18507,
+      2016-02,18778,
+      2016-03,22396,
+      2016-04,17859,
+      2016-05,17968,
+      2016-06,21409,
+      2016-07,20287,
+      2016-08,19903,
+      2016-09,18636,
+      2016-10,17913,
+      2016-11,20223,
+      2016-12,21400,
+      2017-01,19804,
+      2017-02,17838,
+      2017-03,22196,
+      2017-04,18087,
+      2017-05,20484,
+      2017-06,19294,
+      2017-07,20405,
+      2017-08,20228,
+      2017-09,17363,
+      2017-10,18128,
+      2017-11,18793,
+      2017-12,17473,
+      2018-01,19643,
+      2018-02,18839,
+      2018-03,20592,
+      2018-04,21351,
+      2018-05,19514,
+      2018-06,21464,
+      2018-07,22177,
+      2018-08,20493,
+      2018-09,17864,
+      2018-10,21275,
+      2018-11,20357,
+      2018-12,17630,
+      2019-01,20907,
+      2019-02,19352,
+      2019-03,21335,
+      2019-04,23105,
+      2019-05,22629,
+      2019-06,20164,
+      2019-07,25672,
+      2019-08,22520,
+      2019-09,21803,
+      2019-10,23169,
+      2019-11,22234,
+      2019-12,20048,
+      2020-01,21927,
+      2020-02,20546,
+      2020-03,25314,
+      2020-04,24541,
+      2020-05,22361,
+      2020-06,22793,
+      2020-07,24349,
+      2020-08,21280,
+      2020-09,21782,
+      2020-10,23217,
+      2020-11,23185,
+      2020-12,22148,
+      2021-01,21721,
+      2021-02,22145,
+      2021-03,28589,
+      2021-04,24541,
+      2021-05,22786,
+      2021-06,25161,
+      2021-07,25121,
+      2021-08,22735,
+      2021-09,22232,
+      2021-10,22630,
+      2021-11,22516,
+      2021-12,23851,
+      2022-01,25085,
+      2022-02,26299,
+      2022-03,32270,
+      2022-04,25813,
+      2022-05,27272,
+      2022-06,22990,
+      2022-07,21054,
+      2022-08,18491,
+      2022-09,16113,
+      2022-10,14926,
+      2022-11,13557,
+      2022-12,13514,
+      2023-01,12735,
+      2023-02,12055,
+      2023-03,15260,
+      2023-04,12999,
+      2023-05,13657,
+      2023-06,13983,
+      2023-07,14335,
+      2023-08,14386,
+      2023-09,12286,
+      2023-10,13831,
+      2023-11,13473,
+      2023-12,12151,
+      2024-01,14667,
+      2024-02,14245,
+      2024-03,15439,
+      2024-04,16793,
+      2024-05,15403,
+      2024-06,16296,
+      2024-07,19511,
+      2024-08,16811,
+      2024-09,16611,
+      2024-10,17878,
+      2024-11,17721,
+      2024-12,16989,
+      2025-01,19743,
+      2025-02,19077,
+      2025-03,22151,
+      2025-04,21500,
+      2025-05,19870,
+      2025-06,19234,
+      2025-07,22489,
+      2025-08,18734,
+      2025-09,18834,
+      2025-10,20060,
+      2025-11,19614,
+      2025-12,19553,
+      2026-01,19014,
+      2026-02,18710,
+      2026-03,24167,
+      2026-04,21192,
+      2026-05,17219,
+      2026-06,19782,
+      2026-07,21675,
+      2026-08,17891,Provisional value
+      "",Comment on 2010-06: Change of the grossing-up procedure according to the ECB (Guideline ECB/2014/15),
+    dat_content_format: text
+  - name: out_stats
+    type: outDAT
+    position: [1800, -400]
+    inputs:
+    - stats_series
+    dat_read_only: true
+  - name: out_series
+    type: outDAT
+    position: [1400, 0]
+    inputs:
+    - clean_series
+    dat_read_only: true
+  - name: clean_series
+    type: scriptDAT
+    parameters:
+      callbacks: clean_series_callbacks
+    position: [1000, 0]
+    inputs:
+    - raw_csv
+    dat_read_only: true
+  - name: stats_series
+    type: scriptDAT
+    parameters:
+      callbacks: stats_series_callbacks
+    position: [1400, -400]
+    inputs:
+    - clean_series
+    dat_read_only: true
+  - name: webclient_bbk
+    type: webclientDAT
+    parameters:
+      callbacks: webclient_bbk_callbacks
+    position: [200, 0]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+    dat_read_only: true
+  - name: clean_series_callbacks
+    type: textDAT
+    parameters:
+      file: project1/audioreactor/data/clean_series_callbacks.py
+      syncfile: true
+      language: python
+    flags:
+    - viewer
+    position: [1000, -120]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - py
+    dock: clean_series
+  - name: stats_series_callbacks
+    type: textDAT
+    parameters:
+      file: project1/audioreactor/data/stats_series_callbacks.py
+      syncfile: true
+      language: python
+    flags:
+    - viewer
+    position: [1400, -520]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - py
+    dock: stats_series
+  - name: webclient_bbk_callbacks
+    type: textDAT
+    parameters:
+      file: project1/audioreactor/data/webclient_bbk_callbacks.py
+      syncfile: true
+      language: python
+    flags:
+    - viewer
+    - -showDocked
+    position: [200, -120]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - py
+    dock: webclient_bbk
+  annotations:
+  - name: annotate1
+    mode: annotate
+    title: Bundesbank API fetch + cleaning
+    text: Fetch pulse -> webclient_bbk (async GET, CSV) -> callbacks hand the body to SeriesSynthExt -> raw_csv. clean_series keeps YYYY-MM rows with finite numbers (date, year, month, t, value_meur, value_bn); stats_series derives the descriptive statistics.
+    position: [130, -590]
+    size: [1870, 850]
+    color: [0.12, 0.22, 0.32]
+- name: out1
+  type: outTOP
+  flags:
+  - display
+  position: [1400, 0]
+  inputs:
+  - viz
+- name: sense
+  type: baseCOMP
+  position: [200, -400]
+  children:
+  - name: glsl_bg
+    type: glslTOP
+    parameters:
+      pixeldat: glsl_bg_pixel
+      outputresolution: custom
+      resolutionw: 160
+      resolutionh: 90
+      format: rgba16float
+    sequences:
+      vec:
+      - name: uLearn
+        valuex: =(1.0 - math.exp(-1.0 / (parent.Reactor.par.Bglearn * me.time.rate))) if parent.Reactor.par.Bglearn > 0 else 0.0
+    position: [1600, -1200]
+    inputs:
+    - null_cam
+    - feedback_bg
+    - feedback_presence
+  - name: null_bg
+    type: nullTOP
+    position: [2000, -1200]
+    inputs:
+    - glsl_bg
+  - name: res_cam
+    type: resolutionTOP
+    parameters:
+      highqualresize: true
+      outputresolution: custom
+      resolutionw: 160
+      resolutionh: 90
+    position: [400, -1400]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+    inputs:
+    - videoin_cam
+  - name: null_cam
+    type: nullTOP
+    position: [800, -1400]
+    inputs:
+    - res_cam
+  - name: filter_low
+    type: audiofilterCHOP
+    parameters:
+      cutofffrequency: 250
+      rolloff: 24
+    position: [400, 200]
+    inputs:
+    - audiodevin_mic
+  - name: filter_mid
+    type: audiofilterCHOP
+    parameters:
+      filter: bandpass
+      cutofffrequency: 1000
+    position: [400, 0]
+    inputs:
+    - audiodevin_mic
+  - name: glsl_stats
+    type: glslTOP
+    parameters:
+      pixeldat: glsl_stats_pixel
+      outputresolution: custom
+      resolutionw: 1
+      resolutionh: 1
+      format: rgba32float
+    position: [3200, -2000]
+    inputs:
+    - null_presence
+  - name: const_black
+    type: constantTOP
+    parameters:
+      resolutionw: 160
+      resolutionh: 90
+    position: [800, -2000]
+  - name: feedback_bg
+    type: feedbackTOP
+    parameters:
+      top: null_bg
+    position: [1200, -1200]
+    inputs:
+    - null_cam
+  - name: filter_high
+    type: audiofilterCHOP
+    parameters:
+      filter: highpass
+      cutofffrequency: 4000
+      rolloff: 24
+    position: [400, -200]
+    inputs:
+    - audiodevin_mic
+  - name: merge_bands
+    type: mergeCHOP
+    position: [800, 0]
+    inputs:
+    - filter_low
+    - filter_mid
+    - filter_high
+  - name: topto_stats
+    type: toptoCHOP
+    parameters:
+      top: glsl_stats
+      rate: =me.time.rate
+      autoexportroot: =parent()
+    position: [3600, -2000]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  - name: videoin_cam
+    type: videodeviceinTOP
+    parameters:
+      active: =parent.Reactor.par.Camera
+      device: V1|||\\?\usb#vid_3277&pid_0010&mi_00#7&df5034d&0&0000#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\global|||0|||0|||ASUS FHD webcam
+      signalformat: f1920x1080p-30.00hz
+      outputresolution: half
+    position: [0, -1400]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  - name: glsl_bg_info
+    type: infoDAT
+    parameters:
+      op: glsl_bg
+    position: [1525, -1320]
+    dock: glsl_bg
+    dat_read_only: true
+  - name: blur_presence
+    type: blurTOP
+    parameters:
+      size: 6
+    position: [3200, -1600]
+    inputs:
+    - null_presence
+  - name: feedback_prev
+    type: feedbackTOP
+    parameters:
+      top: null_cam
+    position: [1200, -1600]
+    inputs:
+    - null_cam
+  - name: glsl_bg_pixel
+    type: textDAT
+    parameters:
+      file: project1/audioreactor/sense/glsl_bg_pixel.glsl
+      syncfile: true
+      language: glsl
+      extension: frag
+    flags:
+    - viewer
+    position: [1675, -1320]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - glsl
+    dock: glsl_bg
+  - name: glsl_presence
+    type: glslmultiTOP
+    parameters:
+      pixeldat: glsl_presence_pixel
+      outputresolution: custom
+      resolutionw: 160
+      resolutionh: 90
+      format: rgba16float
+    sequences:
+      vec:
+      - name: uKey
+        valuex: =parent.Reactor.par.Keythreshold
+        valuey: =parent.Reactor.par.Keysoftness
+        valuez: =1.0 if parent.Reactor.par.Keymode.eval() == 'dark' else 0.0
+        valuew: 0.5
+      - name: uMotion
+        valuex: =math.exp(-1.0 / max(1.0, parent.Reactor.par.Motiondecay * me.time.rate))
+        valuey: 0.05
+        valuez: 1
+        valuew: =float(parent.Reactor.par.Camera)
+    position: [2400, -1600]
+    inputs:
+    - null_cam
+    - null_bg
+    - feedback_prev
+    - feedback_presence
+  - name: null_features
+    type: nullCHOP
+    position: [4800, -400]
+    inputs:
+    - script_features
+  - name: null_presence
+    type: nullTOP
+    position: [2800, -1600]
+    inputs:
+    - glsl_presence
+  - name: audiodevin_mic
+    type: audiodeviceinCHOP
+    parameters:
+      active: =parent.Reactor.par.Mic
+      autoexportroot: =parent()
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  - name: glsl_stats_info
+    type: infoDAT
+    parameters:
+      op: glsl_stats
+    position: [3125, -2120]
+    dock: glsl_stats
+    dat_read_only: true
+  - name: script_features
+    type: scriptCHOP
+    parameters:
+      callbacks: script_features_callbacks
+    position: [4400, -400]
+    inputs:
+    - merge_bands
+    - topto_stats
+  - name: glsl_stats_pixel
+    type: textDAT
+    parameters:
+      file: project1/audioreactor/sense/glsl_stats_pixel.glsl
+      syncfile: true
+      language: glsl
+      extension: frag
+    flags:
+    - viewer
+    position: [3275, -2120]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - glsl
+    dock: glsl_stats
+  - name: null_micspectrum
+    type: nullCHOP
+    position: [800, -400]
+    inputs:
+    - audiospectrum_mic
+  - name: audiospectrum_mic
+    type: audiospectrumCHOP
+    position: [400, -400]
+    inputs:
+    - audiodevin_mic
+  - name: feedback_presence
+    type: feedbackTOP
+    parameters:
+      top: null_presence
+    position: [1200, -2000]
+    inputs:
+    - const_black
+  - name: glsl_presence_info
+    type: infoDAT
+    parameters:
+      op: glsl_presence
+    position: [2325, -1720]
+    dock: glsl_presence
+    dat_read_only: true
+  - name: null_presence_soft
+    type: nullTOP
+    position: [3600, -1600]
+    inputs:
+    - blur_presence
+  - name: glsl_presence_pixel
+    type: textDAT
+    parameters:
+      file: project1/audioreactor/sense/glsl_presence_pixel.glsl
+      syncfile: true
+      language: glsl
+      extension: frag
+    flags:
+    - viewer
+    position: [2475, -1720]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - glsl
+    dock: glsl_presence
+  - name: script_features_callbacks
+    type: textDAT
+    parameters:
+      file: project1/audioreactor/sense/script_features_callbacks.py
+      syncfile: true
+      language: python
+    flags:
+    - viewer
+    position: [4400, -520]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - py
+    dock: script_features
+  annotations:
+  - name: annotate1
+    mode: annotate
+    title: 'Microphone: bands + spectrum'
+    text: audiodevin_mic (pick the device here) -> low < 250 Hz / mid ~1 kHz / high > 4 kHz -> merge_bands for script_features; audiospectrum_mic (2048 bins) for the sonogram's room layer.
+    position: [-70, -470]
+    size: [1070, 930]
+    color: [0.27, 0.12, 0.27]
+  - name: annotate2
+    mode: annotate
+    title: 'Camera: silhouette + motion (160x90)'
+    text: 'videoin_cam (pick the device here) -> res_cam 160x90. glsl_bg learns the empty room (Background Learn, Capture Background resets feedback_bg). glsl_presence: R silhouette (background difference or dark-on-light key), G motion trail, B luma. glsl_stats folds it into one pixel (area, centre, motion) -> topto_stats. null_presence_soft feeds the point field.'
+    position: [-70, -2190]
+    size: [3870, 1250]
+    color: [0.08, 0.26, 0.28]
+  - name: annotate3
+    mode: annotate
+    title: Room features
+    text: 'script_features: low mid high level transient (adaptive floor, envelopes) + presence prox cx cy motion, 0-1 each -> null_features.'
+    position: [4330, -590]
+    size: [670, 450]
+    color: [0.28, 0.22, 0.08]
+- name: engine
+  type: baseCOMP
+  position: [600, 0]
+  inputs:
+  - data
+  children:
+  - name: math_vca
+    type: mathCHOP
+    parameters:
+      chopop: mul
+      gain: =parent.Reactor.par.Volume
+      autoexportroot: =parent()
+    position: [3400, -2600]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+    inputs:
+    - audiofilter_vcf
+  - name: in_series
+    type: inDAT
+    parameters:
+      label: =me.name
+    position: [200, 0]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+    dat_read_only: true
+  - name: lag_glide
+    type: lagCHOP
+    parameters:
+      lag1: =parent.Reactor.par.Glide
+      lag2: =parent.Reactor.par.Glide
+      autoexportroot: =parent()
+    position: [1800, -2600]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+    inputs:
+    - select_pitch
+  - name: limit_out
+    type: limitCHOP
+    parameters:
+      type: clamp
+      autoexportroot: =parent()
+      renameto: audio
+    position: [3800, -2600]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+    inputs:
+    - math_vca
+  - name: null_audio
+    type: nullCHOP
+    position: [4200, -2600]
+    inputs:
+    - limit_out
+  - name: null_scope
+    type: nullCHOP
+    position: [5800, -3800]
+    inputs:
+    - script_scope
+  - name: speed_scan
+    type: speedCHOP
+    parameters:
+      max: 100000
+    position: [600, -400]
+    inputs:
+    - const_scanrate
+  - name: const_drift
+    type: constantCHOP
+    sequences:
+      const:
+      - name: d1
+        value: =parent.Reactor.par.Driftrate
+      - name: d2
+        value: =parent.Reactor.par.Driftrate * 0.382
+    position: [200, -2200]
+  - name: lookup_wave
+    type: lookupCHOP
+    parameters:
+      index1: -1
+      cyclic: 'yes'
+      autoexportroot: =parent()
+    position: [2600, -2600]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+    inputs:
+    - audioosc_phase
+    - select_table
+  - name: merge_scope
+    type: mergeCHOP
+    position: [4600, -3800]
+    inputs:
+    - null_audio
+    - audioosc_phase
+  - name: null_series
+    type: nullCHOP
+    position: [1000, 0]
+    inputs:
+    - datto_series
+  - name: speed_drift
+    type: speedCHOP
+    position: [600, -2200]
+    inputs:
+    - const_drift
+  - name: trail_scope
+    type: trailCHOP
+    parameters:
+      wlength: 8192
+      wlengthunit: samples
+      rate: =me.time.rate
+      autoexportroot: =parent()
+    position: [5000, -3800]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+    inputs:
+    - merge_scope
+  - name: const_cutoff
+    type: constantCHOP
+    sequences:
+      const:
+      - name: cutofffrequency
+        value: =min(18000.0, max(20.0, parent.Reactor.par.Cutoff * 2.0 ** (parent.Reactor.par.Drift * (0.7 * math.sin(6.2831853 * op('speed_drift')['d1']) + 0.3 * math.sin(6.2831853 * op('speed_drift')['d2'])) + parent.Reactor.par.Proxcutoff * op('select_features')['prox'])))
+    position: [1000, -2200]
+  - name: datto_series
+    type: dattoCHOP
+    parameters:
+      dat: in_series
+      rowindexend: =me.inputTable.numRows - 1
+      rowexpr: =re.match('.*',me.inputCell.val) != None
+      extractcols: bynames
+      colindexend: =me.inputTable.numCols - 1
+      colnames: t value_bn
+      colexpr: =re.match('.*',me.inputCell.val) != None
+      output: chanpercol
+      firstrow: names
+      firstcolumn: values
+      autoexportroot: =parent()
+    position: [600, 0]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  - name: script_scope
+    type: scriptCHOP
+    parameters:
+      callbacks: script_scope_callbacks
+    position: [5400, -3800]
+    inputs:
+    - trail_scope
+  - name: select_pitch
+    type: selectCHOP
+    parameters:
+      channames: hz
+    position: [1400, -2600]
+    inputs:
+    - script_window
+  - name: select_table
+    type: selectCHOP
+    parameters:
+      channames: shaped
+    position: [2200, -400]
+    inputs:
+    - null_wavetable
+  - name: null_spectrum
+    type: nullCHOP
+    position: [5000, -3400]
+    inputs:
+    - audiospectrum_out
+  - name: script_window
+    type: scriptCHOP
+    parameters:
+      callbacks: script_window_callbacks
+    position: [1000, -400]
+    inputs:
+    - speed_scan
+  - name: wavetable_lib
+    type: textDAT
+    parameters:
+      file: project1/audioreactor/engine/wavetable_lib.py
+      syncfile: true
+      language: python
+    position: [1400, 0]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - py
+  - name: audioosc_phase
+    type: audiooscillatorCHOP
+    parameters:
+      wavetype: ramp
+      frequency: =op('lag_glide')['hz']
+      autoexportroot: =parent()
+      renamefrom: chan1
+      renameto: phase
+    position: [2200, -2600]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  - name: const_scanrate
+    type: constantCHOP
+    sequences:
+      const:
+      - name: rate
+        value: =(-1.0 if parent.Reactor.par.Scandir.eval() == 'backward' else 1.0) * (parent.Reactor.par.Scanrate * parent.Reactor.par.Scan + parent.Reactor.par.Motionscan * op('select_features')['motion'])
+    position: [200, -400]
+  - name: null_wavetable
+    type: nullCHOP
+    position: [1800, -400]
+    inputs:
+    - script_wavetable
+  - name: audiofilter_vcf
+    type: audiofilterCHOP
+    parameters:
+      filter: =parent.Reactor.par.Filtertype
+      cutofflog: 2.69897
+      cutofffrequency: =parent.Reactor.par.Cutoff
+      resonance: =parent.Reactor.par.Resonance
+      rolloff: =float(parent.Reactor.par.Rolloff.eval())
+    position: [3000, -2600]
+    inputs:
+    - lookup_wave
+    - const_cutoff
+  - name: select_features
+    type: selectCHOP
+    parameters:
+      chops: ../sense/null_features
+    position: [200, -800]
+  - name: audiodevout_main
+    type: audiodeviceoutCHOP
+    parameters:
+      active: =parent.Reactor.par.Audio
+      autoexportroot: =parent()
+    position: [4600, -2600]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+    inputs:
+    - null_audio
+  - name: script_wavetable
+    type: scriptCHOP
+    parameters:
+      callbacks: script_wavetable_callbacks
+    position: [1400, -400]
+    inputs:
+    - script_window
+  - name: audiospectrum_out
+    type: audiospectrumCHOP
+    parameters:
+      outlength: 8192
+    position: [4600, -3400]
+    inputs:
+    - null_audio
+  - name: script_scope_callbacks
+    type: textDAT
+    parameters:
+      file: project1/audioreactor/engine/script_scope_callbacks.py
+      syncfile: true
+      language: python
+    flags:
+    - viewer
+    position: [5400, -3920]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - py
+    dock: script_scope
+  - name: script_window_callbacks
+    type: textDAT
+    parameters:
+      file: project1/audioreactor/engine/script_window_callbacks.py
+      syncfile: true
+      language: python
+    flags:
+    - viewer
+    position: [1000, -520]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - py
+    dock: script_window
+  - name: script_wavetable_callbacks
+    type: textDAT
+    parameters:
+      file: project1/audioreactor/engine/script_wavetable_callbacks.py
+      syncfile: true
+      language: python
+    flags:
+    - viewer
+    position: [1400, -520]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - py
+    dock: script_wavetable
+  annotations:
+  - name: annotate1
+    mode: annotate
+    title: 'Wavetable: series window -> single cycle (numpy)'
+    text: speed_scan slides the window (Scan, Scan Direction; camera motion adds speed via select_features). script_window resolves start / length / pitch, offset by the visitor's horizontal position. script_wavetable builds the 2048-sample cycle via wavetable_lib (detrend, loop, interpolate, shape with Drive + room level, band-limit).
+    position: [130, -990]
+    size: [2670, 1250]
+    color: [0.08, 0.26, 0.28]
+  - name: annotate2
+    mode: annotate
+    title: 'Voice: drone oscillator, drifting filter, audio out'
+    text: 'A drone: no gate, no envelopes. lag_glide -> audioosc_phase ramp -> lookup_wave reads the table -> audiofilter_vcf -> math_vca (x Volume) -> limit_out (+/-1) -> audio device. const_cutoff = Cutoff x 2^(Drift x two de-synced sines of speed_drift + Proximity->Cutoff x prox) into the filter''s modulation input.'
+    position: [130, -2670]
+    size: [4670, 730]
+    color: [0.27, 0.12, 0.27]
+  - name: annotate3
+    mode: annotate
+    title: 'Analysis: spectrum + synced scope'
+    text: 'audiospectrum_out: 8192-pt FFT, one sample per Hz (0-22050). script_scope cuts the last two whole cycles from trail_scope using the oscillator phase, so the trace is trigger-stable.'
+    position: [4530, -3990]
+    size: [1470, 850]
+    color: [0.28, 0.22, 0.08]
+- name: AudioReactorExt
+  type: textDAT
+  parameters:
+    file: project1/audioreactor/AudioReactorExt.py
+    syncfile: true
+    language: python
+  position: [200, 800]
+  color: [0.9, 0.3, 0.4]
+  tags:
+  - py
+- name: parexec_reactor
+  type: parameterexecuteDAT
+  parameters:
+    fromop: =parent()
+    op: ..
+    pars: '* ^Mon*'
+    builtin: false
+    file: project1/audioreactor/parexec_reactor.py
+    syncfile: true
+  position: [600, 800]
+  size: [130, 90]
+  color: [0.9, 0.3, 0.4]
+  tags:
+  - py
+annotations:
+- name: annotate1
+  mode: annotate
+  title: Control
+  text: AudioReactorExt owns the parameter schema, the API fetch and Capture Background; parexec_reactor routes pulses/changes to _on<Par> handlers (Mon* monitors excluded).
+  position: [130, 730]
+  size: [670, 330]
+  color: [0.2, 0.2, 0.28]
+- name: annotate2
+  mode: annotate
+  title: 'Pipeline: data + sense -> engine -> viz'
+  text: 'data: Bundesbank series. sense: camera + microphone -> null_features / null_presence_soft. engine: the wavetable drone, modulated by the room. viz: sonogram/scope history -> 3D point cloud -> out1.'
+  position: [130, -470]
+  size: [1470, 770]
+  color: [0.08, 0.2, 0.28]

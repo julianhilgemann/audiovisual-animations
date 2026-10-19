@@ -1,0 +1,1278 @@
+format: tdxn
+version: '2.2'
+build: 2
+generator: Embody/6.2.72
+td_build: 099.2025.32820
+network_path: /project1/FerroScope/CRT
+options:
+  include_dat_content: false
+  include_storage: true
+type_defaults:
+  glslTOP:
+    parameters:
+      format: rgba16float
+      inputextenduv: hold
+      premultrgbbyalpha: false
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  infoDAT:
+    flags:
+    - viewer
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  textDAT:
+    parameters:
+      extension: frag
+      language: glsl
+    flags:
+    - viewer
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+type: baseCOMP
+custom_pars:
+  Tube:
+  - name: Enable
+    style: Toggle
+    default: true
+    help: Turns the CRT filter on. Off passes the input through untouched.
+  - name: Curvature
+    style: Float
+    startSection: true
+    default: 0.4
+    max: 2.0
+    clampMin: true
+    clampMax: true
+    help: 'How strongly the glass bulges: the picture bends toward the edges like a curved tube. 0 = flat screen.'
+    value: 0.3070000112
+  - name: Corner
+    style: Float
+    label: Corner Radius
+    default: 0.12
+    max: 0.6
+    clampMin: true
+    clampMax: true
+    help: Roundness of the screen corners, as a fraction of the screen height.
+    value: 0.023
+  - name: Edgesoft
+    style: Float
+    label: Edge Softness
+    default: 0.1
+    clampMin: true
+    clampMax: true
+    help: Softness of the screen edge where the picture meets the bezel.
+    value: 0.05
+  - name: Screensize
+    style: Float
+    label: Screen Size
+    default: 1
+    min: 0.5
+    max: 1.5
+    clampMin: true
+    clampMax: true
+    normMin: 0.8
+    normMax: 1.2
+    help: Size of the tube in the frame. Below 1 shows the bezel around it; above 1 overscans past the frame edges.
+    value: 0.8
+  - name: Vignette
+    style: Float
+    startSection: true
+    default: 0.35
+    clampMin: true
+    clampMax: true
+    help: Darkening toward the edges of the tube.
+    value: 0.881
+  - name: Glare
+    style: Float
+    label: Glass Glare
+    default: 0.25
+    clampMin: true
+    clampMax: true
+    help: Soft reflection of a room light on the curved glass, upper left.
+    value: 0
+  - name: Bezelcolor
+    style: RGBA
+    label: Bezel Color
+    size: 3
+    help: Colour around the tube, outside the picture.
+  Scan:
+  - name: Lines
+    style: Int
+    label: Scanlines
+    default: 240
+    min: 32.0
+    max: 1080.0
+    clampMin: true
+    clampMax: true
+    normMin: 120.0
+    normMax: 720.0
+    help: Number of scanlines across the picture. Fewer lines = a coarser, older-looking tube.
+    value: 706
+  - name: Scandir
+    style: Menu
+    label: Scan Direction
+    default: horizontal
+    menuNames:
+    - horizontal
+    - vertical
+    menuLabels:
+    - Horizontal
+    - Vertical (rotated monitor)
+    help: Horizontal lines like a TV, or vertical lines like a rotated arcade monitor.
+  - name: Scandepth
+    style: Float
+    label: Scanline Depth
+    startSection: true
+    default: 0.55
+    clampMin: true
+    clampMax: true
+    help: How dark the gaps between scanlines are. 0 = no scanlines.
+    value: 0.8309999704
+  - name: Beam
+    style: Float
+    label: Beam Bloom
+    default: 0.7
+    clampMin: true
+    clampMax: true
+    help: How much bright colours widen their scanline, filling the gaps like a real electron beam.
+    value: 0
+  - name: Convergence
+    style: Float
+    label: Convergence Error
+    default: 1.5
+    min: -10.0
+    max: 10.0
+    clampMin: true
+    clampMax: true
+    normMin: -4.0
+    normMax: 4.0
+    help: 'Misalignment of the red and blue beams along the scanlines, in pixels: colour fringes on edges.'
+    value: 2.8199999332
+  - name: Interlace
+    style: Float
+    label: Interlace Flicker
+    startSection: true
+    clampMin: true
+    clampMax: true
+    help: Alternate frames dim every other scanline, like an interlaced picture.
+    value: 0.0560000017
+  - name: Humbar
+    style: Float
+    label: Hum Bar
+    clampMin: true
+    clampMax: true
+    help: A soft bright band rolling slowly through the picture, like mains hum.
+    value: 0.9890000224
+  - name: Humspeed
+    style: Float
+    label: Hum Speed
+    default: 0.15
+    min: -2.0
+    max: 2.0
+    clampMin: true
+    clampMax: true
+    normMin: -0.5
+    normMax: 0.5
+    help: How fast the hum bar rolls, in screens per second. Negative rolls the other way.
+    value: -0.5
+  Mask:
+  - name: Masktype
+    style: Menu
+    label: Phosphor Mask
+    default: shadow
+    menuNames:
+    - 'off'
+    - shadow
+    - grille
+    - slot
+    menuLabels:
+    - 'Off'
+    - Shadow Mask (dots)
+    - Aperture Grille
+    - Slot Mask
+    help: 'Pattern of the phosphors: round RGB dots (shadow mask, as on most TVs), continuous stripes (aperture grille, Trinitron) or broken stripes (slot mask).'
+    value: grille
+  - name: Maskpitch
+    style: Float
+    label: Mask Pitch (px)
+    default: 5
+    min: 1.0
+    max: 16.0
+    clampMin: true
+    clampMax: true
+    normMin: 1.0
+    normMax: 8.0
+    help: Size of one phosphor dot or stripe in output pixels. Larger = a bigger, more visible mask.
+    value: 1.7899999619
+  - name: Maskdepth
+    style: Float
+    label: Mask Depth
+    default: 0.6
+    clampMin: true
+    clampMax: true
+    help: How strongly the phosphor pattern shows. 0 = no mask.
+    value: 0.2370000035
+  - name: Masksoft
+    style: Float
+    label: Dot Softness
+    default: 0.3
+    clampMin: true
+    clampMax: true
+    help: Softness of the phosphor dots and stripes. 0 = crisp, 1 = blurred.
+    value: 0.503000021
+  - name: Maskcurved
+    style: Toggle
+    label: Mask Follows Glass
+    help: Bend the phosphor pattern with the curved glass instead of keeping it flat on the output.
+  Signal:
+  - name: Pixelate
+    style: Int
+    label: Source Columns
+    max: 1920.0
+    clampMin: true
+    clampMax: true
+    normMax: 640.0
+    help: Pixelate the feed to this many columns, like a low-resolution source (320 for an 8-bit console). 0 = off.
+  - name: Smear
+    style: Float
+    startSection: true
+    default: 0.35
+    clampMin: true
+    clampMax: true
+    help: Horizontal smear of the analog signal; colour bleeds further to the right than brightness.
+    value: 0
+  - name: Chromashift
+    style: Float
+    label: Chroma Delay (px)
+    min: -20.0
+    max: 20.0
+    clampMin: true
+    clampMax: true
+    normMin: -8.0
+    normMax: 8.0
+    help: Colour lags behind brightness by this many pixels, like composite video.
+    value: -8
+  - name: Ghost
+    style: Float
+    default: 0.12
+    clampMin: true
+    clampMax: true
+    help: Faint echo of the picture to the right.
+    value: 0.6100000143
+  - name: Ghostoffset
+    style: Float
+    label: Ghost Offset (px)
+    default: 9
+    min: 1.0
+    max: 80.0
+    clampMin: true
+    clampMax: true
+    normMin: 2.0
+    normMax: 40.0
+    help: Distance of the ghost echo, in pixels.
+    value: 2.5999999046
+  - name: Jitter
+    style: Float
+    label: Line Jitter (px)
+    startSection: true
+    default: 0.6
+    max: 20.0
+    clampMin: true
+    clampMax: true
+    normMax: 4.0
+    help: Random horizontal wobble of each line, in pixels.
+    value: 0
+  - name: Wave
+    style: Float
+    label: Wave (px)
+    max: 40.0
+    clampMin: true
+    clampMax: true
+    normMax: 10.0
+    help: A horizontal wave bending the picture, in pixels.
+    value: 3.1600000858
+  - name: Wavefreq
+    style: Float
+    label: Wave Frequency
+    default: 3
+    min: 0.1
+    max: 40.0
+    clampMin: true
+    clampMax: true
+    normMin: 0.5
+    normMax: 12.0
+    help: Number of wave cycles over the picture height.
+    value: 0.5
+  - name: Headswitch
+    style: Float
+    label: Head Switching
+    clampMin: true
+    clampMax: true
+    help: VHS-style torn, skewed strip along the bottom of the picture.
+    value: 0.0340000018
+  - name: Tracking
+    style: Float
+    label: Tracking Noise
+    startSection: true
+    default: 0.3
+    clampMin: true
+    clampMax: true
+    help: Strength of the torn, noisy band rolling down the picture.
+    value: 0.1299999952
+  - name: Trackspeed
+    style: Float
+    label: Tracking Speed
+    default: 0.045
+    clampMin: true
+    clampMax: true
+    normMax: 0.3
+    help: How fast the tracking band rolls down, in screens per second.
+    value: 0.3000000119
+  - name: Trackheight
+    style: Float
+    label: Tracking Height
+    default: 0.02
+    min: 0.002
+    max: 0.3
+    clampMin: true
+    clampMax: true
+    normMin: 0.005
+    normMax: 0.1
+    help: Height of the tracking band as a fraction of the picture.
+    value: 0.0414999984
+  - name: Roll
+    style: Float
+    label: Vertical Roll
+    min: -2.0
+    max: 2.0
+    clampMin: true
+    clampMax: true
+    normMin: -0.5
+    normMax: 0.5
+    help: The picture rolls through a dark blanking bar, in screens per second, like a TV that lost vertical hold. 0 = stable.
+  - name: Dropouts
+    style: Float
+    clampMin: true
+    clampMax: true
+    help: Random white streaks, like worn tape.
+    value: 0.5479999781
+  - name: Grain
+    style: Float
+    startSection: true
+    default: 0.35
+    max: 2.0
+    clampMin: true
+    clampMax: true
+    help: Analog noise over the picture.
+    value: 0.1860000044
+  - name: Chromanoise
+    style: Float
+    label: Colour Noise
+    max: 2.0
+    clampMin: true
+    clampMax: true
+    help: Coloured (chroma) noise on top of the grain.
+    value: 0.1190000027
+  - name: Flicker
+    style: Float
+    clampMin: true
+    clampMax: true
+    help: Frame-to-frame brightness flicker.
+  Glow:
+  - name: Halation
+    style: Float
+    default: 0.6
+    max: 3.0
+    clampMin: true
+    clampMax: true
+    normMax: 1.5
+    help: Glow that bright areas spread inside the glass.
+    value: 0
+  - name: Halotint
+    style: RGBA
+    label: Halation Tint
+    size: 3
+    default: [1, 0.35, 0.22]
+    help: Colour of the halation glow. Warm red-orange matches old tubes.
+    values: [1, 0.4980392, 0.5019608]
+  - name: Halosize
+    style: Float
+    label: Halation Size (px)
+    default: 24
+    min: 2.0
+    max: 120.0
+    clampMin: true
+    clampMax: true
+    normMin: 4.0
+    normMax: 60.0
+    help: Radius of the halation glow, in output pixels.
+    value: 4
+  - name: Halothreshold
+    style: Float
+    label: Halation Threshold
+    clampMin: true
+    clampMax: true
+    help: Only light above this level glows. Raise it to keep the glow on the highlights.
+    value: 0.8420000076
+  - name: Diffusion
+    style: Float
+    label: Glass Diffusion
+    startSection: true
+    clampMin: true
+    clampMax: true
+    help: Soft untinted haze from light scattering in the glass.
+    value: 0.6100000143
+  - name: Persistence
+    style: Float
+    label: Phosphor Persistence
+    max: 0.97
+    clampMin: true
+    clampMax: true
+    help: 'Afterglow: moving bright things leave fading trails. 0 = none.'
+    value: 0.773999989
+  Color:
+  - name: Phosphor
+    style: Menu
+    default: color
+    menuNames:
+    - color
+    - green
+    - amber
+    - white
+    menuLabels:
+    - Colour (RGB)
+    - Green (P1)
+    - Amber (P3)
+    - White (P4)
+    help: 'Colour: an RGB tube. Green, Amber, White: a monochrome monitor; the picture becomes one colour and the mask turns colourless.'
+  - name: Brightness
+    style: Float
+    startSection: true
+    default: 1.5
+    max: 4.0
+    clampMin: true
+    clampMax: true
+    normMin: 0.5
+    normMax: 3.0
+    help: Overall gain after scanlines and mask, which both darken the picture.
+    value: 0.6000000238
+  - name: Contrast
+    style: Float
+    default: 1
+    max: 3.0
+    clampMin: true
+    clampMax: true
+    normMin: 0.5
+    normMax: 2.0
+    help: Contrast around mid grey. 1 = unchanged.
+    value: 1.2120000124
+  - name: Gamma
+    style: Float
+    default: 1
+    min: 0.2
+    max: 3.0
+    clampMin: true
+    clampMax: true
+    normMin: 0.5
+    normMax: 2.0
+    help: Midtone brightness. Above 1 lifts the midtones, below 1 darkens them.
+    value: 1.9919999838
+  - name: Saturation
+    style: Float
+    default: 1.1
+    max: 3.0
+    clampMin: true
+    clampMax: true
+    normMax: 2.0
+    help: Colour saturation of the tube. 1 = unchanged.
+    value: 0.3700000048
+  - name: Colortint
+    style: RGBA
+    label: Colour Tint
+    size: 3
+    default: 1
+    help: 'White point of the tube: multiplies the picture. Slightly blue reads as a TV, slightly warm as an old monitor.'
+  - name: Blacklevel
+    style: Float
+    label: Black Level
+    default: 0.02
+    max: 0.3
+    clampMin: true
+    clampMax: true
+    help: 'The glass never reaches pure black: this lifts the darkest tones.'
+    value: 0.3
+  Presets:
+  - name: Preset
+    style: Menu
+    default: default
+    menuNames:
+    - default
+    - arcade
+    - pcmonitor
+    - brokenvhs
+    - greenterminal
+    - amberterminal
+    menuLabels:
+    - Default (consumer TV)
+    - Arcade Monitor
+    - PC Monitor (Trinitron)
+    - Broken VHS
+    - Green Terminal
+    - Amber Terminal
+    help: A ready-made look. Choose one, then press Apply Preset. The values live in the presets table inside this COMP; add a column there to make your own.
+    value: arcade
+  - name: Applypreset
+    style: Pulse
+    label: Apply Preset
+    help: Copy the chosen preset onto every setting of this filter. This overwrites your current values.
+parameters:
+  parentshortcut: CRT
+color: [0.3, 0.5, 0.9]
+tags:
+- tdxn
+comment: 'Reusable CRT filter: TOP in -> analog signal + tube emulation -> TOP out. Portable copy: components/CRT.tox'
+operators:
+- name: in1
+  type: inTOP
+  parameters:
+    label: =me.name
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+- name: out1
+  type: outTOP
+  parameters:
+    label: =me.name
+  position: [2000, 0]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - switch_enable
+- name: presets
+  type: tableDAT
+  position: [1600, -400]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  dat_content:
+  - - par
+    - default
+    - arcade
+    - pcmonitor
+    - brokenvhs
+    - greenterminal
+    - amberterminal
+  - - Curvature
+    - '0.4'
+    - '0.3'
+    - '0.1'
+    - '0.5'
+    - '0.35'
+    - '0.35'
+  - - Corner
+    - '0.12'
+    - '0.08'
+    - '0.04'
+    - '0.15'
+    - '0.1'
+    - '0.1'
+  - - Edgesoft
+    - '0.1'
+    - '0.05'
+    - '0.02'
+    - '0.2'
+    - '0.15'
+    - '0.15'
+  - - Screensize
+    - '1.0'
+    - '1.0'
+    - '1.0'
+    - '1.0'
+    - '0.95'
+    - '0.95'
+  - - Vignette
+    - '0.35'
+    - '0.3'
+    - '0.15'
+    - '0.5'
+    - '0.45'
+    - '0.45'
+  - - Glare
+    - '0.25'
+    - '0.15'
+    - '0.1'
+    - '0.3'
+    - '0.4'
+    - '0.4'
+  - - Lines
+    - '240'
+    - '224'
+    - '540'
+    - '240'
+    - '400'
+    - '400'
+  - - Scandir
+    - horizontal
+    - horizontal
+    - horizontal
+    - horizontal
+    - horizontal
+    - horizontal
+  - - Scandepth
+    - '0.55'
+    - '0.75'
+    - '0.3'
+    - '0.45'
+    - '0.5'
+    - '0.5'
+  - - Beam
+    - '0.7'
+    - '0.9'
+    - '0.3'
+    - '0.7'
+    - '0.6'
+    - '0.6'
+  - - Convergence
+    - '1.5'
+    - '1.0'
+    - '0.3'
+    - '3.0'
+    - '0.0'
+    - '0.0'
+  - - Interlace
+    - '0.0'
+    - '0.0'
+    - '0.0'
+    - '0.4'
+    - '0.0'
+    - '0.0'
+  - - Humbar
+    - '0.0'
+    - '0.0'
+    - '0.0'
+    - '0.4'
+    - '0.1'
+    - '0.1'
+  - - Masktype
+    - shadow
+    - shadow
+    - grille
+    - shadow
+    - 'off'
+    - 'off'
+  - - Maskpitch
+    - '5'
+    - '6'
+    - '2'
+    - '4'
+    - '3'
+    - '3'
+  - - Maskdepth
+    - '0.6'
+    - '0.75'
+    - '0.45'
+    - '0.5'
+    - '0.4'
+    - '0.4'
+  - - Masksoft
+    - '0.3'
+    - '0.2'
+    - '0.2'
+    - '0.5'
+    - '0.5'
+    - '0.5'
+  - - Pixelate
+    - '0'
+    - '320'
+    - '0'
+    - '0'
+    - '0'
+    - '0'
+  - - Smear
+    - '0.35'
+    - '0.15'
+    - '0.0'
+    - '0.8'
+    - '0.2'
+    - '0.2'
+  - - Chromashift
+    - '0.0'
+    - '0.0'
+    - '0.0'
+    - '4.0'
+    - '0.0'
+    - '0.0'
+  - - Ghost
+    - '0.12'
+    - '0.0'
+    - '0.0'
+    - '0.35'
+    - '0.05'
+    - '0.05'
+  - - Jitter
+    - '0.6'
+    - '0.0'
+    - '0.0'
+    - '2.5'
+    - '0.3'
+    - '0.3'
+  - - Wave
+    - '0.0'
+    - '0.0'
+    - '0.0'
+    - '1.5'
+    - '0.0'
+    - '0.0'
+  - - Headswitch
+    - '0.0'
+    - '0.0'
+    - '0.0'
+    - '0.8'
+    - '0.0'
+    - '0.0'
+  - - Tracking
+    - '0.3'
+    - '0.0'
+    - '0.0'
+    - '0.8'
+    - '0.0'
+    - '0.0'
+  - - Roll
+    - '0.0'
+    - '0.0'
+    - '0.0'
+    - '0.0'
+    - '0.0'
+    - '0.0'
+  - - Dropouts
+    - '0.0'
+    - '0.0'
+    - '0.0'
+    - '0.4'
+    - '0.0'
+    - '0.0'
+  - - Grain
+    - '0.35'
+    - '0.1'
+    - '0.05'
+    - '0.8'
+    - '0.3'
+    - '0.3'
+  - - Chromanoise
+    - '0.0'
+    - '0.0'
+    - '0.0'
+    - '0.5'
+    - '0.0'
+    - '0.0'
+  - - Flicker
+    - '0.0'
+    - '0.0'
+    - '0.0'
+    - '0.3'
+    - '0.15'
+    - '0.15'
+  - - Halation
+    - '0.6'
+    - '0.8'
+    - '0.2'
+    - '0.6'
+    - '0.9'
+    - '0.9'
+  - - Halotintr
+    - '1.0'
+    - '1.0'
+    - '1.0'
+    - '1.0'
+    - '0.3'
+    - '1.0'
+  - - Halotintg
+    - '0.35'
+    - '0.4'
+    - '1.0'
+    - '0.3'
+    - '1.0'
+    - '0.6'
+  - - Halotintb
+    - '0.22'
+    - '0.3'
+    - '1.0'
+    - '0.2'
+    - '0.4'
+    - '0.15'
+  - - Halothreshold
+    - '0.0'
+    - '0.2'
+    - '0.4'
+    - '0.0'
+    - '0.1'
+    - '0.1'
+  - - Diffusion
+    - '0.0'
+    - '0.1'
+    - '0.0'
+    - '0.2'
+    - '0.25'
+    - '0.25'
+  - - Persistence
+    - '0.0'
+    - '0.2'
+    - '0.0'
+    - '0.3'
+    - '0.75'
+    - '0.6'
+  - - Phosphor
+    - color
+    - color
+    - color
+    - color
+    - green
+    - amber
+  - - Brightness
+    - '1.5'
+    - '1.7'
+    - '1.3'
+    - '1.4'
+    - '1.6'
+    - '1.6'
+  - - Contrast
+    - '1.0'
+    - '1.1'
+    - '1.0'
+    - '0.9'
+    - '1.2'
+    - '1.2'
+  - - Gamma
+    - '1.0'
+    - '1.0'
+    - '1.0'
+    - '1.0'
+    - '1.0'
+    - '1.0'
+  - - Saturation
+    - '1.1'
+    - '1.2'
+    - '1.0'
+    - '0.8'
+    - '1.0'
+    - '1.0'
+  - - Colortintr
+    - '1.0'
+    - '1.0'
+    - '0.95'
+    - '1.0'
+    - '1.0'
+    - '1.0'
+  - - Colortintg
+    - '1.0'
+    - '1.0'
+    - '0.98'
+    - '0.97'
+    - '1.0'
+    - '1.0'
+  - - Colortintb
+    - '1.0'
+    - '1.0'
+    - '1.05'
+    - '0.92'
+    - '1.0'
+    - '1.0'
+  - - Blacklevel
+    - '0.02'
+    - '0.01'
+    - '0.01'
+    - '0.05'
+    - '0.03'
+    - '0.03'
+  dat_content_format: table
+- name: blur_halo
+  type: blurTOP
+  parameters:
+    extend: mirror
+    size: =parent.CRT.par.Halosize * 0.5
+    outputresolution: half
+  position: [800, -400]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - glsl_signal
+- name: glsl_tube
+  type: glslTOP
+  parameters:
+    pixeldat: glsl_tube_pixel
+  sequences:
+    color:
+    - name: uHalo
+      rgbr: =parent.CRT.par.Halotintr
+      rgbg: =parent.CRT.par.Halotintg
+      rgbb: =parent.CRT.par.Halotintb
+    - name: uBezel
+      rgbr: =parent.CRT.par.Bezelcolorr
+      rgbg: =parent.CRT.par.Bezelcolorg
+      rgbb: =parent.CRT.par.Bezelcolorb
+    - name: uTint
+      rgbr: =parent.CRT.par.Colortintr
+      rgbg: =parent.CRT.par.Colortintg
+      rgbb: =parent.CRT.par.Colortintb
+    vec:
+    - name: uGeom
+      valuex: =parent.CRT.par.Curvature
+      valuey: =parent.CRT.par.Corner
+      valuez: =parent.CRT.par.Vignette
+      valuew: =parent.CRT.par.Screensize
+    - name: uScan
+      valuex: =parent.CRT.par.Lines
+      valuey: =parent.CRT.par.Scandepth
+      valuez: =parent.CRT.par.Beam
+      valuew: =parent.CRT.par.Convergence
+    - name: uMask
+      valuex: =parent.CRT.par.Masktype.menuIndex
+      valuey: =parent.CRT.par.Maskpitch
+      valuez: =parent.CRT.par.Maskdepth
+      valuew: =parent.CRT.par.Brightness
+    - name: uTube
+      valuex: =parent.CRT.par.Halation
+      valuey: =parent.CRT.par.Blacklevel
+      valuez: =parent.CRT.par.Saturation
+      valuew: =absTime.frame % 2
+    - name: uScan2
+      valuex: =parent.CRT.par.Scandir.menuIndex
+      valuey: =parent.CRT.par.Interlace
+      valuez: =parent.CRT.par.Humbar
+      valuew: =(absTime.seconds * parent.CRT.par.Humspeed) % 1
+    - name: uMask2
+      valuex: =parent.CRT.par.Masksoft
+      valuey: =parent.CRT.par.Maskcurved
+      valuez: =parent.CRT.par.Glare
+      valuew: =parent.CRT.par.Edgesoft
+    - name: uGlow
+      valuex: =parent.CRT.par.Halothreshold
+      valuey: =parent.CRT.par.Diffusion
+      valuez: =min(parent.CRT.par.Persistence, 0.97)
+      valuew: =parent.CRT.par.Phosphor.menuIndex
+    - name: uGrade
+      valuex: =parent.CRT.par.Contrast
+      valuey: =parent.CRT.par.Gamma
+  position: [1200, 0]
+  inputs:
+  - glsl_signal
+  - blur_halo
+  - feedback_persist
+- name: glsl_signal
+  type: glslTOP
+  parameters:
+    pixeldat: glsl_signal_pixel
+  sequences:
+    vec:
+    - name: uSig
+      valuex: =parent.CRT.par.Smear
+      valuey: =parent.CRT.par.Ghost
+      valuez: =parent.CRT.par.Jitter
+      valuew: =parent.CRT.par.Tracking
+    - name: uTime
+      valuex: =absTime.seconds % 600
+      valuey: =absTime.frame % 997
+      valuez: =parent.CRT.par.Grain
+      valuew: =parent.CRT.par.Lines
+    - name: uSig2
+      valuex: =parent.CRT.par.Pixelate
+      valuey: =parent.CRT.par.Chromashift
+      valuez: =parent.CRT.par.Ghostoffset
+      valuew: =parent.CRT.par.Wave
+    - name: uSig3
+      valuex: =parent.CRT.par.Wavefreq
+      valuey: =parent.CRT.par.Headswitch
+      valuez: =parent.CRT.par.Trackspeed
+      valuew: =parent.CRT.par.Trackheight
+    - name: uSig4
+      valuex: =parent.CRT.par.Roll
+      valuey: =parent.CRT.par.Dropouts
+      valuez: =parent.CRT.par.Chromanoise
+      valuew: =parent.CRT.par.Flicker
+    - name: uDir
+      valuex: =parent.CRT.par.Scandir.menuIndex
+  position: [400, 0]
+  inputs:
+  - in1
+- name: switch_enable
+  type: switchTOP
+  parameters:
+    index: =parent.CRT.par.Enable
+  position: [1600, 0]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - in1
+  - glsl_tube
+- name: glsl_tube_info
+  type: infoDAT
+  parameters:
+    op: glsl_tube
+  position: [1275, -120]
+  dock: glsl_tube
+  dat_read_only: true
+- name: glsl_tube_pixel
+  type: textDAT
+  position: [1125, -120]
+  dock: glsl_tube
+  dat_content: |
+    // CRT filter, tube stage: curved glass with rounded corners and glare, convergence error,
+    // scanlines whose beam widens on bright colours (horizontal or vertical), interlace and a
+    // hum bar, a phosphor mask, halation and diffusion, grading, monochrome phosphors and
+    // phosphor persistence. Input 0: the signal stage. Input 1: the signal blurred (glow source).
+    // Input 2: this stage's previous output (persistence feedback).
+
+    uniform vec4 uGeom;   // x curvature, y corner radius, z vignette, w screen size
+    uniform vec4 uScan;   // x scanline count, y scanline depth, z beam bloom, w convergence (px)
+    uniform vec4 uMask;   // x mask (0 off, 1 shadow, 2 aperture grille, 3 slot), y pitch (px), z depth, w brightness
+    uniform vec4 uTube;   // x halation, y black level, z saturation, w field (frame parity)
+    uniform vec4 uScan2;  // x scan direction (0 horizontal, 1 vertical), y interlace, z hum bar, w hum phase 0-1
+    uniform vec4 uMask2;  // x dot softness, y mask follows glass, z glare, w edge softness
+    uniform vec4 uGlow;   // x halation threshold, y diffusion, z persistence, w phosphor (0 colour, 1 green, 2 amber, 3 white)
+    uniform vec4 uGrade;  // x contrast, y gamma
+    uniform vec4 uHalo;   // halation tint
+    uniform vec4 uBezel;  // colour outside the tube
+    uniform vec4 uTint;   // white point
+
+    layout(location = 0) out vec4 fragColor;
+
+    const vec3 LUMA = vec3(0.299, 0.587, 0.114);
+
+    // Phosphor pattern at pixel p; each channel lights a third of the pattern.
+    vec3 phosphorMask(vec2 p, float pitch, float type, float soft) {
+        float inner = mix(0.5, 0.05, soft);
+        if (type < 1.5) {
+            // Shadow mask: round R, G, B dots; every other row shifted by half a triad.
+            vec2 g = p / pitch;
+            g.x += mod(floor(g.y), 2.0) * 1.5;
+            float c = mod(floor(g.x), 3.0);
+            float dotShape = 1.0 - smoothstep(inner * 0.6, 0.6, length(fract(g) - 0.5));
+            return vec3(c < 0.5, c > 0.5 && c < 1.5, c > 1.5) * dotShape;
+        }
+        float c = mod(floor(p.x / pitch), 3.0);
+        float across = abs(fract(p.x / pitch) - 0.5);
+        vec3 stripe = vec3(c < 0.5, c > 0.5 && c < 1.5, c > 1.5) * (1.0 - smoothstep(inner, 0.55, across));
+        if (type < 2.5) {
+            return stripe;  // aperture grille: continuous vertical stripes
+        }
+        // Slot mask: stripes broken into slots, staggered every other triad.
+        float slotY = fract(p.y / (pitch * 3.0) + 0.5 * mod(floor(p.x / (pitch * 3.0)), 2.0));
+        float gap = mix(0.12, 0.3, soft);
+        return stripe * smoothstep(0.0, gap, slotY) * smoothstep(1.0, 1.0 - gap, slotY);
+    }
+
+    vec3 phosphorColor(float mode) {
+        return mode < 1.5 ? vec3(0.25, 1.0, 0.4) : mode < 2.5 ? vec3(1.0, 0.62, 0.12) : vec3(0.92, 0.95, 1.0);
+    }
+
+    void main() {
+        vec2 res = uTD2DInfos[0].res.zw;
+        vec2 asp = vec2(res.x / res.y, 1.0);
+        bool vert = uScan2.x > 0.5;
+        bool mono = uGlow.w > 0.5;
+
+        // Curved glass: the picture bends outward toward the edges.
+        vec2 c = (vUV.st * 2.0 - 1.0) / max(uGeom.w, 0.1);
+        c *= 1.0 + uGeom.x * 0.3 * vec2(c.y * c.y, c.x * c.x);
+        vec2 cuv = c * 0.5 + 0.5;
+
+        // Rounded screen edge (aspect-correct), vignette, and a glare spot on the glass.
+        vec2 q = abs(c) * asp - (asp - uGeom.y);
+        float edge = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - uGeom.y;
+        float soft = 0.004 + 0.06 * uMask2.w;
+        float screen = 1.0 - smoothstep(-soft, soft, edge);
+        vec2 v = clamp(cuv * (1.0 - cuv), 0.0, 1.0);
+        float vig = mix(1.0, pow(16.0 * v.x * v.y, 0.3), uGeom.z);
+        vec2 gp = (c - vec2(-0.45, 0.5)) * vec2(1.0, 1.8);
+        float glare = uMask2.z * 0.12 * exp(-dot(gp, gp) * 3.0);
+
+        // Scanlines in scan space: a.x runs along a line, a.y across lines. Each line shows one
+        // row of the picture; red and blue land slightly off along the line.
+        vec2 a = vert ? cuv.yx : cuv;
+        float lines = max(uScan.x, 16.0);
+        float ly = a.y * lines;
+        float f = fract(ly) - 0.5;
+        float row = (floor(ly) + 0.5) / lines;
+        float conv = uScan.w / (vert ? res.y : res.x);
+        vec2 sR = vec2(a.x + conv, row);
+        vec2 sG = vec2(a.x, row);
+        vec2 sB = vec2(a.x - conv, row);
+        vec3 src = vec3(texture(sTD2DInputs[0], vert ? sR.yx : sR).r,
+                        texture(sTD2DInputs[0], vert ? sG.yx : sG).g,
+                        texture(sTD2DInputs[0], vert ? sB.yx : sB).b);
+        if (mono) {
+            src = vec3(dot(src, LUMA));
+        }
+        // Beam profile: brighter channels draw wider lines; normalised so brightness holds.
+        vec3 sigma = 0.17 + 0.25 * uScan.z * clamp(src, 0.0, 1.0);
+        vec3 beam = exp(-f * f / (2.0 * sigma * sigma)) / min(sigma * 2.4, vec3(1.0));
+        vec3 col = src * mix(vec3(1.0), beam, uScan.y);
+
+        // Interlace: on alternate frames every other line is dimmer. Hum bar: a soft rolling band.
+        col *= 1.0 - uScan2.y * 0.6 * abs(mod(floor(ly), 2.0) - uTube.w);
+        float hum = pow(0.5 + 0.5 * sin(6.2831853 * (cuv.y - uScan2.w)), 6.0);
+        col *= 1.0 + uScan2.z * (hum - 0.15) * 0.6;
+
+        // Phosphor mask, flat on the output or bent with the glass. A monochrome tube shows the
+        // dot pattern without colour.
+        if (uMask.x > 0.5) {
+            vec2 mp = uMask2.y > 0.5 ? cuv * res : gl_FragCoord.xy;
+            if (vert) {
+                mp = mp.yx;
+            }
+            vec3 m = phosphorMask(mp, max(uMask.y, 1.0), uMask.x, uMask2.x);
+            m = mono ? vec3(m.r + m.g + m.b) : 3.0 * m;
+            col *= mix(vec3(1.0), m, uMask.z);
+        }
+
+        // Halation (thresholded, tinted, squared so highlights glow) and untinted glass diffusion.
+        vec3 glow = texture(sTD2DInputs[1], cuv).rgb;
+        if (mono) {
+            glow = vec3(dot(glow, LUMA));
+        }
+        vec3 hot = max(glow - uGlow.x, 0.0) / max(1.0 - uGlow.x, 0.05);
+        col += hot * hot * uHalo.rgb * uTube.x + glow * uGlow.y * 0.5;
+
+        // Grade: brightness, contrast, gamma, saturation, white point, phosphor colour, black level.
+        col *= uMask.w;
+        col = max((col - 0.5) * uGrade.x + 0.5, 0.0);
+        col = pow(col, vec3(1.0 / max(uGrade.y, 0.05)));
+        col = mix(vec3(dot(col, LUMA)), col, uTube.z) * uTint.rgb;
+        if (mono) {
+            col = dot(col, LUMA) * phosphorColor(uGlow.w);
+        }
+        col = (uTube.y + col * (1.0 - uTube.y)) * vig;
+
+        // Persistence: the phosphor keeps glowing as the beam moves on (max, so it never builds up).
+        vec3 lit = max(col + vec3(0.9, 0.95, 1.0) * glare, texture(sTD2DInputs[2], vUV.st).rgb * uGlow.z);
+        fragColor = TDOutputSwizzle(vec4(mix(uBezel.rgb, lit, screen), 1.0));
+    }
+  dat_content_format: text
+- name: feedback_persist
+  type: feedbackTOP
+  parameters:
+    top: glsl_tube
+  position: [800, -600]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - glsl_signal
+- name: glsl_signal_info
+  type: infoDAT
+  parameters:
+    op: glsl_signal
+  position: [475, -120]
+  dock: glsl_signal
+  dat_read_only: true
+- name: preset_callbacks
+  type: parameterexecuteDAT
+  parameters:
+    fromop: =parent()
+    op: ..
+    pars: Applypreset
+    valuechange: false
+    builtin: false
+  position: [2000, -400]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  dat_content: "# Apply Preset: copy one column of the presets table onto this filter's parameters.\n# Rows are parameter names (RGB colours as their r/g/b parts); a blank cell leaves that\n# parameter alone. Add a column to the table to make your own preset, and add its name to\n# the Preset menu (Component Editor) to pick it.\n\ndef _applyPreset(comp):\n\t\"\"\"Set every parameter listed in the presets table from the chosen preset's column.\"\"\"\n\ttable = comp.op('presets')\n\tname = comp.par.Preset.eval()\n\tif table is None or table.col(name) is None:\n\t\tdebug('CRT: no preset column named', name)\n\t\treturn\n\tfor row in range(1, table.numRows):\n\t\tpar = comp.par[table[row, 0].val]\n\t\tcell = table[row, name].val\n\t\tif par is None or cell == '':\n\t\t\tcontinue\n\t\tif par.isMenu:\n\t\t\tpar.val = cell\n\t\telif par.isInt or par.isToggle:\n\t\t\tpar.val = int(float(cell))\n\t\telse:\n\t\t\tpar.val = float(cell)\n\ndef onPulse(par):\n\tif par.name == 'Applypreset':\n\t\t_applyPreset(par.owner)\n\treturn\n"
+  dat_content_format: text
+- name: glsl_signal_pixel
+  type: textDAT
+  position: [325, -120]
+  dock: glsl_signal
+  dat_content: |
+    // CRT filter, analog signal stage: line jitter, a horizontal wave, a rolling tracking-noise
+    // band, VHS head-switching tear, vertical roll, optional pixelation, smear in which colour
+    // (I, Q) bleeds further and later than brightness (Y), a ghost echo, dropouts, grain,
+    // colour noise and flicker. With a vertical scan direction everything runs along columns.
+    // Input 0: the source image.
+
+    uniform vec4 uSig;   // x smear 0-1, y ghost 0-1, z line jitter (px), w tracking band 0-1
+    uniform vec4 uTime;  // x time (s, wraps every 600 s), y frame (wrapped), z grain, w scanline count
+    uniform vec4 uSig2;  // x source columns (0 = off), y chroma delay (px), z ghost offset (px), w wave (px)
+    uniform vec4 uSig3;  // x wave cycles per picture, y head switching 0-1, z tracking speed, w tracking height
+    uniform vec4 uSig4;  // x vertical roll (screens/s), y dropouts 0-1, z colour noise, w flicker 0-1
+    uniform vec4 uDir;   // x scan direction (0 horizontal, 1 vertical)
+
+    layout(location = 0) out vec4 fragColor;
+
+    const mat3 RGB2YIQ = mat3(0.299, 0.596, 0.211, 0.587, -0.274, -0.523, 0.114, -0.322, 0.312);
+    const mat3 YIQ2RGB = mat3(1.0, 1.0, 1.0, 0.956, -0.272, -1.106, 0.621, -0.647, 1.703);
+
+    bool vert;
+
+    float hash(vec2 p) {
+        vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+        p3 += dot(p3, p3.yzx + 33.33);
+        return fract((p3.x + p3.y) * p3.z);
+    }
+
+    // Sample the source in scan space (x along a line, y across lines), optionally pixelated.
+    vec3 source(vec2 s) {
+        if (uSig2.x >= 2.0) {
+            s.x = (floor(s.x * uSig2.x) + 0.5) / uSig2.x;
+        }
+        return texture(sTD2DInputs[0], vert ? s.yx : s).rgb;
+    }
+
+    void main() {
+        vert = uDir.x > 0.5;
+        vec2 uv = vert ? vUV.st.yx : vUV.st;
+        vec2 px = vert ? uTD2DInfos[0].res.yx : uTD2DInfos[0].res.xy;
+        float t = uTime.x;
+        float frame = uTime.y;
+
+        // Vertical roll: the picture slides through a dark blanking bar.
+        float y = fract(uv.y + t * uSig4.x);
+        float blank = abs(uSig4.x) > 1e-4 ? smoothstep(0.0, 0.025, y) * smoothstep(1.0, 0.975, y) : 1.0;
+        float line = floor(y * max(uTime.w, 1.0));
+
+        // Tracking band rolling down; head-switching tear along the bottom; wave; line jitter.
+        float band = uSig.w * exp(-pow((y - (1.0 - fract(t * uSig3.z))) / max(uSig3.w, 0.002), 2.0));
+        float tear = hash(vec2(line, frame)) - 0.5;
+        float head = uSig3.y * pow(smoothstep(0.06, 0.0, y), 1.5);
+        float wave = uSig2.w * sin(6.2831853 * (y * uSig3.x + t * 0.7));
+        float shift = tear * (uSig.z + band * 40.0) + wave + head * (30.0 + 40.0 * tear);
+        vec2 s = vec2(uv.x + shift * px.x, y);
+
+        // Smear: an exponentially fading trail to the left; colour bleeds further, and later.
+        float decayY = 0.6 * uSig.x;
+        float decayC = mix(0.35, 0.9, uSig.x);
+        float wY = 1.0, wC = 1.0, sumY = 0.0, sumC = 0.0, accY = 0.0;
+        vec2 accC = vec2(0.0);
+        for (int i = 0; i < 10; i++) {
+            float o = float(i) * 1.5 * px.x;
+            accY += (RGB2YIQ * source(s - vec2(o, 0.0))).x * wY;
+            accC += (RGB2YIQ * source(s - vec2(o + uSig2.y * px.x, 0.0))).yz * wC;
+            sumY += wY; wY *= decayY;
+            sumC += wC; wC *= decayC;
+        }
+        vec3 col = YIQ2RGB * vec3(accY / sumY, accC / sumC);
+
+        // Ghost echo.
+        col += uSig.y * 0.5 * source(s - vec2(uSig2.z * px.x, 0.0));
+
+        // Dropouts: white streaks along a few random lines.
+        float x0 = hash(vec2(line, frame + 5.0));
+        float len = 0.03 + 0.15 * hash(vec2(line + 3.0, frame));
+        float dropLine = step(hash(vec2(line * 1.7, frame + 11.0)), uSig4.y * 0.03);
+        col = mix(col, vec3(0.9), dropLine * step(x0, uv.x) * smoothstep(x0 + len, x0, uv.x));
+
+        // Grain, colour noise, the tracking band's speckle, flicker and the blanking bar.
+        vec2 np = vUV.st * uTD2DInfos[0].res.zw;
+        float n = hash(np + vec2(frame * 7.13, frame * 3.71));
+        col += (n - 0.5) * uTime.z * 0.12;
+        col += (vec3(hash(np + frame * 1.31), hash(np + frame * 2.17 + 5.0), hash(np + frame * 3.07 + 9.0)) - 0.5) * uSig4.z * 0.15;
+        float speck = step(0.75, hash(vec2(floor(uv.x * 400.0), line + frame)));
+        col = mix(col, vec3(n), band * speck * 0.8);
+        col *= (1.0 + uSig4.w * (hash(vec2(frame, 1.0)) - 0.5) * 0.4) * blank;
+        fragColor = TDOutputSwizzle(vec4(max(col, 0.0), 1.0));
+    }
+  dat_content_format: text
+annotations:
+- name: annotate1
+  mode: annotate
+  title: CRT Filter
+  text: 'Reusable: any TOP in, CRT look out; controls on the Tube, Scan, Mask, Signal, Glow, Color and Presets pages. glsl_signal = analog signal (jitter, wave, tracking band, head switching, roll, pixelation, smear with chroma delay, ghost, dropouts, grain, flicker). blur_halo = halation source. glsl_tube = curved glass, glare, convergence, beam scanlines (horizontal or vertical), interlace, hum bar, phosphor mask, halation, diffusion, grade, monochrome phosphors; feedback_persist feeds its last frame back for phosphor persistence. presets = one column per look (add your own); preset_callbacks applies the chosen column on Apply Preset. switch_enable passes the input through when Enable is off.'
+  position: [-70, -670]
+  size: [2270, 930]
+  color: [0.45, 0.25, 0.2]
+  opacity: 0.6

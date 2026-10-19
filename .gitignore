@@ -27,6 +27,10 @@
 touchdesigner/Backup/
 CrashAutoSave*
 
+# TouchDesigner, all projects: numbered incremental saves (name.17.toe) and the import cache
+*.[0-9]*.toe
+TDImportCache/
+
 # Python
 .venv/
 __pycache__/

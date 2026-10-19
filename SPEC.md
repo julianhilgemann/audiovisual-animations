@@ -1,7 +1,7 @@
 # Datapipe — Audio-reactive Blender Shorts
 
-**Spec v0.3 · 2026-10-19 · Status: draft for review**
-*v0.3: Phase 0 done; FFmpeg comes from PyAV inside the venv instead of a system install. v0.2: TouchDesigner becomes the reactivity-tuning tool (§6).*
+**Spec v0.4 · 2026-10-20 · Status: draft for review**
+*v0.4: The repo is on GitHub and also holds standalone TouchDesigner projects under `projects/` (§4). v0.3: Phase 0 done; FFmpeg comes from PyAV inside the venv instead of a system install. v0.2: TouchDesigner becomes the reactivity-tuning tool (§6).*
 
 Drop an audio or video file into a folder → the pipeline analyzes its rhythm and spectrum → a Blender scene is animated from those features plus a hand-tuned look preset → one headless render produces a finished YouTube Short (video + audio) with no further editing.
 
@@ -40,7 +40,7 @@ Drop an audio or video file into a folder → the pipeline analyzes its rhythm a
 | Reference render | `reference/neon_tunnel_5x.mp4`: 30 s, the 6 s loop repeated 5×, 423 MB. |
 | Software | Blender **5.2.2 LTS** (bundled Python 3.13.13, numpy 2.3.4). **TouchDesigner 2025.32820** (bundled Python 3.11, numpy 2.1.2). System Python 3.14.5 (untouched), Git, Node. **Pipeline env:** uv 0.13.1 (winget, user scope) with a uv-managed Python 3.12.15 in `.venv`. FFmpeg comes from PyAV inside the venv; there is no system ffmpeg. `uv run datapipe doctor` checks the whole toolchain. |
 | Blender bridge | The Blender Lab MCP add-on listens on `localhost:9876` and runs Python sent to it. This lets Claude (or any script) tweak the open scene live. Helper: `tools/blender_bridge.py`. It also works with a headless server (`blender -b <file> --online-mode -c blender_mcp`). |
-| Repo | Git, branch `main`. Agent context lives in `CLAUDE.md`. |
+| Repo | Git, branch `main`, pushed to the public GitHub repo `julianhilgemann/audiovisual-animations`. Agent context lives in `CLAUDE.md`. |
 
 ---
 
@@ -121,6 +121,7 @@ datapipe/
 ├─ touchdesigner/
 │  ├─ reactivity_lab.toe        # reactivity tuning project (see §6.1)
 │  └─ scripts/                  # Script CHOP and export Python, kept as .py so git diffs stay readable
+├─ projects/                    # standalone TD projects, not part of the pipeline (see projects/README.md)
 ├─ tools/
 │  └─ blender_bridge.py         # send Python to a running Blender (localhost:9876)
 └─ tests/

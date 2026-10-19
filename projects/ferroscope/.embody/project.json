@@ -1,0 +1,11 @@
+{
+  "envoy": {
+    "enabled": true
+  },
+  "python": {
+    "extras": [
+      "yt-dlp",
+      "yt-dlp-ejs"
+    ]
+  }
+}

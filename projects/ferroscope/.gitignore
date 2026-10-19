@@ -1,0 +1,28 @@
+# Embody / Envoy (auto-managed)
+Backup/
+logs/
+CrashAutoSave*
+.venv/
+.mcp.json
+.embody_backup/
+.tdn_backup/
+opencode.json
+.cursor/mcp.json
+.vscode/mcp.json
+.gemini/settings.json
+.codex/config.toml
+.agents/mcp_config.json
+**/.embody/*
+!**/.embody/project.json
+.claude/settings.local.json
+.claude/projects/
+briefs/
+__pycache__/
+.DS_Store
+/TDPyEnvManagerContext.yaml
+
+# FerroScope YouTube downloads (fetched on demand by youtube_fetch)
+/media/
+
+# Screenshot of someone else's video, kept as a local reference only
+/screenshot.png
