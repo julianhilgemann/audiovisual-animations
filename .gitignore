@@ -43,3 +43,21 @@ desktop.ini
 
 # Claude Code personal settings
 .claude/settings.local.json
+
+# Embody / Envoy (auto-managed)
+Backup/
+logs/
+.mcp.json
+.embody_backup/
+.tdn_backup/
+opencode.json
+.cursor/mcp.json
+.vscode/mcp.json
+.gemini/settings.json
+.codex/config.toml
+.agents/mcp_config.json
+**/.embody/*
+!**/.embody/project.json
+.claude/projects/
+briefs/
+.DS_Store
