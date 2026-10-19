@@ -1,0 +1,6 @@
+* text=auto
+*.blend binary
+*.toe binary
+*.tox binary
+*.png binary
+*.ps1 text eol=crlf

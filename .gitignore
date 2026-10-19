@@ -1,0 +1,41 @@
+# Pipeline state and media stay local
+/inbox/*
+!/inbox/.gitkeep
+/work/*
+!/work/.gitkeep
+/cache/*
+!/cache/.gitkeep
+/output/*
+!/output/.gitkeep
+/archive/*
+!/archive/.gitkeep
+/reference/*
+!/reference/.gitkeep
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.wav
+*.mp3
+*.flac
+*.m4a
+
+# Blender and TouchDesigner backups
+*.blend1
+*.blend2
+*.blend@
+touchdesigner/Backup/
+CrashAutoSave*
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# OS
+Thumbs.db
+desktop.ini
+
+# Claude Code personal settings
+.claude/settings.local.json
