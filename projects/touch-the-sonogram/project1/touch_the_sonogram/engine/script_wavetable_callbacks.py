@@ -21,7 +21,7 @@ def onCook(scriptOp: scriptCHOP):
 	feat = op('select_features')
 	level = feat['level'].eval() if feat is not None and feat['level'] is not None else 0.0
 	values = series['value_bn'].numpyArray().astype(np.float64)
-	p = parent.Reactor.par
+	p = parent.Sonogram.par
 	cfg = lib.read_config(p, p.Micdrive.eval() * level)
 	r, s = lib.build_cycle(values, win['start'].eval(), int(win['length'].eval()), cfg, win['hz'].eval())
 	shaped.vals = s.astype(np.float32)

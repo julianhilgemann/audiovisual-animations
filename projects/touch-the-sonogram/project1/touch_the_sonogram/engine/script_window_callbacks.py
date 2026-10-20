@@ -11,7 +11,7 @@ Channels: start, length, span (months), scanfrac (start / span), t0, t1
 
 def onCook(scriptOp: scriptCHOP):
 	lib = op('wavetable_lib').module
-	p = parent.Reactor.par
+	p = parent.Sonogram.par
 	series = op('null_series')
 	n = series.numSamples if series.numChans else 0
 	feat = op('select_features')

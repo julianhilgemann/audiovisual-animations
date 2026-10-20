@@ -82,7 +82,7 @@ def _camera(scriptOp, p, s: dict, dt: float) -> dict:
 
 
 def onCook(scriptOp: scriptCHOP):
-	p = parent.Reactor.par
+	p = parent.Sonogram.par
 	dt = 1.0 / max(1.0, float(project.cookRate))
 	s = _state.setdefault(scriptOp.path, {})
 	values = _mic(scriptOp, p, s, dt)

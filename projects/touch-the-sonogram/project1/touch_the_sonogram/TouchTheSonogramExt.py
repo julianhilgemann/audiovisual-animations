@@ -1,4 +1,4 @@
-"""AudioReactor: the Bundesbank wavetable drone as a camera- and microphone-reactive installation.
+"""Touch the Sonogram: the Bundesbank wavetable drone as a camera- and microphone-reactive installation.
 
 Owns the custom-parameter schema of the COMP (get-or-create, never destroys a
 user value), the Bundesbank REST API request, the camera background capture and
@@ -301,7 +301,7 @@ _PAR_SCHEMA = [
 ]
 
 
-class AudioReactorExt:
+class TouchTheSonogramExt:
     """Wavetable drone + camera/mic sensing + point cloud: parameter schema, API fetch, dispatch."""
 
     def __init__(self, ownerComp: COMP) -> None:
@@ -337,7 +337,7 @@ class AudioReactorExt:
         """Take the current camera frame as the empty-room background of the silhouette key."""
         fb = self.ownerComp.op('sense/feedback_bg')
         if fb is None:
-            debug('AudioReactor: sense/feedback_bg is missing')
+            debug('TouchTheSonogram: sense/feedback_bg is missing')
             return
         fb.par.resetpulse.pulse()
 
@@ -384,7 +384,7 @@ class AudioReactorExt:
 
     def _setStatus(self, text: str) -> None:
         self.ownerComp.par.Status.val = text
-        debug('AudioReactor:', text)
+        debug('TouchTheSonogram:', text)
 
     def _ensurePage(self, name: str):
         for page in self.ownerComp.customPages:

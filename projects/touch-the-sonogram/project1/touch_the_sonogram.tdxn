@@ -1,9 +1,9 @@
 format: tdxn
 version: '2.1'
-build: 3
+build: 5
 generator: Embody/6.2.68
 td_build: 099.2025.32820
-network_path: /project1/audioreactor
+network_path: /project1/touch_the_sonogram
 options:
   include_dat_content: false
   include_storage: true
@@ -76,11 +76,6 @@ type_defaults:
   nullTOP:
     size: [130, 90]
     color: [0.67, 0.67, 0.67]
-  outDAT:
-    parameters:
-      label: =me.name
-    size: [130, 90]
-    color: [0.67, 0.67, 0.67]
   outTOP:
     parameters:
       label: =me.name
@@ -89,9 +84,6 @@ type_defaults:
   scriptCHOP:
     parameters:
       autoexportroot: =parent()
-    size: [130, 90]
-    color: [0.67, 0.67, 0.67]
-  scriptDAT:
     size: [130, 90]
     color: [0.67, 0.67, 0.67]
   selectCHOP:
@@ -673,7 +665,7 @@ custom_pars:
     clampMax: true
     normMax: 0.5
     help: Difference (or darkness) above which a pixel counts as visitor.
-    value: 0.5
+    value: 0.3580000103
   - name: Keysoftness
     style: Float
     label: Key Softness
@@ -684,7 +676,7 @@ custom_pars:
     clampMax: true
     normMax: 0.3
     help: Width of the soft edge around the threshold.
-    value: 0.125
+    value: 0.1800000072
   - name: Bglearn
     style: Float
     label: Background Learn (s)
@@ -694,7 +686,7 @@ custom_pars:
     clampMax: true
     normMax: 120.0
     help: Time constant in seconds with which the background slowly absorbs the room (lighting drift, moved furniture). 0 = never learn, only Capture.
-    value: 55.9
+    value: 25.3999996185
   - name: Capturebg
     style: Pulse
     label: Capture Background
@@ -800,12 +792,14 @@ custom_pars:
     help: 'Read-only: 0-1, sudden onsets (fast envelope over slow envelope).'
     value: =float(me.op('sense/null_features')['transient'] or 0) if me.op('sense/null_features') is not None else 0.0
 parameters:
-  parentshortcut: Reactor
+  parentshortcut: Sonogram
 sequences:
   ext:
-  - object: op('./AudioReactorExt').module.AudioReactorExt(me)
-    name: Reactor
+  - object: op('./TouchTheSonogramExt').module.TouchTheSonogramExt(me)
+    name: Sonogram
     promote: true
+  - {}
+  - {}
 color: [0.3, 0.5, 0.9]
 tags:
 - tdxn
@@ -824,8 +818,8 @@ operators:
     parameters:
       xord: trs
       tz: =5.4 * (1.0 - 0.1 * me.parent().op('select_features')['prox'])
-      rx: =-9.0 + parent.Reactor.par.Sway * (4.0 * math.sin(6.2831853 * me.parent().op('speed_flow')['swayy']) + 1.2 * math.sin(6.2831853 * 2.0 * me.parent().op('speed_flow')['swayy'] + 0.7))
-      ry: =parent.Reactor.par.Sway * (8.0 * math.sin(6.2831853 * me.parent().op('speed_flow')['swayx']) + 2.0 * math.sin(6.2831853 * 3.0 * me.parent().op('speed_flow')['swayx'] + 1.3))
+      rx: =-9.0 + parent.Sonogram.par.Sway * (4.0 * math.sin(6.2831853 * me.parent().op('speed_flow')['swayy']) + 1.2 * math.sin(6.2831853 * 2.0 * me.parent().op('speed_flow')['swayy'] + 0.7))
+      ry: =parent.Sonogram.par.Sway * (8.0 * math.sin(6.2831853 * me.parent().op('speed_flow')['swayx']) + 2.0 * math.sin(6.2831853 * 3.0 * me.parent().op('speed_flow')['swayx'] + 1.3))
       fov: 50
       near: 0.05
       far: 60
@@ -913,7 +907,7 @@ operators:
         valuew: 1.5
       - name: uDof
         valuex: =op('cam_view').par.tz
-        valuey: =0.012 * parent.Reactor.par.Dof * (1.0 + 2.0 * op('const_react')['mid'])
+        valuey: =0.012 * parent.Sonogram.par.Dof * (1.0 + 2.0 * op('const_react')['mid'])
         valuez: 0.12
         valuew: 0
     position: [4900, -800]
@@ -924,13 +918,13 @@ operators:
     sequences:
       const:
       - name: head
-        value: =parent.Reactor.par.Speed * 0.1
+        value: =parent.Sonogram.par.Speed * 0.1
       - name: swayx
-        value: =0.019 * parent.Reactor.par.Swayspeed
+        value: =0.019 * parent.Sonogram.par.Swayspeed
       - name: swayy
-        value: =0.013 * parent.Reactor.par.Swayspeed
+        value: =0.013 * parent.Sonogram.par.Swayspeed
       - name: breath
-        value: =0.023 * parent.Reactor.par.Swayspeed
+        value: =0.023 * parent.Sonogram.par.Swayspeed
     position: [0, -1200]
   - name: glsl_field
     type: glslmultiTOP
@@ -945,18 +939,18 @@ operators:
       vec:
       - name: uFlow
         valuex: =op('speed_flow')['head'] * op('glsl_history').par.resolutionw
-        valuey: =parent.Reactor.par.Direction.menuIndex
-        valuez: =float(parent.Reactor.par.Mirror)
+        valuey: =parent.Sonogram.par.Direction.menuIndex
+        valuez: =float(parent.Sonogram.par.Mirror)
         valuew: =op('speed_flow')['breath']
       - name: uShape
-        valuex: =parent.Reactor.par.Depth
-        valuey: =parent.Reactor.par.Thickness
-        valuez: =parent.Reactor.par.Scatter
-        valuew: =parent.Reactor.par.Pointsize
+        valuex: =parent.Sonogram.par.Depth
+        valuey: =parent.Sonogram.par.Thickness
+        valuez: =parent.Sonogram.par.Scatter
+        valuew: =parent.Sonogram.par.Pointsize
       - name: uReact
-        valuex: =parent.Reactor.par.Reach
-        valuey: =parent.Reactor.par.Imprint
-        valuez: =parent.Reactor.par.Ripple
+        valuex: =parent.Sonogram.par.Reach
+        valuey: =parent.Sonogram.par.Imprint
+        valuez: =parent.Sonogram.par.Ripple
         valuew: =op('select_features')['prox']
       - name: uNoise
         valuex: =op('const_react')['low']
@@ -964,10 +958,10 @@ operators:
         valuez: =op('const_react')['high']
         valuew: =op('const_react')['kick']
       - name: uPal
-        valuex: =parent.Reactor.par.Palette.menuIndex
-        valuey: =parent.Reactor.par.Paletteshift
-        valuez: =parent.Reactor.par.Contrast
-        valuew: =parent.Reactor.par.Micsono
+        valuex: =parent.Sonogram.par.Palette.menuIndex
+        valuey: =parent.Sonogram.par.Paletteshift
+        valuez: =parent.Sonogram.par.Contrast
+        valuew: =parent.Sonogram.par.Micsono
       - name: uMisc
         valuex: =absTime.frame % 10000
         valuez: 1.6
@@ -995,7 +989,7 @@ operators:
     type: bloomTOP
     parameters:
       bloomthreshold: 0.6
-      bloomintensity: =0.35 * parent.Reactor.par.Glow + 0.6 * op('const_react')['low']
+      bloomintensity: =0.35 * parent.Sonogram.par.Glow + 0.6 * op('const_react')['low']
       format: rgba16float
     position: [5700, -400]
     size: [130, 90]
@@ -1007,13 +1001,13 @@ operators:
     sequences:
       const:
       - name: low
-        value: =op('select_features')['low'] * parent.Reactor.par.Lowbloom * parent.Reactor.par.Chaos
+        value: =op('select_features')['low'] * parent.Sonogram.par.Lowbloom * parent.Sonogram.par.Chaos
       - name: mid
-        value: =op('select_features')['mid'] * parent.Reactor.par.Midblur * parent.Reactor.par.Chaos
+        value: =op('select_features')['mid'] * parent.Sonogram.par.Midblur * parent.Sonogram.par.Chaos
       - name: high
-        value: =op('select_features')['high'] * parent.Reactor.par.Highjitter * parent.Reactor.par.Chaos
+        value: =op('select_features')['high'] * parent.Sonogram.par.Highjitter * parent.Sonogram.par.Chaos
       - name: kick
-        value: =op('select_features')['transient'] * parent.Reactor.par.Kick * parent.Reactor.par.Chaos
+        value: =op('select_features')['transient'] * parent.Sonogram.par.Kick * parent.Sonogram.par.Chaos
     position: [400, -1600]
   - name: blur_defocus
     type: blurTOP
@@ -1037,8 +1031,8 @@ operators:
       vec:
       - name: uHead
         valuex: =op('speed_flow')['head'] * me.par.resolutionw
-        valuey: =parent.Reactor.par.Speed * 0.1 * me.par.resolutionw / me.time.rate
-        valuez: =1.0 if parent.Reactor.par.Speed < 0.001 else 0.0
+        valuey: =parent.Sonogram.par.Speed * 0.1 * me.par.resolutionw / me.time.rate
+        valuez: =1.0 if parent.Sonogram.par.Speed < 0.001 else 0.0
       - name: uSono
         valuex: 30
         valuey: 16000
@@ -1092,7 +1086,7 @@ operators:
         valuex: 0.6
         valuey: 0.12
         valuez: 0.004
-        valuew: =14.0 + parent.Reactor.par.Micgain
+        valuew: =14.0 + parent.Sonogram.par.Micgain
     position: [800, -400]
     inputs:
     - chopto_micspec
@@ -1130,7 +1124,7 @@ operators:
   - name: glsl_post_pixel
     type: textDAT
     parameters:
-      file: project1/audioreactor/viz/glsl_post_pixel.glsl
+      file: project1/touch_the_sonogram/viz/glsl_post_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -1160,7 +1154,7 @@ operators:
   - name: mat_cloud_pixel
     type: textDAT
     parameters:
-      file: project1/audioreactor/viz/mat_cloud_pixel.glsl
+      file: project1/touch_the_sonogram/viz/mat_cloud_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -1205,7 +1199,7 @@ operators:
   - name: glsl_field_pixel
     type: textDAT
     parameters:
-      file: project1/audioreactor/viz/glsl_field_pixel.glsl
+      file: project1/touch_the_sonogram/viz/glsl_field_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -1219,7 +1213,7 @@ operators:
   - name: mat_cloud_vertex
     type: textDAT
     parameters:
-      file: project1/audioreactor/viz/mat_cloud_vertex.glsl
+      file: project1/touch_the_sonogram/viz/mat_cloud_vertex.glsl
       syncfile: true
       language: glsl
       extension: vert
@@ -1240,7 +1234,7 @@ operators:
   - name: glsl_history_pixel
     type: textDAT
     parameters:
-      file: project1/audioreactor/viz/glsl_history_pixel.glsl
+      file: project1/touch_the_sonogram/viz/glsl_history_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -1277,7 +1271,7 @@ operators:
   - name: glsl_specsmooth_pixel
     type: textDAT
     parameters:
-      file: project1/audioreactor/viz/glsl_specsmooth_pixel.glsl
+      file: project1/touch_the_sonogram/viz/glsl_specsmooth_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -1614,15 +1608,13 @@ operators:
       2026-08,17891,Provisional value
       "",Comment on 2010-06: Change of the grossing-up procedure according to the ECB (Guideline ECB/2014/15),
     dat_content_format: text
-  - name: out_stats
-    type: outDAT
-    position: [1800, -400]
-    inputs:
-    - stats_series
-    dat_read_only: true
   - name: out_series
     type: outDAT
+    parameters:
+      label: =me.name
     position: [1400, 0]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
     inputs:
     - clean_series
     dat_read_only: true
@@ -1631,16 +1623,10 @@ operators:
     parameters:
       callbacks: clean_series_callbacks
     position: [1000, 0]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
     inputs:
     - raw_csv
-    dat_read_only: true
-  - name: stats_series
-    type: scriptDAT
-    parameters:
-      callbacks: stats_series_callbacks
-    position: [1400, -400]
-    inputs:
-    - clean_series
     dat_read_only: true
   - name: webclient_bbk
     type: webclientDAT
@@ -1653,7 +1639,7 @@ operators:
   - name: clean_series_callbacks
     type: textDAT
     parameters:
-      file: project1/audioreactor/data/clean_series_callbacks.py
+      file: project1/touch_the_sonogram/data/clean_series_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -1663,23 +1649,10 @@ operators:
     tags:
     - py
     dock: clean_series
-  - name: stats_series_callbacks
-    type: textDAT
-    parameters:
-      file: project1/audioreactor/data/stats_series_callbacks.py
-      syncfile: true
-      language: python
-    flags:
-    - viewer
-    position: [1400, -520]
-    color: [0.9, 0.3, 0.4]
-    tags:
-    - py
-    dock: stats_series
   - name: webclient_bbk_callbacks
     type: textDAT
     parameters:
-      file: project1/audioreactor/data/webclient_bbk_callbacks.py
+      file: project1/touch_the_sonogram/data/webclient_bbk_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -1694,9 +1667,9 @@ operators:
   - name: annotate1
     mode: annotate
     title: Bundesbank API fetch + cleaning
-    text: Fetch pulse -> webclient_bbk (async GET, CSV) -> callbacks hand the body to SeriesSynthExt -> raw_csv. clean_series keeps YYYY-MM rows with finite numbers (date, year, month, t, value_meur, value_bn); stats_series derives the descriptive statistics.
-    position: [130, -590]
-    size: [1870, 850]
+    text: Fetch pulse -> webclient_bbk (async GET, CSV) -> callbacks hand the body to TouchTheSonogramExt -> raw_csv. clean_series keeps YYYY-MM rows with finite numbers (date, year, month, t, value_meur, value_bn) -> out_series -> engine.
+    position: [130, -190]
+    size: [1470, 450]
     color: [0.12, 0.22, 0.32]
 - name: out1
   type: outTOP
@@ -1720,7 +1693,7 @@ operators:
     sequences:
       vec:
       - name: uLearn
-        valuex: =(1.0 - math.exp(-1.0 / (parent.Reactor.par.Bglearn * me.time.rate))) if parent.Reactor.par.Bglearn > 0 else 0.0
+        valuex: =(1.0 - math.exp(-1.0 / (parent.Sonogram.par.Bglearn * me.time.rate))) if parent.Sonogram.par.Bglearn > 0 else 0.0
     position: [1600, -1200]
     inputs:
     - null_cam
@@ -1816,7 +1789,7 @@ operators:
   - name: videoin_cam
     type: videodeviceinTOP
     parameters:
-      active: =parent.Reactor.par.Camera
+      active: =parent.Sonogram.par.Camera
       device: V1|||\\?\usb#vid_3277&pid_0010&mi_00#7&df5034d&0&0000#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\global|||0|||0|||ASUS FHD webcam
       signalformat: f1920x1080p-30.00hz
       outputresolution: half
@@ -1847,7 +1820,7 @@ operators:
   - name: glsl_bg_pixel
     type: textDAT
     parameters:
-      file: project1/audioreactor/sense/glsl_bg_pixel.glsl
+      file: project1/touch_the_sonogram/sense/glsl_bg_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -1869,15 +1842,15 @@ operators:
     sequences:
       vec:
       - name: uKey
-        valuex: =parent.Reactor.par.Keythreshold
-        valuey: =parent.Reactor.par.Keysoftness
-        valuez: =1.0 if parent.Reactor.par.Keymode.eval() == 'dark' else 0.0
+        valuex: =parent.Sonogram.par.Keythreshold
+        valuey: =parent.Sonogram.par.Keysoftness
+        valuez: =1.0 if parent.Sonogram.par.Keymode.eval() == 'dark' else 0.0
         valuew: 0.5
       - name: uMotion
-        valuex: =math.exp(-1.0 / max(1.0, parent.Reactor.par.Motiondecay * me.time.rate))
+        valuex: =math.exp(-1.0 / max(1.0, parent.Sonogram.par.Motiondecay * me.time.rate))
         valuey: 0.05
         valuez: 1
-        valuew: =float(parent.Reactor.par.Camera)
+        valuew: =float(parent.Sonogram.par.Camera)
     position: [2400, -1600]
     inputs:
     - null_cam
@@ -1897,7 +1870,7 @@ operators:
   - name: audiodevin_mic
     type: audiodeviceinCHOP
     parameters:
-      active: =parent.Reactor.par.Mic
+      active: =parent.Sonogram.par.Mic
       autoexportroot: =parent()
     size: [130, 90]
     color: [0.67, 0.67, 0.67]
@@ -1919,7 +1892,7 @@ operators:
   - name: glsl_stats_pixel
     type: textDAT
     parameters:
-      file: project1/audioreactor/sense/glsl_stats_pixel.glsl
+      file: project1/touch_the_sonogram/sense/glsl_stats_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -1962,7 +1935,7 @@ operators:
   - name: glsl_presence_pixel
     type: textDAT
     parameters:
-      file: project1/audioreactor/sense/glsl_presence_pixel.glsl
+      file: project1/touch_the_sonogram/sense/glsl_presence_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -1976,7 +1949,7 @@ operators:
   - name: script_features_callbacks
     type: textDAT
     parameters:
-      file: project1/audioreactor/sense/script_features_callbacks.py
+      file: project1/touch_the_sonogram/sense/script_features_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -2018,7 +1991,7 @@ operators:
     type: mathCHOP
     parameters:
       chopop: mul
-      gain: =parent.Reactor.par.Volume
+      gain: =parent.Sonogram.par.Volume
       autoexportroot: =parent()
     position: [3400, -2600]
     size: [130, 90]
@@ -2036,8 +2009,8 @@ operators:
   - name: lag_glide
     type: lagCHOP
     parameters:
-      lag1: =parent.Reactor.par.Glide
-      lag2: =parent.Reactor.par.Glide
+      lag1: =parent.Sonogram.par.Glide
+      lag2: =parent.Sonogram.par.Glide
       autoexportroot: =parent()
     position: [1800, -2600]
     size: [130, 90]
@@ -2077,9 +2050,9 @@ operators:
     sequences:
       const:
       - name: d1
-        value: =parent.Reactor.par.Driftrate
+        value: =parent.Sonogram.par.Driftrate
       - name: d2
-        value: =parent.Reactor.par.Driftrate * 0.382
+        value: =parent.Sonogram.par.Driftrate * 0.382
     position: [200, -2200]
   - name: lookup_wave
     type: lookupCHOP
@@ -2126,7 +2099,7 @@ operators:
     sequences:
       const:
       - name: cutofffrequency
-        value: =min(18000.0, max(20.0, parent.Reactor.par.Cutoff * 2.0 ** (parent.Reactor.par.Drift * (0.7 * math.sin(6.2831853 * op('speed_drift')['d1']) + 0.3 * math.sin(6.2831853 * op('speed_drift')['d2'])) + parent.Reactor.par.Proxcutoff * op('select_features')['prox'])))
+        value: =min(18000.0, max(20.0, parent.Sonogram.par.Cutoff * 2.0 ** (parent.Sonogram.par.Drift * (0.7 * math.sin(6.2831853 * op('speed_drift')['d1']) + 0.3 * math.sin(6.2831853 * op('speed_drift')['d2'])) + parent.Sonogram.par.Proxcutoff * op('select_features')['prox'])))
     position: [1000, -2200]
   - name: datto_series
     type: dattoCHOP
@@ -2181,7 +2154,7 @@ operators:
   - name: wavetable_lib
     type: textDAT
     parameters:
-      file: project1/audioreactor/engine/wavetable_lib.py
+      file: project1/touch_the_sonogram/engine/wavetable_lib.py
       syncfile: true
       language: python
     position: [1400, 0]
@@ -2204,7 +2177,7 @@ operators:
     sequences:
       const:
       - name: rate
-        value: =(-1.0 if parent.Reactor.par.Scandir.eval() == 'backward' else 1.0) * (parent.Reactor.par.Scanrate * parent.Reactor.par.Scan + parent.Reactor.par.Motionscan * op('select_features')['motion'])
+        value: =(-1.0 if parent.Sonogram.par.Scandir.eval() == 'backward' else 1.0) * (parent.Sonogram.par.Scanrate * parent.Sonogram.par.Scan + parent.Sonogram.par.Motionscan * op('select_features')['motion'])
     position: [200, -400]
   - name: null_wavetable
     type: nullCHOP
@@ -2214,11 +2187,11 @@ operators:
   - name: audiofilter_vcf
     type: audiofilterCHOP
     parameters:
-      filter: =parent.Reactor.par.Filtertype
+      filter: =parent.Sonogram.par.Filtertype
       cutofflog: 2.69897
-      cutofffrequency: =parent.Reactor.par.Cutoff
-      resonance: =parent.Reactor.par.Resonance
-      rolloff: =float(parent.Reactor.par.Rolloff.eval())
+      cutofffrequency: =parent.Sonogram.par.Cutoff
+      resonance: =parent.Sonogram.par.Resonance
+      rolloff: =float(parent.Sonogram.par.Rolloff.eval())
     position: [3000, -2600]
     inputs:
     - lookup_wave
@@ -2231,7 +2204,7 @@ operators:
   - name: audiodevout_main
     type: audiodeviceoutCHOP
     parameters:
-      active: =parent.Reactor.par.Audio
+      active: =parent.Sonogram.par.Audio
       autoexportroot: =parent()
     position: [4600, -2600]
     size: [130, 90]
@@ -2255,7 +2228,7 @@ operators:
   - name: script_scope_callbacks
     type: textDAT
     parameters:
-      file: project1/audioreactor/engine/script_scope_callbacks.py
+      file: project1/touch_the_sonogram/engine/script_scope_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -2268,7 +2241,7 @@ operators:
   - name: script_window_callbacks
     type: textDAT
     parameters:
-      file: project1/audioreactor/engine/script_window_callbacks.py
+      file: project1/touch_the_sonogram/engine/script_window_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -2281,7 +2254,7 @@ operators:
   - name: script_wavetable_callbacks
     type: textDAT
     parameters:
-      file: project1/audioreactor/engine/script_wavetable_callbacks.py
+      file: project1/touch_the_sonogram/engine/script_wavetable_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -2313,27 +2286,27 @@ operators:
     position: [4530, -3990]
     size: [1470, 850]
     color: [0.28, 0.22, 0.08]
-- name: AudioReactorExt
-  type: textDAT
-  parameters:
-    file: project1/audioreactor/AudioReactorExt.py
-    syncfile: true
-    language: python
-  position: [200, 800]
-  color: [0.9, 0.3, 0.4]
-  tags:
-  - py
-- name: parexec_reactor
+- name: parexec_sonogram
   type: parameterexecuteDAT
   parameters:
     fromop: =parent()
     op: ..
     pars: '* ^Mon*'
     builtin: false
-    file: project1/audioreactor/parexec_reactor.py
+    file: project1/touch_the_sonogram/parexec_sonogram.py
     syncfile: true
   position: [600, 800]
   size: [130, 90]
+  color: [0.9, 0.3, 0.4]
+  tags:
+  - py
+- name: TouchTheSonogramExt
+  type: textDAT
+  parameters:
+    file: project1/touch_the_sonogram/TouchTheSonogramExt.py
+    syncfile: true
+    language: python
+  position: [200, 800]
   color: [0.9, 0.3, 0.4]
   tags:
   - py
@@ -2341,7 +2314,7 @@ annotations:
 - name: annotate1
   mode: annotate
   title: Control
-  text: AudioReactorExt owns the parameter schema, the API fetch and Capture Background; parexec_reactor routes pulses/changes to _on<Par> handlers (Mon* monitors excluded).
+  text: TouchTheSonogramExt owns the parameter schema, the API fetch and Capture Background; parexec_sonogram routes pulses/changes to _on<Par> handlers (Mon* monitors excluded).
   position: [130, 730]
   size: [670, 330]
   color: [0.2, 0.2, 0.28]

@@ -132,7 +132,7 @@ def build_cycle(values: np.ndarray, start: float, length: int, cfg: dict, hz: fl
 
 
 def read_config(par, extra_drive_db: float = 0.0) -> dict:
-    """Main thread only: the wavetable settings from the AudioReactor custom parameters.
+    """Main thread only: the wavetable settings from the touch_the_sonogram custom parameters.
 
     extra_drive_db is the room-microphone drive modulation, added on top of Drive.
     """

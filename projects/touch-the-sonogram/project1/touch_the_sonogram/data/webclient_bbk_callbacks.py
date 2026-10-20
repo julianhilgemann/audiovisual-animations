@@ -1,6 +1,6 @@
 """
 webclientDAT callbacks -- every hook runs on the MAIN thread.
-The response body is handed to the SeriesSynth extension, which stores it in
+The response body is handed to TouchTheSonogramExt, which stores it in
 raw_csv; clean_series parses it from there.
 """
 from typing import Dict, Any
@@ -13,9 +13,9 @@ def onDisconnect(dat: webclientDAT, id: int):
 
 def onResponse(dat: webclientDAT, statusCode: Dict[str, Any],
 			   headerDict: Dict[str, str], data: bytes, id: int):
-	parent.Synth.ext.SeriesSynth.handleResponse(statusCode, data)
+	parent.Sonogram.ext.Sonogram.handleResponse(statusCode, data)
 	return
 
 def onError(dat: webclientDAT, id: int, url: str, error: Exception):
-	parent.Synth.ext.SeriesSynth.handleResponse({'code': -1, 'message': str(error)}, b'')
+	parent.Sonogram.ext.Sonogram.handleResponse({'code': -1, 'message': str(error)}, b'')
 	return
