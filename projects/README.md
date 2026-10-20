@@ -8,7 +8,7 @@ These are standalone TouchDesigner projects. They aren't part of the Datapipe pi
 | `touch-the-sonogram/` | The Audioreactor installation: the Bundesbank wavetable drone, shaped by a camera and a microphone and drawn as a point-cloud sonogram. One COMP, `touch_the_sonogram`. | `econ-sonification/touch-the-sonogram.toe` |
 | `caleidoscopic-sonogram-video/` | The square music-video version of the Audioreactor: the point cloud driven by an audio track and a modulator video. One COMP, `caleidoscopic_sonogram_video`. | `econ-sonification/audioreactor.toe` |
 | `audioreactive-pointcloud/` | An audio-reactive point cloud, started from the Embody/Envoy starter project. | `td-sandbox/NewProject.toe` (`Projects/tdt`) |
-| `ferroscope/` | The FerroScope network, which has a reusable CRT filter (any TOP in, analog signal and tube emulation out; a portable copy is in `components/CRT.tox`) and YouTube input through yt-dlp. Older versions and AVCloud are in `archive/`. | `ferroscope/inputmadness.toe` (`Projects/inputter`) |
+| `ferroscope/` | The FerroScope network, which has a reusable CRT filter (any TOP in, analog signal and tube emulation out; a portable copy is in `components/CRT.tox`) and YouTube input through yt-dlp. One COMP, `ferroscope`. AVCloud, the webcam-and-mic particle cloud it replaced, is in `archive/`. | `ferroscope/inputmadness.toe` (`Projects/inputter`) |
 | `color-ribbon-butterfly/` | _to describe_ | |
 | `infinite-hypercube/` | _to describe_ | |
 | `iridiscent-viz/` | _to describe_ | |

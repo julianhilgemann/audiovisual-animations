@@ -3,7 +3,7 @@ version: '2.2'
 build: 2
 generator: Embody/6.2.72
 td_build: 099.2025.32820
-network_path: /project1/FerroScope/CRT
+network_path: /project1/ferroscope/CRT
 options:
   include_dat_content: false
   include_storage: true
@@ -43,7 +43,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: 'How strongly the glass bulges: the picture bends toward the edges like a curved tube. 0 = flat screen.'
-    value: 0.3070000112
+    value: 0.307
   - name: Corner
     style: Float
     label: Corner Radius
@@ -126,7 +126,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: How dark the gaps between scanlines are. 0 = no scanlines.
-    value: 0.8309999704
+    value: 0.831
   - name: Beam
     style: Float
     label: Beam Bloom
@@ -146,7 +146,7 @@ custom_pars:
     normMin: -4.0
     normMax: 4.0
     help: 'Misalignment of the red and blue beams along the scanlines, in pixels: colour fringes on edges.'
-    value: 2.8199999332
+    value: 2.82
   - name: Interlace
     style: Float
     label: Interlace Flicker
@@ -154,14 +154,14 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: Alternate frames dim every other scanline, like an interlaced picture.
-    value: 0.0560000017
+    value: 0.056
   - name: Humbar
     style: Float
     label: Hum Bar
     clampMin: true
     clampMax: true
     help: A soft bright band rolling slowly through the picture, like mains hum.
-    value: 0.9890000224
+    value: 0.989
   - name: Humspeed
     style: Float
     label: Hum Speed
@@ -202,7 +202,7 @@ custom_pars:
     normMin: 1.0
     normMax: 8.0
     help: Size of one phosphor dot or stripe in output pixels. Larger = a bigger, more visible mask.
-    value: 1.7899999619
+    value: 1.79
   - name: Maskdepth
     style: Float
     label: Mask Depth
@@ -210,7 +210,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: How strongly the phosphor pattern shows. 0 = no mask.
-    value: 0.2370000035
+    value: 0.237
   - name: Masksoft
     style: Float
     label: Dot Softness
@@ -218,7 +218,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: Softness of the phosphor dots and stripes. 0 = crisp, 1 = blurred.
-    value: 0.503000021
+    value: 0.503
   - name: Maskcurved
     style: Toggle
     label: Mask Follows Glass
@@ -257,7 +257,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: Faint echo of the picture to the right.
-    value: 0.6100000143
+    value: 0.61
   - name: Ghostoffset
     style: Float
     label: Ghost Offset (px)
@@ -269,7 +269,7 @@ custom_pars:
     normMin: 2.0
     normMax: 40.0
     help: Distance of the ghost echo, in pixels.
-    value: 2.5999999046
+    value: 2.6
   - name: Jitter
     style: Float
     label: Line Jitter (px)
@@ -289,7 +289,7 @@ custom_pars:
     clampMax: true
     normMax: 10.0
     help: A horizontal wave bending the picture, in pixels.
-    value: 3.1600000858
+    value: 3.16
   - name: Wavefreq
     style: Float
     label: Wave Frequency
@@ -308,7 +308,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: VHS-style torn, skewed strip along the bottom of the picture.
-    value: 0.0340000018
+    value: 0.034
   - name: Tracking
     style: Float
     label: Tracking Noise
@@ -317,7 +317,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: Strength of the torn, noisy band rolling down the picture.
-    value: 0.1299999952
+    value: 0.13
   - name: Trackspeed
     style: Float
     label: Tracking Speed
@@ -326,7 +326,7 @@ custom_pars:
     clampMax: true
     normMax: 0.3
     help: How fast the tracking band rolls down, in screens per second.
-    value: 0.3000000119
+    value: 0.3
   - name: Trackheight
     style: Float
     label: Tracking Height
@@ -338,7 +338,7 @@ custom_pars:
     normMin: 0.005
     normMax: 0.1
     help: Height of the tracking band as a fraction of the picture.
-    value: 0.0414999984
+    value: 0.0415
   - name: Roll
     style: Float
     label: Vertical Roll
@@ -354,7 +354,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: Random white streaks, like worn tape.
-    value: 0.5479999781
+    value: 0.548
   - name: Grain
     style: Float
     startSection: true
@@ -363,7 +363,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: Analog noise over the picture.
-    value: 0.1860000044
+    value: 0.186
   - name: Chromanoise
     style: Float
     label: Colour Noise
@@ -371,7 +371,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: Coloured (chroma) noise on top of the grain.
-    value: 0.1190000027
+    value: 0.119
   - name: Flicker
     style: Float
     clampMin: true
@@ -393,7 +393,7 @@ custom_pars:
     size: 3
     default: [1, 0.35, 0.22]
     help: Colour of the halation glow. Warm red-orange matches old tubes.
-    values: [1, 0.4980392, 0.5019608]
+    values: [1, 0.498039, 0.501961]
   - name: Halosize
     style: Float
     label: Halation Size (px)
@@ -412,7 +412,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: Only light above this level glows. Raise it to keep the glow on the highlights.
-    value: 0.8420000076
+    value: 0.842
   - name: Diffusion
     style: Float
     label: Glass Diffusion
@@ -420,7 +420,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: Soft untinted haze from light scattering in the glass.
-    value: 0.6100000143
+    value: 0.61
   - name: Persistence
     style: Float
     label: Phosphor Persistence
@@ -428,7 +428,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: 'Afterglow: moving bright things leave fading trails. 0 = none.'
-    value: 0.773999989
+    value: 0.774
   Color:
   - name: Phosphor
     style: Menu
@@ -454,7 +454,7 @@ custom_pars:
     normMin: 0.5
     normMax: 3.0
     help: Overall gain after scanlines and mask, which both darken the picture.
-    value: 0.6000000238
+    value: 0.6
   - name: Contrast
     style: Float
     default: 1
@@ -464,7 +464,7 @@ custom_pars:
     normMin: 0.5
     normMax: 2.0
     help: Contrast around mid grey. 1 = unchanged.
-    value: 1.2120000124
+    value: 1.212
   - name: Gamma
     style: Float
     default: 1
@@ -475,7 +475,7 @@ custom_pars:
     normMin: 0.5
     normMax: 2.0
     help: Midtone brightness. Above 1 lifts the midtones, below 1 darkens them.
-    value: 1.9919999838
+    value: 1.992
   - name: Saturation
     style: Float
     default: 1.1
@@ -484,7 +484,7 @@ custom_pars:
     clampMax: true
     normMax: 2.0
     help: Colour saturation of the tube. 1 = unchanged.
-    value: 0.3700000048
+    value: 0.37
   - name: Colortint
     style: RGBA
     label: Colour Tint

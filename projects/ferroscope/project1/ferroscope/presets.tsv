@@ -1,0 +1,122 @@
+par	factory	mylook	blackferro	hexhive	liquidmarble	mirrorface	sonobars	fractalbloom	hexmandala
+Audioactive	1	1							
+Autogain	1	1							
+Silence	-42	-70							
+Recovery	6	16.8							
+Gain	20	26							
+Range	36	61.8							
+Tilt	6	25							
+Attack	0.03	0.133							
+Release	0.35	1.1							
+Fftsize	4096	4096	4096	4096	4096	4096	4096	4096	4096
+Logscale	1	0.663	1	1	1	1	1	1	1
+Specstart	0.18	0.175	0.18	0.18	0.18	0.18	0.18	0.18	0.18
+Specend	0.92	0.596	0.92	0.92	0.92	0.92	0.92	0.92	0.92
+Freqsmooth	0	0	0	0	0	0	3	0	0
+Bands	0	47	0	0	0	0	32	0	0
+Freqlayout	lowhigh	basscenter	lowhigh	lowhigh	lowhigh	lowhigh	lowhigh	lowhigh	lowhigh
+Scrollspeed	1	0.61	1	1	1	1	2	1	1
+Timeflow	forward	centerout	forward	forward	forward	forward	forward	forward	forward
+Sonogamma	1	3	1	1	1	1	1	1	1
+Onsetboost	0	0.82	0	0	0	0	0.6	0	0
+Basscolorr	0.1	1	0.1	1	0.1	0.1	0.1	0.1	0.1
+Basscolorg	0.2	0	0.2	0.45	0.2	0.2	0.2	0.2	0.2
+Basscolorb	1	0	1	0.02	1	1	1	1	1
+Lowmidcolorr	0.9	0.498	0.9	1	0.9	0.9	0.9	0.9	0.9
+Lowmidcolorg	0.08	0.5922	0.08	0.25	0.08	0.08	0.08	0.08	0.08
+Lowmidcolorb	0.62	1	0.62	0.04	0.62	0.62	0.62	0.62	0.62
+Highmidcolorr	1	0.498	1	1	1	1	1	1	1
+Highmidcolorg	0.52	0.8667	0.52	0.75	0.52	0.52	0.52	0.52	0.52
+Highmidcolorb	0.06	1	0.06	0.25	0.06	0.06	0.06	0.06	0.06
+Treblecolorr	0.45	1	0.45	1	0.45	0.45	0.45	0.45	0.45
+Treblecolorg	0.95	1	0.95	0.95	0.95	0.95	0.95	0.95	0.95
+Treblecolorb	1	1	1	0.7	1	1	1	1	1
+Quietcolorr	0.006	0.006	0.006	0.02	0.006	0.006	0.006	0.006	0.006
+Quietcolorg	0.008	0.008	0.008	0.01	0.008	0.008	0.008	0.008	0.008
+Quietcolorb	0.014	0.014	0.014	0	0.014	0.014	0.014	0.014	0.014
+Peakcolorr	1	1	1	1	1	1	1	1	1
+Peakcolorg	0.95	0.95	0.95	0.95	0.95	0.95	0.95	0.95	0.95
+Peakcolorb	0.86	0.86	0.86	0.86	0.86	0.86	0.86	0.86	0.86
+Colorcurve	0.8	2.45	1.4	0.8	0.8	0.8	0.8	0.8	0.8
+Peakthreshold	0.7	0.892	0.7	0.7	0.7	0.7	0.7	0.7	0.7
+Peakmix	0.55	1	0.55	0.55	0.55	0.55	0.55	0.55	0.55
+Gridshape	hex	hex	hex	hex	hex	hex	square	hex	hex
+Gridcells	44	12	44	40	44	90	64	40	60
+Gridrotate	0	0	0	0	0	0	0	0	0
+Cellrandom	0	0.108	0	0	0	0	0	0	0
+Gridamount	0.85	0.976	0.85	0.85	0	0.85	0.85	0.85	0.85
+Structure	spikes	both	spikes	both	spikes	spikes	spikes	spikes	spikes
+Ridgewidth	0.15	0.5	0.15	0.12	0.15	0.15	0.15	0.15	0.15
+Spikeshape	cone	cone	cone	hexpyramid	cone	cone	dome	cone	cone
+Spikewidth	0.6	1	0.6	0.8	0.6	0.65	0.9	0.6	0.6
+Sharpness	2.5	1	2.5	1.4	2.5	1.5	1	2.5	2.5
+Height	1	0.08	1	1	1	1	1	1	1
+Tension	0.06	0.164	0.06	0.06	0.06	0.06	0.02	0.06	0.06
+Subgrid	0	0.934	0	0	0	0	0	0.6	0
+Subgridscale	3	3	3	3	3	3	3	3	3
+Idle	0.3	0.44	0.35	0.3	0.3	0.3	0.1	0.3	0.3
+Viscosity	0	0	0	0	0.3	0	0	0	0
+Ripples	0	0.373	0	0	0	0	0	0	0.3
+Ripplefreq	8	2	8	8	8	8	8	8	8
+Warptype	noise	noise	noise	noise	curl	noise	noise	noise	noise
+Wobble	1	1.57	1	1	1.4	1	1	1	1
+Warpscale	1	1	1	1	1	1	1	1	1
+Warpdetail	2	1	2	2	3	2	2	2	2
+Flowspeed	0.35	0	0.35	0.35	0.5	0.35	0.35	0.35	0.35
+Agitation	2	1.45	2	2	2	2	2	2	2
+Swirl	0	299	0	0	180	0	0	0	0
+Swirlradius	0.4	0.343	0.4	0.4	0.5	0.4	0.4	0.4	0.4
+Kaleidomode	radial	hexcells	radial	triangle	spiral	mirror	off	fractal	hexcells
+Segments	6	6	6	6	3	3	6	6	6
+Zoom	0.7	1.51	0.7	0.7	0.7	0.7	0.7	0.8	0.7
+Zoompulse	0	0.88	0	0	0	0	0	0	0
+Centerx	0	0	0	0	0	0	0	0	0
+Centery	0	0	0	0	0	0	0	0	0
+Spin	3	-5.8	3	3	3	3	3	6	3
+Spinreact	0	1.59	0	0	0	0	0	0	0
+Sway	0	0	0	0	0	0	0	0	25
+Swayspeed	0.15	0.5	0.15	0.15	0.15	0.15	0.15	0.15	0.1
+Twist	0.8	-2.71	0.8	0.8	1.5	0.8	0.8	0.8	0.8
+Pinch	1	0.994	1	1	1	1	1	1	1
+Rings	0	12	0	0	0	0	0	0	0
+Ringspin	20	60	20	20	20	20	20	20	20
+Tilesize	0.35	0.149	0.35	0.45	0.35	0.35	0.35	0.35	0.5
+Tileoffset	0	0.41	0	0	0	0	0	0	0.4
+Iterations	4	10	4	4	4	4	4	5	4
+Foldscale	1.6	1	1.6	1.6	1.6	1.6	1.6	1.7	1.6
+Foldangle	30	0.367	30	30	30	30	30	40	30
+Foldoffset	0.3	0	0.3	0.3	0.3	0.3	0.3	0.35	0.3
+Videoactive	1	1							
+Mirror	1	1							
+Pull	1.4	2.31	1.4	1.4	1.4	1	0.6	1.4	1.4
+Lens	1	1.98	1	1	1	0.5	0.3	1	1
+Follow	0.6	0.012	0.6	0.6	0.6	1	0	0.6	0.6
+Proximityzoom	0.8	2	0.8	0.8	0.8	0.8	0.8	0.8	0.8
+Proximityrange	0.35	0.066							
+Sensitivity	0.5	0.108							
+Presenceweight	1	0.578							
+Motionweight	1	0.325							
+Imgvisible	0	1	0	0	0	0.3	0	0	0
+Imgrelief	0	0	0	0	0	0.5	0	0	0
+Imgspikes	0	1	0	0	0	1	0	0	0
+Imgsource	full	full	full	full	full	full	full	full	full
+Imggain	1	3.42	1	1	1	2.5	1	1	1
+Imgcontrast	1	0	1	1	1	1.3	1	1	1
+Imginvert	0	1	0	0	0	0	0	0	0
+Imgsoft	2	7.05	2	2	2	2	2	2	2
+Imgkaleido	0	1	0	0	0	1	0	0	0
+Relief	0.9	1.1	0.9	0.9	0.9	0.9	0.9	0.9	0.9
+Gloss	80	144	80	80	80	80	80	80	80
+Reflection	1	0.83	1	1	1	1	1	1	1
+Rim	1.5	3.81	1	2	1.8	1.5	1.5	1.5	2.2
+Bodycolor	0.15	0.1	0.08	0.25	0.6	0.15	0.15	0.15	0.15
+Glow	0.3	1.63	0.15	0.4	0.3	0.3	0.3	0.8	0.4
+Sonoglow	0	0	0	0	0.3	0	0	0.2	0
+Keylight	1	1.27	1.4	1	1	1	1	1	1
+Keycolorr	1	0.3569	1	1	1	1	1	1	1
+Keycolorg	0.96	0	0.96	0.9	0.96	0.96	0.96	0.96	0.96
+Keycolorb	0.9	1	0.9	0.7	0.9	0.9	0.9	0.9	0.9
+Lightfollow	0.4	0.398	0.4	0.4	0.4	0.4	0.4	0.4	0.4
+Bloom	0.6	0	0.5	0.6	0.6	0.6	0.6	1	0.6
+Exposure	0	-0.65	0	0	0	0	0	0	0
+Debugview	off	off	off	off	off	off	off	off	off
