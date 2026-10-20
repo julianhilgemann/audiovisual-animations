@@ -104,7 +104,7 @@ def _video(scriptOp, p, s: dict, dt: float) -> dict:
 
 
 def onCook(scriptOp: scriptCHOP):
-	p = parent.Reactor.par
+	p = parent.Caleido.par
 	dt = 1.0 / max(1.0, float(project.cookRate))
 	s = _state.setdefault(scriptOp.path, {})
 	values = _track(scriptOp, p, s, dt)

@@ -1,4 +1,4 @@
-"""MusicVideo: the audioreactor point cloud as a square, audio-file driven music video.
+"""Caleidoscopic Sonogram Video: the reactive point cloud as a square, audio-file driven music video.
 
 A track (sense/audiofilein_track) is played and analysed (bands, energy, transients,
 spectrum, waveform); a video (sense/moviefilein_mod, e.g. a spinning record) is the
@@ -265,7 +265,7 @@ _PAR_SCHEMA = [
 ]
 
 
-class MusicVideoExt:
+class CaleidoscopicSonogramVideoExt:
     """Audio-file + video-modulated point cloud: parameter schema, restart cue, dispatch."""
 
     def __init__(self, ownerComp: COMP) -> None:
@@ -286,7 +286,7 @@ class MusicVideoExt:
         for name in ('sense/audiofilein_track', 'sense/moviefilein_mod'):
             o = self.ownerComp.op(name)
             if o is None:
-                debug('MusicVideo: %s is missing' % name)
+                debug('CaleidoscopicSonogramVideo: %s is missing' % name)
                 continue
             o.par.cuepoint = 0
             o.par.cuepulse.pulse()
@@ -295,7 +295,7 @@ class MusicVideoExt:
         """Take the current video frame as the background of the Difference key."""
         fb = self.ownerComp.op('sense/feedback_bg')
         if fb is None:
-            debug('MusicVideo: sense/feedback_bg is missing')
+            debug('CaleidoscopicSonogramVideo: sense/feedback_bg is missing')
             return
         fb.par.resetpulse.pulse()
 

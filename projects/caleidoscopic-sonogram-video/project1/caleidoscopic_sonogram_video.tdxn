@@ -1,9 +1,9 @@
 format: tdxn
 version: '2.1'
-build: 5
+build: 7
 generator: Embody/6.2.68
 td_build: 099.2025.32820
-network_path: /project1/musicvideo
+network_path: /project1/caleidoscopic_sonogram_video
 options:
   include_dat_content: false
   include_storage: true
@@ -91,11 +91,6 @@ type_defaults:
   nullTOP:
     size: [130, 90]
     color: [0.67, 0.67, 0.67]
-  outDAT:
-    parameters:
-      label: =me.name
-    size: [130, 90]
-    color: [0.67, 0.67, 0.67]
   outTOP:
     parameters:
       label: =me.name
@@ -109,9 +104,6 @@ type_defaults:
   scriptCHOP:
     parameters:
       autoexportroot: =parent()
-    size: [130, 90]
-    color: [0.67, 0.67, 0.67]
-  scriptDAT:
     size: [130, 90]
     color: [0.67, 0.67, 0.67]
   selectCHOP:
@@ -1246,14 +1238,12 @@ custom_pars:
     help: Output gain (linear, 0-1) before the safety limiter.
     value: 0.459
 parameters:
-  parentshortcut: Reactor
+  parentshortcut: Caleido
 sequences:
   ext:
-  - object: op('./MusicVideoExt').module.MusicVideoExt(me)
-    name: Reactor
+  - object: op('./CaleidoscopicSonogramVideoExt').module.CaleidoscopicSonogramVideoExt(me)
+    name: Caleido
     promote: true
-flags:
-- -allowCooking
 color: [0.3, 0.5, 0.9]
 tags:
 - tdxn
@@ -1271,11 +1261,11 @@ operators:
     type: cameraCOMP
     parameters:
       xord: trs
-      tz: =parent.Reactor.par.Distance * (1.0 - 0.3 * parent.Reactor.par.Push * op('select_features')['energy'])
-      rx: =parent.Reactor.par.Tilt + parent.Reactor.par.Sway * (0.2 if parent.Reactor.par.Form.eval() == 'tunnel' else 1.0) * (4.0 * math.sin(6.2831853 * op('speed_flow')['swayy']) + 1.2 * math.sin(6.2831853 * 2.0 * op('speed_flow')['swayy'] + 0.7)) + parent.Reactor.par.Shake * 3.0 * op('select_features')['transient'] * math.sin(absTime.frame * 2.399)
-      ry: =parent.Reactor.par.Sway * (0.2 if parent.Reactor.par.Form.eval() == 'tunnel' else 1.0) * (8.0 * math.sin(6.2831853 * op('speed_flow')['swayx']) + 2.0 * math.sin(6.2831853 * 3.0 * op('speed_flow')['swayx'] + 1.3)) + parent.Reactor.par.Shake * 3.0 * op('select_features')['transient'] * math.sin(absTime.frame * 1.618 + 1.0)
-      rz: =parent.Reactor.par.Roll * (30.0 if parent.Reactor.par.Form.eval() == 'tunnel' else 12.0) * math.sin(6.2831853 * op('speed_flow')['roll'])
-      fov: =parent.Reactor.par.Fov * (1.0 + 0.35 * parent.Reactor.par.Fovpunch * op('select_features')['transient'])
+      tz: =parent.Caleido.par.Distance * (1.0 - 0.3 * parent.Caleido.par.Push * op('select_features')['energy'])
+      rx: =parent.Caleido.par.Tilt + parent.Caleido.par.Sway * (0.2 if parent.Caleido.par.Form.eval() == 'tunnel' else 1.0) * (4.0 * math.sin(6.2831853 * op('speed_flow')['swayy']) + 1.2 * math.sin(6.2831853 * 2.0 * op('speed_flow')['swayy'] + 0.7)) + parent.Caleido.par.Shake * 3.0 * op('select_features')['transient'] * math.sin(absTime.frame * 2.399)
+      ry: =parent.Caleido.par.Sway * (0.2 if parent.Caleido.par.Form.eval() == 'tunnel' else 1.0) * (8.0 * math.sin(6.2831853 * op('speed_flow')['swayx']) + 2.0 * math.sin(6.2831853 * 3.0 * op('speed_flow')['swayx'] + 1.3)) + parent.Caleido.par.Shake * 3.0 * op('select_features')['transient'] * math.sin(absTime.frame * 1.618 + 1.0)
+      rz: =parent.Caleido.par.Roll * (30.0 if parent.Caleido.par.Form.eval() == 'tunnel' else 12.0) * math.sin(6.2831853 * op('speed_flow')['roll'])
+      fov: =parent.Caleido.par.Fov * (1.0 + 0.35 * parent.Caleido.par.Fovpunch * op('select_features')['transient'])
       near: 0.05
       far: 60
     position: [4900, 0]
@@ -1326,20 +1316,20 @@ operators:
       - name: uPost
         valuex: =min(1.0, op('const_react')['mid'] * 0.8)
         valuey: =op('const_react')['kick']
-        valuez: =(0.015 + 0.08 * op('const_react')['high']) * parent.Reactor.par.Grain
-        valuew: =parent.Reactor.par.Exposure
+        valuez: =(0.015 + 0.08 * op('const_react')['high']) * parent.Caleido.par.Grain
+        valuew: =parent.Caleido.par.Exposure
       - name: uTime
         valuex: =absTime.frame % 10000
       - name: uGrade
-        valuex: =parent.Reactor.par.Saturation
-        valuey: =parent.Reactor.par.Crush
-        valuez: =parent.Reactor.par.Gamma
-        valuew: =parent.Reactor.par.Trails
+        valuex: =parent.Caleido.par.Saturation
+        valuey: =parent.Caleido.par.Crush
+        valuez: =parent.Caleido.par.Gamma
+        valuew: =parent.Caleido.par.Trails
       - name: uHit
-        valuex: =parent.Reactor.par.Strobe * min(1.0, max(0.0, (op('const_react')['kick'] - 0.35) / 0.45))
-        valuey: =parent.Reactor.par.Invert * min(1.0, max(0.0, (op('const_react')['kick'] - 0.6) / 0.3))
-        valuez: =parent.Reactor.par.Glitch * min(1.0, op('const_react')['high'] + 0.7 * op('const_react')['kick'])
-        valuew: =parent.Reactor.par.Ghost
+        valuex: =parent.Caleido.par.Strobe * min(1.0, max(0.0, (op('const_react')['kick'] - 0.35) / 0.45))
+        valuey: =parent.Caleido.par.Invert * min(1.0, max(0.0, (op('const_react')['kick'] - 0.6) / 0.3))
+        valuez: =parent.Caleido.par.Glitch * min(1.0, op('const_react')['high'] + 0.7 * op('const_react')['kick'])
+        valuew: =parent.Caleido.par.Ghost
     position: [6500, -400]
     inputs:
     - bloom_cloud
@@ -1370,13 +1360,13 @@ operators:
         filter: nearest
       vec:
       - name: uFade
-        valuex: =8.0 if parent.Reactor.par.Form.eval() == 'tunnel' else 5.0
-        valuey: =parent.Reactor.par.Tunnellength + 6.0 if parent.Reactor.par.Form.eval() == 'tunnel' else 8.5
+        valuex: =8.0 if parent.Caleido.par.Form.eval() == 'tunnel' else 5.0
+        valuey: =parent.Caleido.par.Tunnellength + 6.0 if parent.Caleido.par.Form.eval() == 'tunnel' else 8.5
         valuez: 0.15
         valuew: 1.5
       - name: uDof
-        valuex: =op('cam_view').par.tz + (6.0 if parent.Reactor.par.Form.eval() == 'tunnel' else 0.0)
-        valuey: =(0.012 * parent.Reactor.par.Dof * (1.0 + 2.0 * op('const_react')['mid'])) * (0.35 if parent.Reactor.par.Form.eval() == 'tunnel' else 1.0)
+        valuex: =op('cam_view').par.tz + (6.0 if parent.Caleido.par.Form.eval() == 'tunnel' else 0.0)
+        valuey: =(0.012 * parent.Caleido.par.Dof * (1.0 + 2.0 * op('const_react')['mid'])) * (0.35 if parent.Caleido.par.Form.eval() == 'tunnel' else 1.0)
         valuez: 0.12
         valuew: 0
     position: [4900, -800]
@@ -1387,15 +1377,15 @@ operators:
     sequences:
       const:
       - name: head
-        value: =parent.Reactor.par.Speed * 0.1 * (1.0 + parent.Reactor.par.Flyreact * op('select_features')['energy'])
+        value: =parent.Caleido.par.Speed * 0.1 * (1.0 + parent.Caleido.par.Flyreact * op('select_features')['energy'])
       - name: swayx
-        value: =0.019 * parent.Reactor.par.Swayspeed
+        value: =0.019 * parent.Caleido.par.Swayspeed
       - name: swayy
-        value: =0.013 * parent.Reactor.par.Swayspeed
+        value: =0.013 * parent.Caleido.par.Swayspeed
       - name: breath
-        value: =0.023 * parent.Reactor.par.Swayspeed
+        value: =0.023 * parent.Caleido.par.Swayspeed
       - name: roll
-        value: =0.011 * parent.Reactor.par.Swayspeed * (1.0 + 2.0 * op('select_features')['energy'])
+        value: =0.011 * parent.Caleido.par.Swayspeed * (1.0 + 2.0 * op('select_features')['energy'])
     position: [0, -1200]
   - name: glsl_field
     type: glslmultiTOP
@@ -1410,43 +1400,43 @@ operators:
       vec:
       - name: uFlow
         valuex: =op('speed_flow')['head'] * op('glsl_history').par.resolutionw
-        valuey: =parent.Reactor.par.Direction.menuIndex
-        valuez: =float(parent.Reactor.par.Modmirror)
+        valuey: =parent.Caleido.par.Direction.menuIndex
+        valuez: =float(parent.Caleido.par.Modmirror)
         valuew: =op('speed_flow')['breath']
       - name: uShape
-        valuex: =parent.Reactor.par.Depth
-        valuey: =parent.Reactor.par.Thickness
-        valuez: =parent.Reactor.par.Scatter
-        valuew: =parent.Reactor.par.Pointsize
+        valuex: =parent.Caleido.par.Depth
+        valuey: =parent.Caleido.par.Thickness
+        valuez: =parent.Caleido.par.Scatter
+        valuew: =parent.Caleido.par.Pointsize
       - name: uReact
-        valuex: =parent.Reactor.par.Reach
-        valuey: =parent.Reactor.par.Imprint
-        valuez: =parent.Reactor.par.Ripple
-        valuew: =parent.Reactor.par.Vidshow
+        valuex: =parent.Caleido.par.Reach
+        valuey: =parent.Caleido.par.Imprint
+        valuez: =parent.Caleido.par.Ripple
+        valuew: =parent.Caleido.par.Vidshow
       - name: uNoise
         valuex: =op('const_react')['low']
         valuey: =op('const_react')['mid']
         valuez: =op('const_react')['high']
         valuew: =op('const_react')['kick']
       - name: uPal
-        valuex: =parent.Reactor.par.Palette.menuIndex
-        valuey: =parent.Reactor.par.Paletteshift
-        valuez: =parent.Reactor.par.Contrast
-        valuew: =parent.Reactor.par.Micsono
+        valuex: =parent.Caleido.par.Palette.menuIndex
+        valuey: =parent.Caleido.par.Paletteshift
+        valuez: =parent.Caleido.par.Contrast
+        valuew: =parent.Caleido.par.Micsono
       - name: uMisc
         valuex: =absTime.frame % 10000
         valuey: =math.tan(math.radians(op("cam_view").par.fov.eval() * 0.5))
         valuez: 1.6
         valuew: 1
       - name: uForm
-        valuex: =parent.Reactor.par.Form.menuIndex
-        valuey: =parent.Reactor.par.Morph
-        valuez: =parent.Reactor.par.Twist + parent.Reactor.par.Twistreact * op('select_features')['mid']
-        valuew: =parent.Reactor.par.Lowpump * op('select_features')['low']
+        valuex: =parent.Caleido.par.Form.menuIndex
+        valuey: =parent.Caleido.par.Morph
+        valuez: =parent.Caleido.par.Twist + parent.Caleido.par.Twistreact * op('select_features')['mid']
+        valuew: =parent.Caleido.par.Lowpump * op('select_features')['low']
       - name: uForm2
-        valuex: =parent.Reactor.par.Symmetry
-        valuey: =parent.Reactor.par.Tunnellength
-        valuez: =parent.Reactor.par.Warp * (0.4 + 1.2 * op('select_features')['energy'])
+        valuex: =parent.Caleido.par.Symmetry
+        valuey: =parent.Caleido.par.Tunnellength
+        valuez: =parent.Caleido.par.Warp * (0.4 + 1.2 * op('select_features')['energy'])
         valuew: =op('cam_view').par.tz.eval()
     position: [3200, -400]
     inputs:
@@ -1476,7 +1466,7 @@ operators:
     type: bloomTOP
     parameters:
       bloomthreshold: 0.6
-      bloomintensity: =0.35 * parent.Reactor.par.Glow + 0.6 * op('const_react')['low']
+      bloomintensity: =0.35 * parent.Caleido.par.Glow + 0.6 * op('const_react')['low']
       format: rgba16float
     position: [5700, -400]
     size: [130, 90]
@@ -1488,13 +1478,13 @@ operators:
     sequences:
       const:
       - name: low
-        value: =op('select_features')['low'] * parent.Reactor.par.Lowbloom * parent.Reactor.par.Chaos
+        value: =op('select_features')['low'] * parent.Caleido.par.Lowbloom * parent.Caleido.par.Chaos
       - name: mid
-        value: =op('select_features')['mid'] * parent.Reactor.par.Midblur * parent.Reactor.par.Chaos
+        value: =op('select_features')['mid'] * parent.Caleido.par.Midblur * parent.Caleido.par.Chaos
       - name: high
-        value: =op('select_features')['high'] * parent.Reactor.par.Highjitter * parent.Reactor.par.Chaos
+        value: =op('select_features')['high'] * parent.Caleido.par.Highjitter * parent.Caleido.par.Chaos
       - name: kick
-        value: =op('select_features')['transient'] * parent.Reactor.par.Kick * parent.Reactor.par.Chaos
+        value: =op('select_features')['transient'] * parent.Caleido.par.Kick * parent.Caleido.par.Chaos
     position: [400, -1600]
   - name: blur_defocus
     type: blurTOP
@@ -1587,7 +1577,7 @@ operators:
         valuex: 1
         valuey: 0.5
         valuez: 0.004
-        valuew: =14.0 + parent.Reactor.par.Specgain
+        valuew: =14.0 + parent.Caleido.par.Specgain
     position: [800, -400]
     inputs:
     - chopto_micspec
@@ -1625,7 +1615,7 @@ operators:
   - name: glsl_post_pixel
     type: textDAT
     parameters:
-      file: project1/musicvideo/viz/glsl_post_pixel.glsl
+      file: project1/caleidoscopic_sonogram_video/viz/glsl_post_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -1647,7 +1637,7 @@ operators:
         valuex: 0.6
         valuey: 0.12
         valuez: 0.004
-        valuew: =14.0 + parent.Reactor.par.Specgain
+        valuew: =14.0 + parent.Caleido.par.Specgain
     position: [800, 0]
     inputs:
     - chopto_spectrum
@@ -1655,7 +1645,7 @@ operators:
   - name: mat_cloud_pixel
     type: textDAT
     parameters:
-      file: project1/musicvideo/viz/mat_cloud_pixel.glsl
+      file: project1/caleidoscopic_sonogram_video/viz/mat_cloud_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -1698,7 +1688,7 @@ operators:
   - name: glsl_field_pixel
     type: textDAT
     parameters:
-      file: project1/musicvideo/viz/glsl_field_pixel.glsl
+      file: project1/caleidoscopic_sonogram_video/viz/glsl_field_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -1712,7 +1702,7 @@ operators:
   - name: mat_cloud_vertex
     type: textDAT
     parameters:
-      file: project1/musicvideo/viz/mat_cloud_vertex.glsl
+      file: project1/caleidoscopic_sonogram_video/viz/mat_cloud_vertex.glsl
       syncfile: true
       language: glsl
       extension: vert
@@ -1733,7 +1723,7 @@ operators:
   - name: glsl_history_pixel
     type: textDAT
     parameters:
-      file: project1/musicvideo/viz/glsl_history_pixel.glsl
+      file: project1/caleidoscopic_sonogram_video/viz/glsl_history_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -1773,7 +1763,7 @@ operators:
   - name: glsl_specsmooth_pixel
     type: textDAT
     parameters:
-      file: project1/musicvideo/viz/glsl_specsmooth_pixel.glsl
+      file: project1/caleidoscopic_sonogram_video/viz/glsl_specsmooth_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -2112,15 +2102,13 @@ operators:
       2026-08,17891,Provisional value
       "",Comment on 2010-06: Change of the grossing-up procedure according to the ECB (Guideline ECB/2014/15),
     dat_content_format: text
-  - name: out_stats
-    type: outDAT
-    position: [1800, -400]
-    inputs:
-    - stats_series
-    dat_read_only: true
   - name: out_series
     type: outDAT
+    parameters:
+      label: =me.name
     position: [1400, 0]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
     inputs:
     - clean_series
     dat_read_only: true
@@ -2129,16 +2117,10 @@ operators:
     parameters:
       callbacks: clean_series_callbacks
     position: [1000, 0]
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
     inputs:
     - raw_csv
-    dat_read_only: true
-  - name: stats_series
-    type: scriptDAT
-    parameters:
-      callbacks: stats_series_callbacks
-    position: [1400, -400]
-    inputs:
-    - clean_series
     dat_read_only: true
   - name: webclient_bbk
     type: webclientDAT
@@ -2151,7 +2133,7 @@ operators:
   - name: clean_series_callbacks
     type: textDAT
     parameters:
-      file: project1/musicvideo/data/clean_series_callbacks.py
+      file: project1/caleidoscopic_sonogram_video/data/clean_series_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -2161,23 +2143,10 @@ operators:
     tags:
     - py
     dock: clean_series
-  - name: stats_series_callbacks
-    type: textDAT
-    parameters:
-      file: project1/musicvideo/data/stats_series_callbacks.py
-      syncfile: true
-      language: python
-    flags:
-    - viewer
-    position: [1400, -520]
-    color: [0.9, 0.3, 0.4]
-    tags:
-    - py
-    dock: stats_series
   - name: webclient_bbk_callbacks
     type: textDAT
     parameters:
-      file: project1/musicvideo/data/webclient_bbk_callbacks.py
+      file: project1/caleidoscopic_sonogram_video/data/webclient_bbk_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -2192,9 +2161,9 @@ operators:
   - name: annotate1
     mode: annotate
     title: Bundesbank API fetch + cleaning
-    text: Fetch pulse -> webclient_bbk (async GET, CSV) -> callbacks hand the body to SeriesSynthExt -> raw_csv. clean_series keeps YYYY-MM rows with finite numbers (date, year, month, t, value_meur, value_bn); stats_series derives the descriptive statistics.
-    position: [130, -590]
-    size: [1870, 850]
+    text: Fetch pulse -> webclient_bbk (async GET, CSV) -> callbacks hand the body to CaleidoscopicSonogramVideoExt -> raw_csv. clean_series keeps YYYY-MM rows with finite numbers (date, year, month, t, value_meur, value_bn) -> out_series -> engine.
+    position: [130, -190]
+    size: [1470, 450]
     color: [0.12, 0.22, 0.32]
 - name: out1
   type: outTOP
@@ -2229,7 +2198,7 @@ operators:
     sequences:
       vec:
       - name: uLearn
-        valuex: =(1.0 - math.exp(-1.0 / (parent.Reactor.par.Bglearn * me.time.rate))) if parent.Reactor.par.Bglearn > 0 else 0.0
+        valuex: =(1.0 - math.exp(-1.0 / (parent.Caleido.par.Bglearn * me.time.rate))) if parent.Caleido.par.Bglearn > 0 else 0.0
     position: [1600, -1200]
     inputs:
     - null_cam
@@ -2351,7 +2320,7 @@ operators:
   - name: videoin_cam
     type: videodeviceinTOP
     parameters:
-      active: =parent.Reactor.par.Camera
+      active: =parent.Caleido.par.Camera
       device: V1|||\\?\usb#vid_3277&pid_0010&mi_00#7&df5034d&0&0000#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\global|||0|||0|||ASUS FHD webcam
       signalformat: f1920x1080p-30.00hz
       outputresolution: half
@@ -2384,7 +2353,7 @@ operators:
   - name: glsl_bg_pixel
     type: textDAT
     parameters:
-      file: project1/musicvideo/sense/glsl_bg_pixel.glsl
+      file: project1/caleidoscopic_sonogram_video/sense/glsl_bg_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -2406,15 +2375,15 @@ operators:
     sequences:
       vec:
       - name: uKey
-        valuex: =parent.Reactor.par.Modthreshold
-        valuey: =parent.Reactor.par.Modsoftness
-        valuez: =parent.Reactor.par.Modkey.menuIndex
+        valuex: =parent.Caleido.par.Modthreshold
+        valuey: =parent.Caleido.par.Modsoftness
+        valuez: =parent.Caleido.par.Modkey.menuIndex
         valuew: 0.3
       - name: uMotion
-        valuex: =math.exp(-1.0 / max(1.0, parent.Reactor.par.Modtrail * me.time.rate))
+        valuex: =math.exp(-1.0 / max(1.0, parent.Caleido.par.Modtrail * me.time.rate))
         valuey: 0.12
         valuez: 1
-        valuew: =float(parent.Reactor.par.Modon)
+        valuew: =float(parent.Caleido.par.Modon)
     position: [2400, -1600]
     inputs:
     - null_cam
@@ -2434,7 +2403,7 @@ operators:
   - name: audiodevin_mic
     type: audiodeviceinCHOP
     parameters:
-      active: =parent.Reactor.par.Mic
+      active: =parent.Caleido.par.Mic
       autoexportroot: =parent()
     flags:
     - bypass
@@ -2455,9 +2424,9 @@ operators:
   - name: moviefilein_mod
     type: moviefileinTOP
     parameters:
-      file: =parent.Reactor.par.Videofile.eval() or (app.samplesFolder + '/Map/Count.mov')
-      play: =parent.Reactor.par.Modon
-      speed: =parent.Reactor.par.Modspeed * (1.0 + parent.Reactor.par.Spinreact * min(1.0, 4.0 * float(op('lag_spin')[0] or 0)))
+      file: =parent.Caleido.par.Videofile.eval() or (app.samplesFolder + '/Map/Count.mov')
+      play: =parent.Caleido.par.Modon
+      speed: =parent.Caleido.par.Modspeed * (1.0 + parent.Caleido.par.Spinreact * min(1.0, 4.0 * float(op('lag_spin')[0] or 0)))
       index: =me.time.frame
       timecodeop: =tdu.Timecode()
     position: [-800, -1200]
@@ -2474,7 +2443,7 @@ operators:
   - name: glsl_stats_pixel
     type: textDAT
     parameters:
-      file: project1/musicvideo/sense/glsl_stats_pixel.glsl
+      file: project1/caleidoscopic_sonogram_video/sense/glsl_stats_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -2493,19 +2462,19 @@ operators:
   - name: audiodevout_track
     type: audiodeviceoutCHOP
     parameters:
-      active: =parent.Reactor.par.Play
-      volume: =parent.Reactor.par.Trackvolume
+      active: =parent.Caleido.par.Play
+      volume: =parent.Caleido.par.Trackvolume
     position: [-800, 1600]
     inputs:
     - audiofilein_track
   - name: audiofilein_track
     type: audiofileinCHOP
     parameters:
-      file: =parent.Reactor.par.Audiofile.eval() or (app.samplesFolder + '/Audio/JeremyCaulfield_www.dumb-unit.com.mp3')
-      play: =parent.Reactor.par.Play
+      file: =parent.Caleido.par.Audiofile.eval() or (app.samplesFolder + '/Audio/JeremyCaulfield_www.dumb-unit.com.mp3')
+      play: =parent.Caleido.par.Play
       index: =me.time.frame / root.time.rate
       timecodeop: =tdu.Timecode()
-      repeat: ='on' if parent.Reactor.par.Loop else 'off'
+      repeat: ='on' if parent.Caleido.par.Loop else 'off'
       autoexportroot: =parent()
     position: [-1200, 1200]
     size: [130, 90]
@@ -2549,7 +2518,7 @@ operators:
   - name: glsl_presence_pixel
     type: textDAT
     parameters:
-      file: project1/musicvideo/sense/glsl_presence_pixel.glsl
+      file: project1/caleidoscopic_sonogram_video/sense/glsl_presence_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -2563,7 +2532,7 @@ operators:
   - name: script_features_callbacks
     type: textDAT
     parameters:
-      file: project1/musicvideo/sense/script_features_callbacks.py
+      file: project1/caleidoscopic_sonogram_video/sense/script_features_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -2614,7 +2583,7 @@ operators:
     type: mathCHOP
     parameters:
       chopop: mul
-      gain: =parent.Reactor.par.Volume
+      gain: =parent.Caleido.par.Volume
     position: [3400, -2600]
     inputs:
     - audiofilter_vcf
@@ -2629,8 +2598,8 @@ operators:
   - name: lag_glide
     type: lagCHOP
     parameters:
-      lag1: =parent.Reactor.par.Glide
-      lag2: =parent.Reactor.par.Glide
+      lag1: =parent.Caleido.par.Glide
+      lag2: =parent.Caleido.par.Glide
     position: [1800, -2600]
     inputs:
     - select_pitch
@@ -2667,9 +2636,9 @@ operators:
     sequences:
       const:
       - name: d1
-        value: =parent.Reactor.par.Driftrate
+        value: =parent.Caleido.par.Driftrate
       - name: d2
-        value: =parent.Reactor.par.Driftrate * 0.382
+        value: =parent.Caleido.par.Driftrate * 0.382
     position: [200, -2200]
   - name: lookup_wave
     type: lookupCHOP
@@ -2716,7 +2685,7 @@ operators:
     sequences:
       const:
       - name: cutofffrequency
-        value: =min(18000.0, max(20.0, parent.Reactor.par.Cutoff * 2.0 ** (parent.Reactor.par.Drift * (0.7 * math.sin(6.2831853 * op('speed_drift')['d1']) + 0.3 * math.sin(6.2831853 * op('speed_drift')['d2'])) + parent.Reactor.par.Proxcutoff * op('select_features')['prox'])))
+        value: =min(18000.0, max(20.0, parent.Caleido.par.Cutoff * 2.0 ** (parent.Caleido.par.Drift * (0.7 * math.sin(6.2831853 * op('speed_drift')['d1']) + 0.3 * math.sin(6.2831853 * op('speed_drift')['d2'])) + parent.Caleido.par.Proxcutoff * op('select_features')['prox'])))
     position: [1000, -2200]
   - name: datto_series
     type: dattoCHOP
@@ -2771,7 +2740,7 @@ operators:
   - name: wavetable_lib
     type: textDAT
     parameters:
-      file: project1/musicvideo/engine/wavetable_lib.py
+      file: project1/caleidoscopic_sonogram_video/engine/wavetable_lib.py
       syncfile: true
       language: python
     position: [1400, 0]
@@ -2794,7 +2763,7 @@ operators:
     sequences:
       const:
       - name: rate
-        value: =(-1.0 if parent.Reactor.par.Scandir.eval() == 'backward' else 1.0) * (parent.Reactor.par.Scanrate * parent.Reactor.par.Scan + parent.Reactor.par.Motionscan * op('select_features')['motion'])
+        value: =(-1.0 if parent.Caleido.par.Scandir.eval() == 'backward' else 1.0) * (parent.Caleido.par.Scanrate * parent.Caleido.par.Scan + parent.Caleido.par.Motionscan * op('select_features')['motion'])
     position: [200, -400]
   - name: null_wavetable
     type: nullCHOP
@@ -2804,11 +2773,11 @@ operators:
   - name: audiofilter_vcf
     type: audiofilterCHOP
     parameters:
-      filter: =parent.Reactor.par.Filtertype
+      filter: =parent.Caleido.par.Filtertype
       cutofflog: 2.69897
-      cutofffrequency: =parent.Reactor.par.Cutoff
-      resonance: =parent.Reactor.par.Resonance
-      rolloff: =float(parent.Reactor.par.Rolloff.eval())
+      cutofffrequency: =parent.Caleido.par.Cutoff
+      resonance: =parent.Caleido.par.Resonance
+      rolloff: =float(parent.Caleido.par.Rolloff.eval())
     position: [3000, -2600]
     inputs:
     - lookup_wave
@@ -2821,7 +2790,7 @@ operators:
   - name: audiodevout_main
     type: audiodeviceoutCHOP
     parameters:
-      active: =parent.Reactor.par.Audio
+      active: =parent.Caleido.par.Audio
     position: [4600, -2600]
     inputs:
     - null_audio
@@ -2842,7 +2811,7 @@ operators:
   - name: script_scope_callbacks
     type: textDAT
     parameters:
-      file: project1/musicvideo/engine/script_scope_callbacks.py
+      file: project1/caleidoscopic_sonogram_video/engine/script_scope_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -2855,7 +2824,7 @@ operators:
   - name: script_window_callbacks
     type: textDAT
     parameters:
-      file: project1/musicvideo/engine/script_window_callbacks.py
+      file: project1/caleidoscopic_sonogram_video/engine/script_window_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -2868,7 +2837,7 @@ operators:
   - name: script_wavetable_callbacks
     type: textDAT
     parameters:
-      file: project1/musicvideo/engine/script_wavetable_callbacks.py
+      file: project1/caleidoscopic_sonogram_video/engine/script_wavetable_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -2900,27 +2869,27 @@ operators:
     position: [4530, -3990]
     size: [1470, 850]
     color: [0.28, 0.22, 0.08]
-- name: MusicVideoExt
-  type: textDAT
-  parameters:
-    file: project1/musicvideo/MusicVideoExt.py
-    syncfile: true
-    language: python
-  position: [200, 800]
-  color: [0.9, 0.3, 0.4]
-  tags:
-  - py
-- name: parexec_reactor
+- name: parexec_caleido
   type: parameterexecuteDAT
   parameters:
     fromop: =parent()
     op: ..
     pars: '* ^Mon*'
     builtin: false
-    file: project1/musicvideo/parexec_reactor.py
+    file: project1/caleidoscopic_sonogram_video/parexec_caleido.py
     syncfile: true
   position: [600, 800]
   size: [130, 90]
+  color: [0.9, 0.3, 0.4]
+  tags:
+  - py
+- name: CaleidoscopicSonogramVideoExt
+  type: textDAT
+  parameters:
+    file: project1/caleidoscopic_sonogram_video/CaleidoscopicSonogramVideoExt.py
+    syncfile: true
+    language: python
+  position: [200, 800]
   color: [0.9, 0.3, 0.4]
   tags:
   - py
@@ -2928,7 +2897,7 @@ annotations:
 - name: annotate1
   mode: annotate
   title: Control
-  text: MusicVideoExt owns the music-video parameter schema (Track, Modulator, Form, Camera, Finish; the installation's pages stay at the end), Restart and Capture Background; parexec_reactor routes pulses/changes to _on<Par> handlers (Mon* monitors excluded).
+  text: CaleidoscopicSonogramVideoExt owns the music-video parameter schema (Track, Modulator, Form, Camera, Finish; the installation's pages stay at the end), Restart and Capture Background; parexec_caleido routes pulses/changes to _on<Par> handlers (Mon* monitors excluded).
   position: [130, 730]
   size: [670, 330]
   color: [0.2, 0.2, 0.28]
