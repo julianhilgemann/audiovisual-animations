@@ -4,7 +4,7 @@ These are standalone TouchDesigner projects. They aren't part of the Datapipe pi
 
 | Folder | What it is | Formerly |
 |---|---|---|
-| `time-series-wavetable/` | The Mortgage Wavetable: the Bundesbank housing-loan series turned into a playable synth. | `econ-sonification/tdapi.toe`; history in the GitHub repo `econ-sonification` |
+| `time-series-wavetable/` | The Mortgage Wavetable: the Bundesbank housing-loan series turned into a playable synth with a live dashboard. One COMP, `time_series_wavetable`. | `econ-sonification/tdapi.toe`; history in the GitHub repo `econ-sonification` |
 | `touch-the-sonogram/` | The Audioreactor installation: the Bundesbank wavetable drone, shaped by a camera and a microphone and drawn as a point-cloud sonogram. One COMP, `touch_the_sonogram`. | `econ-sonification/touch-the-sonogram.toe` |
 | `caleidoscopic-sonogram-video/` | The square music-video version of the Audioreactor. | `econ-sonification/audioreactor.toe` |
 | `audioreactive-pointcloud/` | An audio-reactive point cloud, started from the Embody/Envoy starter project. | `td-sandbox/NewProject.toe` (`Projects/tdt`) |
@@ -17,7 +17,7 @@ These are standalone TouchDesigner projects. They aren't part of the Datapipe pi
 | `octatrack-av-setup/` | _to describe_ | |
 | `octatrack-heat-midi-audio-mapping/` | _to describe_ | |
 
-The three sonogram/wavetable projects were split out of `econ-sonification/`. `touch-the-sonogram/` is pruned to its own COMP. The other two still carry the same `project1/` externalizations (`series_synth`, `audioreactor`, `musicvideo`), so each one restores all three COMPs when it opens. Pruning a project down to the COMPs it uses happens in TouchDesigner, so Embody keeps `externalizations.tsv` in step.
+The three sonogram/wavetable projects were split out of `econ-sonification/`. `touch-the-sonogram/` and `time-series-wavetable/` are pruned to their own COMP. `caleidoscopic-sonogram-video/` still carries all three `project1/` externalizations (`series_synth`, `audioreactor`, `musicvideo`), so it restores all three COMPs when it opens. Pruning a project down to the COMPs it uses happens in TouchDesigner, so Embody keeps `externalizations.tsv` in step.
 
 ## What stays local
 

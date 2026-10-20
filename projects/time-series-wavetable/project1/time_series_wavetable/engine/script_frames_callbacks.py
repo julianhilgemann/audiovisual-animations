@@ -9,7 +9,7 @@ import numpy as np
 
 def onCook(scriptOp: scriptCHOP):
 	lib = op('wavetable_lib').module
-	p = parent.Synth.par
+	p = parent.Wavetable.par
 	scriptOp.clear()
 	scriptOp.isTimeSlice = False
 	scriptOp.numSamples = lib.FRAME_SIZE

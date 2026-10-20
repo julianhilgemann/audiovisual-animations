@@ -1,4 +1,4 @@
-"""SeriesSynth: a Bundesbank time series as a playable, visualized wavetable synth.
+"""Time Series Wavetable: a Bundesbank time series as a playable, visualized wavetable synth.
 
 Owns the custom-parameter schema of the COMP (get-or-create, never destroys a
 user value), the Bundesbank REST API request and the parameter dispatcher.
@@ -171,7 +171,7 @@ _PAR_SCHEMA = [
 ]
 
 
-class SeriesSynthExt:
+class TimeSeriesWavetableExt:
     """Bundesbank series -> playable wavetable: parameter schema, API fetch, dispatch."""
 
     def __init__(self, ownerComp: COMP) -> None:
@@ -238,7 +238,7 @@ class SeriesSynthExt:
 
     def _setStatus(self, text: str) -> None:
         self.ownerComp.par.Status.val = text
-        debug('SeriesSynth:', text)
+        debug('TimeSeriesWavetable:', text)
 
     def _ensurePage(self, name: str):
         for page in self.ownerComp.customPages:

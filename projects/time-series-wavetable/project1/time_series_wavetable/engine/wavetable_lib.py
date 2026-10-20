@@ -19,7 +19,11 @@ from typing import Optional, Tuple
 import numpy as np
 
 TABLE_SIZE = 2048          # samples per audio wavetable cycle
+FRAME_SIZE = 256           # samples per cycle in the 3D frame stack
+NUM_FRAMES = 32            # windows spread over the whole history for the 3D stack
+NUM_HARMONICS = 64         # harmonics reported by harmonics_db()
 SAMPLE_RATE = 44100.0
+_NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
 
 def note_to_hz(note: float, cents: float = 0.0) -> float:
@@ -27,15 +31,18 @@ def note_to_hz(note: float, cents: float = 0.0) -> float:
     return 440.0 * 2.0 ** ((note - 69.0) / 12.0 + cents / 1200.0)
 
 
-def window_bounds(n: int, start: float, length: int, scan: Optional[float],
-                  wrap: bool = False) -> Tuple[float, int, float]:
+def note_name(note: float) -> str:
+    """Nearest note name with octave, e.g. 45 -> 'A2'."""
+    n = int(round(note))
+    return '%s%d' % (_NOTE_NAMES[n % 12], n // 12 - 1)
+
+
+def window_bounds(n: int, start: float, length: int, scan: Optional[float]) -> Tuple[float, int, float]:
     """(start, length, span) of the loop window inside n months.
 
     length is clipped to [4, n]; span = n - length is the room the start can move in.
-    Without scan the start is clamped into [0, span]. With scan, start + scan is
-    folded ping-pong into [0, span] (the window glides back and forth), or with
-    wrap=True taken modulo span (always forward, or always backward for a
-    falling scan, jumping across at the ends).
+    Without scan the start is clamped into [0, span]; with scan, start + scan is
+    folded ping-pong into [0, span] so the window glides back and forth through history.
     """
     length = int(max(4, min(int(length), n)))
     span = float(n - length)
@@ -43,8 +50,6 @@ def window_bounds(n: int, start: float, length: int, scan: Optional[float],
         return 0.0, length, 0.0
     if scan is None:
         return min(max(float(start), 0.0), span), length, span
-    if wrap:
-        return (float(start) + float(scan)) % span, length, span
     period = 2.0 * span
     pos = (float(start) + float(scan)) % period
     return (period - pos if pos > span else pos), length, span
@@ -131,17 +136,21 @@ def build_cycle(values: np.ndarray, start: float, length: int, cfg: dict, hz: fl
     return raw, bandlimit(shaped, hz, cfg['bandlimit'])
 
 
-def read_config(par, extra_drive_db: float = 0.0) -> dict:
-    """Main thread only: the wavetable settings from the AudioReactor custom parameters.
+def harmonics_db(y: np.ndarray, count: int = NUM_HARMONICS, floor_db: float = -90.0) -> np.ndarray:
+    """Magnitudes of harmonics 1..count in dB relative to the strongest one."""
+    mag = np.abs(np.fft.rfft(y))[1:count + 1]
+    ref = max(float(mag.max()), 1e-12)
+    return np.maximum(20.0 * np.log10(np.maximum(mag / ref, 1e-12)), floor_db)
 
-    extra_drive_db is the room-microphone drive modulation, added on top of Drive.
-    """
+
+def read_config(par) -> dict:
+    """Main thread only: the wavetable settings from the time_series_wavetable custom parameters."""
     return {
         'loopmode': par.Loopmode.eval(),
         'detrend': par.Detrend.eval(),
         'interp': par.Interp.eval(),
         'shapemode': par.Shapemode.eval(),
-        'drive': min(48.0, float(par.Drive.eval()) + float(extra_drive_db)),
+        'drive': float(par.Drive.eval()),
         'bias': float(par.Bias.eval()),
         'mix': float(par.Mix.eval()),
         'bandlimit': bool(par.Bandlimit.eval()),

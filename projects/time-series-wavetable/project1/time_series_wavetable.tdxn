@@ -1,9 +1,9 @@
 format: tdxn
 version: '2.1'
-build: 4
+build: 6
 generator: Embody/6.2.68
 td_build: 099.2025.32820
-network_path: /project1/series_synth
+network_path: /project1/time_series_wavetable
 options:
   include_dat_content: false
   include_storage: true
@@ -120,8 +120,8 @@ type_defaults:
       alignx: left
       aligny: bottom
       outputresolution: custom
-      resolutionh: =parent.Synth.op('viz/glsl_dashboard').par.resolutionh
-      resolutionw: =parent.Synth.op('viz/glsl_dashboard').par.resolutionw
+      resolutionh: =parent.Wavetable.op('viz/glsl_dashboard').par.resolutionh
+      resolutionw: =parent.Wavetable.op('viz/glsl_dashboard').par.resolutionw
       text: ''
     size: [130, 90]
     color: [0.67, 0.67, 0.67]
@@ -534,14 +534,12 @@ custom_pars:
     normMax: 12.0
     help: Seconds one visual sweep of the playhead takes. The real oscillator runs at audio rate; the playhead shows the same cycle slowed down.
 parameters:
-  parentshortcut: Synth
+  parentshortcut: Wavetable
 sequences:
   ext:
-  - object: op('./SeriesSynthExt').module.SeriesSynthExt(me)
-    name: SeriesSynth
+  - object: op('./TimeSeriesWavetableExt').module.TimeSeriesWavetableExt(me)
+    name: Wavetable
     promote: true
-flags:
-- -allowCooking
 color: [0.3, 0.5, 0.9]
 tags:
 - tdxn
@@ -612,7 +610,7 @@ operators:
     - name: labels_lib
       type: textDAT
       parameters:
-        file: project1/series_synth/viz/labels/labels_lib.py
+        file: project1/time_series_wavetable/viz/labels/labels_lib.py
         syncfile: true
         language: python
       position: [200, 0]
@@ -675,7 +673,7 @@ operators:
     - name: labels_callbacks
       type: textDAT
       parameters:
-        file: project1/series_synth/viz/labels/labels_callbacks.py
+        file: project1/time_series_wavetable/viz/labels/labels_callbacks.py
         syncfile: true
         language: python
       position: [200, -400]
@@ -787,9 +785,9 @@ operators:
       parameters:
         xord: trs
         ty: -0.32
-        tz: =10.2 + 0.5 * math.sin(6.0 * math.pi * parent.Synth.op('viz/speed_vis')['orbit'] + 2.0)
-        rx: =-(35.0 + 4.0 * math.sin(4.0 * math.pi * parent.Synth.op('viz/speed_vis')['orbit'] + 0.7))
-        ry: =11.0 * math.sin(2.0 * math.pi * parent.Synth.op('viz/speed_vis')['orbit']) + 4.0 * math.sin(6.0 * math.pi * parent.Synth.op('viz/speed_vis')['orbit'] + 1.3)
+        tz: =10.2 + 0.5 * math.sin(6.0 * math.pi * parent.Wavetable.op('viz/speed_vis')['orbit'] + 2.0)
+        rx: =-(35.0 + 4.0 * math.sin(4.0 * math.pi * parent.Wavetable.op('viz/speed_vis')['orbit'] + 0.7))
+        ry: =11.0 * math.sin(2.0 * math.pi * parent.Wavetable.op('viz/speed_vis')['orbit']) + 4.0 * math.sin(6.0 * math.pi * parent.Wavetable.op('viz/speed_vis')['orbit'] + 1.3)
         fov: 24
       position: [1000, -400]
       size: [160, 130]
@@ -861,8 +859,8 @@ operators:
         camera: cam_3d
         lights: ''
         antialias: aa8
-        resolutionw: =int(round(724 * parent.Synth.op('viz/labels/labels_lib').module.output_scale()))
-        resolutionh: =int(round(362 * parent.Synth.op('viz/labels/labels_lib').module.output_scale()))
+        resolutionw: =int(round(724 * parent.Wavetable.op('viz/labels/labels_lib').module.output_scale()))
+        resolutionh: =int(round(362 * parent.Wavetable.op('viz/labels/labels_lib').module.output_scale()))
         format: rgba16float
       position: [1400, -400]
       size: [130, 90]
@@ -889,9 +887,9 @@ operators:
           vec:
           - name: uState
             type: vec4
-            valuex: =parent.Synth.op('engine/script_window')['scanfrac']
-            valuey: =parent.Synth.op('engine/trigger_amp')['ampenv']
-            valuez: =parent.Synth.op('viz/speed_vis')['slow']
+            valuex: =parent.Wavetable.op('engine/script_window')['scanfrac']
+            valuey: =parent.Wavetable.op('engine/trigger_amp')['ampenv']
+            valuez: =parent.Wavetable.op('viz/speed_vis')['slow']
           - name: uShape
             type: vec4
             valuex: 3.5
@@ -900,10 +898,10 @@ operators:
             valuew: =me.inputs[0].par.rows
           sampler:
           - name: sFrames
-            top: =parent.Synth.op('viz/chopto_frames')
+            top: =parent.Wavetable.op('viz/chopto_frames')
             extendu: repeat
           - name: sWave
-            top: =parent.Synth.op('viz/chopto_wave')
+            top: =parent.Wavetable.op('viz/chopto_wave')
             extendu: repeat
         position: [600, 0]
         inputs:
@@ -913,7 +911,7 @@ operators:
         parameters:
           surftype: linestrips
           cols: 256
-          rows: =parent.Synth.op('engine/null_frames').numChans
+          rows: =parent.Wavetable.op('engine/null_frames').numChans
           liney: false
         position: [200, 0]
       - name: glsl_frames_info
@@ -926,7 +924,7 @@ operators:
       - name: glsl_frames_compute
         type: textDAT
         parameters:
-          file: project1/series_synth/viz/scene3d/geo_frames/glsl_frames_compute.glsl
+          file: project1/time_series_wavetable/viz/scene3d/geo_frames/glsl_frames_compute.glsl
           syncfile: true
           language: glsl
         flags:
@@ -963,7 +961,7 @@ operators:
       - name: glsl_current
         type: glslPOP
         parameters:
-          computedat: =parent.Synth.op('viz/scene3d/geo_frames/glsl_frames_compute')
+          computedat: =parent.Wavetable.op('viz/scene3d/geo_frames/glsl_frames_compute')
         sequences:
           attr:
           - name: color
@@ -971,22 +969,22 @@ operators:
           vec:
           - name: uState
             type: vec4
-            valuex: =parent.Synth.op('viz/scene3d/geo_frames/glsl_frames').par.vec0valuex
-            valuey: =parent.Synth.op('viz/scene3d/geo_frames/glsl_frames').par.vec0valuey
-            valuez: =parent.Synth.op('viz/scene3d/geo_frames/glsl_frames').par.vec0valuez
+            valuex: =parent.Wavetable.op('viz/scene3d/geo_frames/glsl_frames').par.vec0valuex
+            valuey: =parent.Wavetable.op('viz/scene3d/geo_frames/glsl_frames').par.vec0valuey
+            valuez: =parent.Wavetable.op('viz/scene3d/geo_frames/glsl_frames').par.vec0valuez
             valuew: 2
           - name: uShape
             type: vec4
-            valuex: =parent.Synth.op('viz/scene3d/geo_frames/glsl_frames').par.vec1valuex
-            valuey: =parent.Synth.op('viz/scene3d/geo_frames/glsl_frames').par.vec1valuey
-            valuez: =parent.Synth.op('viz/scene3d/geo_frames/glsl_frames').par.vec1valuez
+            valuex: =parent.Wavetable.op('viz/scene3d/geo_frames/glsl_frames').par.vec1valuex
+            valuey: =parent.Wavetable.op('viz/scene3d/geo_frames/glsl_frames').par.vec1valuey
+            valuez: =parent.Wavetable.op('viz/scene3d/geo_frames/glsl_frames').par.vec1valuez
             valuew: =me.inputs[0].par.rows
           sampler:
           - name: sFrames
-            top: =parent.Synth.op('viz/chopto_frames')
+            top: =parent.Wavetable.op('viz/chopto_frames')
             extendu: repeat
           - name: sWave
-            top: =parent.Synth.op('viz/chopto_wave')
+            top: =parent.Wavetable.op('viz/chopto_wave')
             extendu: repeat
         position: [600, 0]
         inputs:
@@ -1028,7 +1026,7 @@ operators:
       - name: glsl_terrain
         type: glslPOP
         parameters:
-          computedat: =parent.Synth.op('viz/scene3d/geo_frames/glsl_frames_compute')
+          computedat: =parent.Wavetable.op('viz/scene3d/geo_frames/glsl_frames_compute')
         sequences:
           attr:
           - name: color
@@ -1040,16 +1038,16 @@ operators:
             valuew: 1
           - name: uShape
             type: vec4
-            valuex: =parent.Synth.op('viz/scene3d/geo_frames/glsl_frames').par.vec1valuex
-            valuey: =parent.Synth.op('viz/scene3d/geo_frames/glsl_frames').par.vec1valuey
-            valuez: =parent.Synth.op('viz/scene3d/geo_frames/glsl_frames').par.vec1valuez
+            valuex: =parent.Wavetable.op('viz/scene3d/geo_frames/glsl_frames').par.vec1valuex
+            valuey: =parent.Wavetable.op('viz/scene3d/geo_frames/glsl_frames').par.vec1valuey
+            valuez: =parent.Wavetable.op('viz/scene3d/geo_frames/glsl_frames').par.vec1valuez
             valuew: =me.inputs[0].par.rows
           sampler:
           - name: sFrames
-            top: =parent.Synth.op('viz/chopto_frames')
+            top: =parent.Wavetable.op('viz/chopto_frames')
             extendu: repeat
           - name: sWave
-            top: =parent.Synth.op('viz/chopto_wave')
+            top: =parent.Wavetable.op('viz/chopto_wave')
             extendu: repeat
         position: [600, 0]
         inputs:
@@ -1058,7 +1056,7 @@ operators:
         type: gridPOP
         parameters:
           cols: 256
-          rows: =2 * parent.Synth.op('engine/null_frames').numChans
+          rows: =2 * parent.Wavetable.op('engine/null_frames').numChans
         position: [200, 0]
       - name: glsl_terrain_info
         type: infoDAT
@@ -1140,7 +1138,7 @@ operators:
     type: bloomTOP
     parameters:
       bloomthreshold: 0.55
-      bloomintensity: =0.9 * parent.Synth.par.Glow
+      bloomintensity: =0.9 * parent.Wavetable.par.Glow
       format: rgba8fixed
     position: [5400, 0]
     size: [130, 90]
@@ -1207,9 +1205,9 @@ operators:
     sequences:
       const:
       - name: slow
-        value: =1.0 / parent.Synth.par.Slowmo
+        value: =1.0 / parent.Wavetable.par.Slowmo
       - name: orbit
-        value: =parent.Synth.par.Orbit / 90.0
+        value: =parent.Wavetable.par.Orbit / 90.0
     position: [200, -1200]
   - name: feedback_sono
     type: feedbackTOP
@@ -1235,7 +1233,7 @@ operators:
   - name: axes_callbacks
     type: textDAT
     parameters:
-      file: project1/series_synth/viz/axes_callbacks.py
+      file: project1/time_series_wavetable/viz/axes_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -1266,29 +1264,29 @@ operators:
         valuey: =float(op('axes')['t0', 1])
         valuez: =float(op('axes')['n', 1])
       - name: uWin
-        valuex: =parent.Synth.op('engine/script_window')['start']
-        valuey: =parent.Synth.op('engine/script_window')['length']
-        valuez: =parent.Synth.op('engine/script_window')['scanfrac']
+        valuex: =parent.Wavetable.op('engine/script_window')['start']
+        valuey: =parent.Wavetable.op('engine/script_window')['length']
+        valuez: =parent.Wavetable.op('engine/script_window')['scanfrac']
         valuew: =op('speed_vis')['slow']
       - name: uPitch
-        valuex: =parent.Synth.op('engine/lag_glide')['hz']
-        valuey: =parent.Synth.op('engine/script_window')['kmax']
-        valuez: =parent.Synth.op('engine/expr_cutoff')['cutofffrequency']
-        valuew: =1.0 if parent.Synth.par.Loopmode.eval() == 'pingpong' else 0.0
+        valuex: =parent.Wavetable.op('engine/lag_glide')['hz']
+        valuey: =parent.Wavetable.op('engine/script_window')['kmax']
+        valuez: =parent.Wavetable.op('engine/expr_cutoff')['cutofffrequency']
+        valuew: =1.0 if parent.Wavetable.par.Loopmode.eval() == 'pingpong' else 0.0
       - name: uEnv
-        valuex: =parent.Synth.op('engine/expr_gate')['gate']
-        valuey: =parent.Synth.op('engine/trigger_amp')['ampenv']
-        valuez: =parent.Synth.op('engine/trigger_filt')['filtenv']
-        valuew: =parent.Synth.op('engine/analyze_rms')[0]
+        valuex: =parent.Wavetable.op('engine/expr_gate')['gate']
+        valuey: =parent.Wavetable.op('engine/trigger_amp')['ampenv']
+        valuez: =parent.Wavetable.op('engine/trigger_filt')['filtenv']
+        valuew: =parent.Wavetable.op('engine/analyze_rms')[0]
       - name: uFilt
-        valuex: =parent.Synth.par.Cutoff
-        valuey: =parent.Synth.par.Resonance
-        valuez: =float(parent.Synth.par.Rolloff.eval())
-        valuew: =parent.Synth.par.Filtertype.menuIndex
+        valuex: =parent.Wavetable.par.Cutoff
+        valuey: =parent.Wavetable.par.Resonance
+        valuez: =float(parent.Wavetable.par.Rolloff.eval())
+        valuew: =parent.Wavetable.par.Filtertype.menuIndex
       - name: uMisc
         valuex: =(absTime.frame % 216000) / 60.0
-        valuey: =parent.Synth.par.Glow
-        valuez: =parent.Synth.par.Volume
+        valuey: =parent.Wavetable.par.Glow
+        valuez: =parent.Wavetable.par.Volume
       array:
       - name: uRects
         type: vec4
@@ -1332,7 +1330,7 @@ operators:
   - name: glsl_sono_pixel
     type: textDAT
     parameters:
-      file: project1/series_synth/viz/glsl_sono_pixel.glsl
+      file: project1/time_series_wavetable/viz/glsl_sono_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -1375,7 +1373,7 @@ operators:
   - name: glsl_dashboard_pixel
     type: textDAT
     parameters:
-      file: project1/series_synth/viz/glsl_dashboard_pixel.glsl
+      file: project1/time_series_wavetable/viz/glsl_dashboard_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -1396,7 +1394,7 @@ operators:
   - name: glsl_specsmooth_pixel
     type: textDAT
     parameters:
-      file: project1/series_synth/viz/glsl_specsmooth_pixel.glsl
+      file: project1/time_series_wavetable/viz/glsl_specsmooth_pixel.glsl
       syncfile: true
       language: glsl
       extension: frag
@@ -1772,7 +1770,7 @@ operators:
   - name: clean_series_callbacks
     type: textDAT
     parameters:
-      file: project1/series_synth/data/clean_series_callbacks.py
+      file: project1/time_series_wavetable/data/clean_series_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -1785,7 +1783,7 @@ operators:
   - name: stats_series_callbacks
     type: textDAT
     parameters:
-      file: project1/series_synth/data/stats_series_callbacks.py
+      file: project1/time_series_wavetable/data/stats_series_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -1798,7 +1796,7 @@ operators:
   - name: webclient_bbk_callbacks
     type: textDAT
     parameters:
-      file: project1/series_synth/data/webclient_bbk_callbacks.py
+      file: project1/time_series_wavetable/data/webclient_bbk_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -1813,7 +1811,7 @@ operators:
   - name: annotate1
     mode: annotate
     title: Bundesbank API fetch + cleaning
-    text: Fetch pulse -> webclient_bbk (async GET, CSV) -> callbacks hand the body to SeriesSynthExt -> raw_csv. clean_series keeps YYYY-MM rows with finite numbers (date, year, month, t, value_meur, value_bn); stats_series derives the descriptive statistics.
+    text: Fetch pulse -> webclient_bbk (async GET, CSV) -> callbacks hand the body to TimeSeriesWavetableExt -> raw_csv. clean_series keeps YYYY-MM rows with finite numbers (date, year, month, t, value_meur, value_bn); stats_series derives the descriptive statistics.
     position: [130, -590]
     size: [1870, 850]
     color: [0.12, 0.22, 0.32]
@@ -1844,7 +1842,7 @@ operators:
     type: mathCHOP
     parameters:
       chopop: mul
-      gain: =parent.Synth.par.Volume
+      gain: =parent.Wavetable.par.Volume
       autoexportroot: =parent()
     position: [3400, -2600]
     size: [130, 90]
@@ -1861,7 +1859,7 @@ operators:
     type: expressionCHOP
     sequences:
       expr:
-      - expr: =float(max((me.inputVal < parent.Synth.par.Gatelength) * parent.Synth.par.Autogate, parent.Synth.par.Gate, parent.Synth.par.Hold))
+      - expr: =float(max((me.inputVal < parent.Wavetable.par.Gatelength) * parent.Wavetable.par.Autogate, parent.Wavetable.par.Gate, parent.Wavetable.par.Hold))
     position: [600, -1800]
     inputs:
     - lfo_gate
@@ -1876,8 +1874,8 @@ operators:
   - name: lag_glide
     type: lagCHOP
     parameters:
-      lag1: =parent.Synth.par.Glide
-      lag2: =parent.Synth.par.Glide
+      lag1: =parent.Wavetable.par.Glide
+      lag2: =parent.Wavetable.par.Glide
       autoexportroot: =parent()
     position: [1800, -2600]
     size: [130, 90]
@@ -1940,7 +1938,7 @@ operators:
       renameto: cutofffrequency
     sequences:
       expr:
-      - expr: =min(18000.0, max(20.0, parent.Synth.par.Cutoff * 2.0 ** (parent.Synth.par.Envamount * me.inputVal)))
+      - expr: =min(18000.0, max(20.0, parent.Wavetable.par.Cutoff * 2.0 ** (parent.Wavetable.par.Envamount * me.inputVal)))
     position: [1400, -2200]
     inputs:
     - trigger_filt
@@ -1983,10 +1981,10 @@ operators:
   - name: trigger_amp
     type: triggerCHOP
     parameters:
-      attack: =parent.Synth.par.Attack
-      decay: =parent.Synth.par.Decay
-      sustain: =parent.Synth.par.Sustain
-      release: =parent.Synth.par.Release
+      attack: =parent.Wavetable.par.Attack
+      decay: =parent.Wavetable.par.Decay
+      sustain: =parent.Wavetable.par.Sustain
+      release: =parent.Wavetable.par.Release
       channame: ampenv
       renameto: ampenv
     position: [1000, -1800]
@@ -2024,10 +2022,10 @@ operators:
   - name: trigger_filt
     type: triggerCHOP
     parameters:
-      attack: =parent.Synth.par.Fattack
-      decay: =parent.Synth.par.Fdecay
-      sustain: =parent.Synth.par.Fsustain
-      release: =parent.Synth.par.Frelease
+      attack: =parent.Wavetable.par.Fattack
+      decay: =parent.Wavetable.par.Fdecay
+      sustain: =parent.Wavetable.par.Fsustain
+      release: =parent.Wavetable.par.Frelease
       channame: filtenv
       renameto: filtenv
     position: [1000, -2200]
@@ -2053,7 +2051,7 @@ operators:
   - name: wavetable_lib
     type: textDAT
     parameters:
-      file: project1/series_synth/engine/wavetable_lib.py
+      file: project1/time_series_wavetable/engine/wavetable_lib.py
       syncfile: true
       language: python
     position: [1400, 0]
@@ -2076,7 +2074,7 @@ operators:
     sequences:
       const:
       - name: rate
-        value: =parent.Synth.par.Scanrate * parent.Synth.par.Scan
+        value: =parent.Wavetable.par.Scanrate * parent.Wavetable.par.Scan
     position: [200, -400]
   - name: null_harmonics
     type: nullCHOP
@@ -2091,12 +2089,12 @@ operators:
   - name: audiofilter_vcf
     type: audiofilterCHOP
     parameters:
-      filter: =parent.Synth.par.Filtertype
+      filter: =parent.Wavetable.par.Filtertype
       units: frequency
       cutofflog: 2.69897
-      cutofffrequency: =parent.Synth.par.Cutoff
-      resonance: =parent.Synth.par.Resonance
-      rolloff: =float(parent.Synth.par.Rolloff.eval())
+      cutofffrequency: =parent.Wavetable.par.Cutoff
+      resonance: =parent.Wavetable.par.Resonance
+      rolloff: =float(parent.Wavetable.par.Rolloff.eval())
       autoexportroot: =parent()
     position: [3000, -2600]
     size: [130, 90]
@@ -2107,7 +2105,7 @@ operators:
   - name: audiodevout_main
     type: audiodeviceoutCHOP
     parameters:
-      active: =parent.Synth.par.Audio
+      active: =parent.Wavetable.par.Audio
       autoexportroot: =parent()
     position: [4600, -2600]
     size: [130, 90]
@@ -2144,7 +2142,7 @@ operators:
   - name: script_scope_callbacks
     type: textDAT
     parameters:
-      file: project1/series_synth/engine/script_scope_callbacks.py
+      file: project1/time_series_wavetable/engine/script_scope_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -2157,7 +2155,7 @@ operators:
   - name: script_frames_callbacks
     type: textDAT
     parameters:
-      file: project1/series_synth/engine/script_frames_callbacks.py
+      file: project1/time_series_wavetable/engine/script_frames_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -2170,7 +2168,7 @@ operators:
   - name: script_window_callbacks
     type: textDAT
     parameters:
-      file: project1/series_synth/engine/script_window_callbacks.py
+      file: project1/time_series_wavetable/engine/script_window_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -2183,7 +2181,7 @@ operators:
   - name: script_harmonics_callbacks
     type: textDAT
     parameters:
-      file: project1/series_synth/engine/script_harmonics_callbacks.py
+      file: project1/time_series_wavetable/engine/script_harmonics_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -2196,7 +2194,7 @@ operators:
   - name: script_wavetable_callbacks
     type: textDAT
     parameters:
-      file: project1/series_synth/engine/script_wavetable_callbacks.py
+      file: project1/time_series_wavetable/engine/script_wavetable_callbacks.py
       syncfile: true
       language: python
     flags:
@@ -2228,24 +2226,24 @@ operators:
     position: [4530, -3990]
     size: [1470, 850]
     color: [0.28, 0.22, 0.08]
-- name: parexec_synth
+- name: parexec_wavetable
   type: parameterexecuteDAT
   parameters:
     fromop: =parent()
     op: ..
     pars: '*'
     builtin: false
-    file: project1/series_synth/parexec_synth.py
+    file: project1/time_series_wavetable/parexec_wavetable.py
     syncfile: true
   position: [600, 800]
   size: [130, 90]
   color: [0.9, 0.3, 0.4]
   tags:
   - py
-- name: SeriesSynthExt
+- name: TimeSeriesWavetableExt
   type: textDAT
   parameters:
-    file: project1/series_synth/SeriesSynthExt.py
+    file: project1/time_series_wavetable/TimeSeriesWavetableExt.py
     syncfile: true
     language: python
   position: [200, 800]
@@ -2256,7 +2254,7 @@ annotations:
 - name: annotate1
   mode: annotate
   title: Control
-  text: SeriesSynthExt owns the parameter schema and the API request (Fetch); parexec_synth routes parameter pulses/changes to _on<Par> handlers.
+  text: TimeSeriesWavetableExt owns the parameter schema and the API request (Fetch); parexec_wavetable routes parameter pulses/changes to _on<Par> handlers.
   position: [130, 730]
   size: [670, 330]
   color: [0.2, 0.2, 0.28]

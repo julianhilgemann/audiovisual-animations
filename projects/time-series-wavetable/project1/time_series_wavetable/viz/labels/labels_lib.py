@@ -70,7 +70,7 @@ def build(layer: str) -> list:
 
 # ---- geometry -------------------------------------------------------------------
 def _layout():
-	return parent.Synth.op('viz/layout')
+	return parent.Wavetable.op('viz/layout')
 
 def _rect(name: str) -> tuple:
 	t = _layout()
@@ -83,12 +83,12 @@ def _plot(name: str) -> tuple:
 	return x + il, y + ib, w - il - ir, h - ib - it
 
 def _axes() -> dict:
-	t = parent.Synth.op('viz/axes')
+	t = parent.Wavetable.op('viz/axes')
 	return {t[r, 0].val: float(t[r, 1]) for r in range(1, t.numRows)}
 
 def output_scale() -> float:
 	"""Real pixels per design pixel (the dashboard's width / 1920)."""
-	return float(parent.Synth.op('viz/glsl_dashboard').par.resolutionw) / 1920.0
+	return float(parent.Wavetable.op('viz/glsl_dashboard').par.resolutionw) / 1920.0
 
 def _left(x: float, yc: float, text: str, pt: float) -> list:
 	"""Text starting at x, vertically centred on yc (design units in, real pixels out)."""
@@ -113,12 +113,12 @@ def _title_y(name: str) -> float:
 
 def _date(i: int) -> str:
 	"""Month index (0 = first observation) -> 'YYYY-MM'."""
-	first = parent.Synth.op('data/clean_series')[1, 'date'].val
+	first = parent.Wavetable.op('data/clean_series')[1, 'date'].val
 	m = int(first[:4]) * 12 + int(first[5:7]) - 1 + int(i)
 	return '%04d-%02d' % (m // 12, m % 12 + 1)
 
 def _first_last_year() -> tuple:
-	t = parent.Synth.op('data/clean_series')
+	t = parent.Wavetable.op('data/clean_series')
 	return t[1, 'date'].val[:4], t[t.numRows - 1, 'date'].val[:4]
 
 
@@ -161,7 +161,7 @@ def _axis() -> list:
 
 def _title() -> list:
 	first, last = _first_last_year()
-	frames = parent.Synth.op('engine/null_frames').numChans
+	frames = parent.Wavetable.op('engine/null_frames').numChans
 	rows = []
 	for name, text in TITLES.items():
 		x, y, w, h = _rect(name)
@@ -197,7 +197,7 @@ def _dim() -> list:
 def _value() -> list:
 	rows = []
 	pt = PT_TEXT
-	synth = parent.Synth
+	synth = parent.Wavetable
 	win = synth.op('engine/script_window')
 	values = synth.op('engine/null_series')['value_bn'].numpyArray().astype(np.float64)
 	start, length = float(win['start']), int(win['length'])

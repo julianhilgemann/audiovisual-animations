@@ -9,7 +9,7 @@ below Nyquist at that pitch), n (months in the series).
 
 def onCook(scriptOp: scriptCHOP):
 	lib = op('wavetable_lib').module
-	p = parent.Synth.par
+	p = parent.Wavetable.par
 	series = op('null_series')
 	n = series.numSamples if series.numChans else 0
 	scan = scriptOp.inputs[0][0].eval() if (scriptOp.inputs and p.Scan.eval()) else None
