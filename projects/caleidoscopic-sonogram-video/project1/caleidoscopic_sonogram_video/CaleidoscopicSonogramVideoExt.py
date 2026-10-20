@@ -3,8 +3,8 @@
 A track (sense/audiofilein_track) is played and analysed (bands, energy, transients,
 spectrum, waveform); a video (sense/moviefilein_mod, e.g. a spinning record) is the
 modulator: its luma keys a mask that displaces and lights the cloud, its motion stirs it.
-The drone engine, the Bundesbank data, the webcam and the microphone of the original
-installation are still inside, parked (engine/ and data/ cooking off, devices bypassed).
+The webcam and the microphone of the original installation are still inside, parked
+(devices bypassed).
 
 Owns the music-video parameter schema (get-or-create, never destroys a user value;
 the parked installation's parameters stay on their legacy pages at the end), the
@@ -15,8 +15,7 @@ from __future__ import annotations
 _STYLE_FAMILY = {'RGB': ('RGB', 'RGBA'), 'XY': ('XY', 'XYZW'), 'XYZ': ('XYZ', 'XYZW')}
 
 # Page order of the COMP: the music video first, the parked installation last.
-_PAGE_ORDER = ['Track', 'Modulator', 'Form', 'Camera', 'Visual', 'Reactivity', 'Finish', 'Monitor',
-               'Inputs', 'Sound Mod', 'Data', 'Wavetable', 'Shape', 'Pitch', 'Filter', 'Output']
+_PAGE_ORDER = ['Track', 'Modulator', 'Form', 'Camera', 'Visual', 'Reactivity', 'Finish', 'Monitor', 'Inputs']
 
 
 def _monitor(channel: str) -> str:
