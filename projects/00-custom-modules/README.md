@@ -2,6 +2,8 @@
 
 Reusable TouchDesigner components that the projects in `projects/` share. Each module is one COMP saved as a `.tox`. A project loads it through the COMP's External .tox parameter instead of keeping its own copy, so a change saved here reaches every project the next time it opens.
 
+To turn a feature of a project into a new module, start with `LEARNINGS.md`: the step-by-step recipe from the first extraction, and the TouchDesigner and Embody behaviour it depends on.
+
 | Module | What it is | Used by |
 |---|---|---|
 | `source-deck/` | Video and audio inputs with a transport. Picture from the camera, a movie file, an external TOP or a YouTube download; sound from the microphone, an audio file, an external CHOP or YouTube. Both can be scrubbed, linked when they come from the same clip and separate otherwise. | `ferroscope` |
