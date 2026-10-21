@@ -1,0 +1,18 @@
+source	dest	amount	curve	comment
+key1	noise_period	0.5	lin	old T1
+mt1_env	noise_period	0.15	lin	Octatrack MIDI track 1 hits
+key2	noise_amp	0.3	lin	old T2
+a_lows	noise_amp	0.1	lin	
+a_mids	noise_spread	0.15	lin	
+a_kick_env	noise_exp	0.1	lin	
+lfo5	noise_gain	0.05	bi	speeds up with energy
+key4	fb1_mix	0.25	lin	old T4
+a_energy	fb2_mix	0.15	lin	
+a_energy_slow	trail	0.2	lin	
+a_lows	depth_blur	0.2	lin	old: low band
+lfo2	displace1	0.1	bi	four-bar drift
+a_centroid	displace2	0.1	bi	
+a_hat_env	slope	0.1	lin	
+xfade	cam_dist	-0.3	lin	crossfader pulls the camera in
+lfo1	cam_dist	0.04	bi	breathes once a bar
+a_snare_env	rgb_split	0.25	lin	

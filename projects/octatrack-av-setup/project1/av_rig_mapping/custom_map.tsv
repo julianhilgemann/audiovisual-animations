@@ -1,0 +1,5 @@
+name	type	channel	number	comment
+key1	note	3	48	C3 on channel 3: the old T1 (noise period)
+key2	note	3	50	D3 on channel 3: the old T2 (noise amplitude)
+key3	note	3	52	E3 on channel 3: the old T3 (unused before)
+key4	note	3	53	F3 on channel 3: the old T4 (feedback opacity)

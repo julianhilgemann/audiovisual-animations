@@ -1,0 +1,15 @@
+name	min	max	base	smooth	target
+noise_period	0	10	1.89	0.05	noise1 Period
+noise_amp	0	3	2.1	0.05	noise1 Amplitude
+noise_spread	0	20	0.6	0.08	noise1 Spread
+noise_exp	-4	6	4.0	0.08	noise1 Exponent
+noise_gain	0	2	0.94	0.05	noise1 Gain
+fb1_mix	0	4	0.0	0.03	level1 Opacity (feedback 1)
+fb2_mix	0	1	0.645	0.05	level2 Opacity (feedback 2)
+trail	0	1	0.239	0.1	level3 Brightness 2 (output trails)
+depth_blur	1	20	1.0	0.05	lumablur1 White Width
+displace1	0	1	0.112	0.08	displace1 Displace Weight
+displace2	0	1	0.554	0.08	displace2 Displace Weight
+slope	0	4	0.35	0.08	slope1 Strength
+cam_dist	5	30	15.1666	0.25	cam1 Translate Z
+rgb_split	0	20	4	0.05	rgbaDelay Red/Green/Blue Delay (frames, as -1x/-0.75x/-1.25x)

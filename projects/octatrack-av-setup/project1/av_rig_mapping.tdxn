@@ -1,0 +1,189 @@
+format: tdxn
+version: '2.2'
+build: 5
+generator: Embody/6.2.75
+td_build: 099.2025.32820
+network_path: /project1/av_rig_mapping
+options:
+  include_dat_content: false
+  include_storage: true
+type_defaults:
+  tableDAT:
+    parameters:
+      syncfile: true
+    size: [130, 90]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - tsv
+type: baseCOMP
+custom_pars:
+  Bases:
+  - name: Basenoiseperiod
+    style: Float
+    label: noise_period
+    default: 1.89
+    max: 10.0
+    clampMin: true
+    clampMax: true
+    normMax: 10.0
+    help: Base value of noise_period (noise1 Period) before modulation, 0 to 10. Routes add to it.
+    value: 3.0099999905
+  - name: Basenoiseamp
+    style: Float
+    label: noise_amp
+    default: 2.1
+    max: 3.0
+    clampMin: true
+    clampMax: true
+    normMax: 3.0
+    help: Base value of noise_amp (noise1 Amplitude) before modulation, 0 to 3. Routes add to it.
+    value: 0.4300000072
+  - name: Basenoisespread
+    style: Float
+    label: noise_spread
+    default: 0.6
+    max: 20.0
+    clampMin: true
+    clampMax: true
+    normMax: 20.0
+    help: Base value of noise_spread (noise1 Spread) before modulation, 0 to 20. Routes add to it.
+    value: 4.6999998093
+  - name: Basenoiseexp
+    style: Float
+    label: noise_exp
+    default: 4
+    min: -4.0
+    max: 6.0
+    clampMin: true
+    clampMax: true
+    normMin: -4.0
+    normMax: 6.0
+    help: Base value of noise_exp (noise1 Exponent) before modulation, -4 to 6. Routes add to it.
+    value: -0.5799999833
+  - name: Basenoisegain
+    style: Float
+    label: noise_gain
+    default: 0.94
+    max: 2.0
+    clampMin: true
+    clampMax: true
+    normMax: 2.0
+    help: Base value of noise_gain (noise1 Gain) before modulation, 0 to 2. Routes add to it.
+    value: 0.9700000286
+  - name: Basefb1mix
+    style: Float
+    label: fb1_mix
+    max: 4.0
+    clampMin: true
+    clampMax: true
+    normMax: 4.0
+    help: Base value of fb1_mix (level1 Opacity (feedback 1)) before modulation, 0 to 4. Routes add to it.
+    value: 1.2100000381
+  - name: Basefb2mix
+    style: Float
+    label: fb2_mix
+    default: 0.645
+    clampMin: true
+    clampMax: true
+    help: Base value of fb2_mix (level2 Opacity (feedback 2)) before modulation, 0 to 1. Routes add to it.
+    value: 0.7400000095
+  - name: Basetrail
+    style: Float
+    label: trail
+    default: 0.239
+    clampMin: true
+    clampMax: true
+    help: Base value of trail (level3 Brightness 2 (output trails)) before modulation, 0 to 1. Routes add to it.
+    value: 0.47299999
+  - name: Basedepthblur
+    style: Float
+    label: depth_blur
+    default: 1
+    min: 1.0
+    max: 20.0
+    clampMin: true
+    clampMax: true
+    normMin: 1.0
+    normMax: 20.0
+    help: Base value of depth_blur (lumablur1 White Width) before modulation, 1 to 20. Routes add to it.
+    value: 6.1999998093
+  - name: Basedisplace1
+    style: Float
+    label: displace1
+    default: 0.112
+    clampMin: true
+    clampMax: true
+    help: Base value of displace1 (displace1 Displace Weight) before modulation, 0 to 1. Routes add to it.
+    value: 0.1509999931
+  - name: Basedisplace2
+    style: Float
+    label: displace2
+    default: 0.554
+    clampMin: true
+    clampMax: true
+    help: Base value of displace2 (displace2 Displace Weight) before modulation, 0 to 1. Routes add to it.
+    value: 0.6579999924
+  - name: Baseslope
+    style: Float
+    label: slope
+    default: 0.35
+    max: 4.0
+    clampMin: true
+    clampMax: true
+    normMax: 4.0
+    help: Base value of slope (slope1 Strength) before modulation, 0 to 4. Routes add to it.
+    value: 4
+  - name: Basecamdist
+    style: Float
+    label: cam_dist
+    default: 15.1666
+    min: 5.0
+    max: 30.0
+    clampMin: true
+    clampMax: true
+    normMin: 5.0
+    normMax: 30.0
+    help: Base value of cam_dist (cam1 Translate Z) before modulation, 5 to 30. Routes add to it.
+    value: 24.8999996185
+  - name: Basergbsplit
+    style: Float
+    label: rgb_split
+    default: 4
+    max: 20.0
+    clampMin: true
+    clampMax: true
+    normMax: 20.0
+    help: Base value of rgb_split (rgbaDelay Red/Green/Blue Delay (frames, as -1x/-0.75x/-1.25x)) before modulation, 0 to 20. Routes add to it.
+    value: 2.2999999523
+color: [0.3, 0.5, 0.9]
+tags:
+- tdxn
+comment: 'The av_rig mapping of this project: destinations, routes, LFOs, the custom MIDI map and, on the Bases page, the base of each destination. Saved with the project, not the module.'
+operators:
+- name: routes
+  type: tableDAT
+  parameters:
+    file: project1/av_rig_mapping/routes.tsv
+    rows: 18
+    cols: 5
+  position: [400, 0]
+- name: lfo_table
+  type: tableDAT
+  parameters:
+    file: project1/av_rig_mapping/lfo_table.tsv
+    rows: 7
+    cols: 12
+  position: [800, 0]
+- name: custom_map
+  type: tableDAT
+  parameters:
+    file: project1/av_rig_mapping/custom_map.tsv
+    rows: 5
+    cols: 5
+  position: [1200, 0]
+- name: destinations
+  type: tableDAT
+  parameters:
+    file: project1/av_rig_mapping/destinations.tsv
+    rows: 15
+    cols: 6

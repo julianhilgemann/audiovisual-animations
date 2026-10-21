@@ -2,7 +2,7 @@
 
 These are standalone TouchDesigner projects. They aren't part of the Datapipe pipeline. Each one runs on its own; the ones set up with Embody and Envoy externalize their networks to text files that git can diff. To work on one, open the `.toe` named after its folder in TouchDesigner 2025.
 
-`00-custom-modules/` isn't a project. It holds components the projects share, saved as `.tox` files that projects load through External .tox; its README says how to use and change them.
+`00-custom-modules/` isn't a project. It holds components the projects share, saved as `.tox` files that projects load through External .tox: `source_deck` (video and audio sources), `audio_analyzer`, `midi_analyzer`, `modulator`, and `av_rig`, which combines the last three as one drop-in. Its README says how to use and change them.
 
 | Folder | What it is | Formerly |
 |---|---|---|
@@ -16,7 +16,7 @@ These are standalone TouchDesigner projects. They aren't part of the Datapipe pi
 | `iridiscent-viz/` | A music visualizer. A particle stream from a line emitter, its turbulence stirred by an LFO, is lit by an audio track: the kick drives the bloom, the rhythm the glow, and the highs the glow color and the rotation. Feedback trails, mirroring, tiling and RGBA delay make the iridescent, kaleidoscopic look; a Movie File Out records it. | |
 | `noise-attractor-landscape/` | A GPU particle swarm (the palette's `particlesGpu`) in turbulence, wind and external-force fields. Three presets of each are spread across the particles through lookup channels, so different parts of the swarm move differently. Instanced and rendered with feedback trails. | |
 | `octatrack-audio-modulation/` | An early Octatrack sketch. Octatrack audio and MIDI are read in and shaped (band levels, S-curves), but nothing in the saved network uses them yet: the visual, a million instanced points from a 1000×1000 ramp texture displaced by noise, with bloom, is still moved by LFOs. | |
-| `octatrack-av-setup/` | The live AV set. MIDI notes from the Octatrack (channel 3, one per track) and the low and mid bands of its audio, coming in through an Elektron Analog Heat MKII as the audio interface, drive a noise-field particle generator (the engine of `infinite-hypercube`): noise period, spread and amplitude, camera distance, feedback and depth blur. The result goes out at 1920×1080 over Syphon/Spout. | |
+| `octatrack-av-setup/` | The live AV set: the Octatrack drives a noise-field particle generator (the engine of `infinite-hypercube`) that goes out at 1920×1080 over Syphon/Spout. Its input layer is the shared `av_rig` module: sound from the Analog Heat MKII, the microphone, a file or YouTube, analyzed into bands, timbre, energy and onsets; every Octatrack knob, MIDI track, the crossfader, scenes, patterns and the MIDI clock as named channels; an LFO bank and a routing table that send all of it to 16 visual parameters. The project's routing lives in `av_rig_mapping`. | |
 | `octatrack-heat-midi-audio-mapping/` | The input layer of `octatrack-av-setup` on its own, with no visuals: Octatrack audio through the Analog Heat MKII split into low, mid and high band levels, and the MIDI note triggers of four tracks (`T1` to `T4`). | |
 
 The three sonogram/wavetable projects were split out of `econ-sonification/`, where all three shared one `project1/` (`series_synth`, `audioreactor`, `musicvideo`). Each is now pruned to its own COMP.
