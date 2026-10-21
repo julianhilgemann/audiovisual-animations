@@ -1,6 +1,6 @@
 path	type	strategy	rel_file_path	timestamp	dirty	build	touch_build	node_x	node_y	node_color
 /project1/externalizations	table	tsv	project1/externalizations.tsv	2026-10-09 22:26:36 UTC				-200	0	0.9000,0.3000,0.4000
-/project1/ferroscope/CRT	base	tdxn	project1/ferroscope/CRT.tdxn	2026-10-20 22:49:32 UTC		2	099.2025.32820	5600	0	0.3000,0.5000,0.9000
+/project1/ferroscope/CRT	base	tdxn	project1/ferroscope/CRT.tdxn	2026-10-21 15:53:33 UTC		2	099.2025.32820	5600	0	0.3000,0.5000,0.9000
 /project1/ferroscope/youtube_fetch	text	py	project1/ferroscope/youtube_fetch.py	2026-10-20 22:50:10 UTC				6000	-600	0.9000,0.3000,0.4000
 /project1/ferroscope/controls_callbacks	parexec	py	project1/ferroscope/controls_callbacks.py	2026-10-20 22:50:10 UTC				6000	-400	0.9000,0.3000,0.4000
 /project1/ferroscope/glsl_sono_pixel	text	glsl	project1/ferroscope/glsl_sono_pixel.glsl	2026-10-20 22:50:10 UTC				1525	-120	0.9000,0.3000,0.4000
@@ -9,4 +9,5 @@ path	type	strategy	rel_file_path	timestamp	dirty	build	touch_build	node_x	node_y
 /project1/ferroscope/glsl_viewer_pixel	text	glsl	project1/ferroscope/glsl_viewer_pixel.glsl	2026-10-20 22:50:10 UTC				3525	-2120	0.9000,0.3000,0.4000
 /project1/ferroscope/glsl_presence_pixel	text	glsl	project1/ferroscope/glsl_presence_pixel.glsl	2026-10-20 22:50:10 UTC				1925	-2120	0.9000,0.3000,0.4000
 /project1/ferroscope/presets	table	tsv	project1/ferroscope/presets.tsv	2026-10-20 22:50:10 UTC				5600	-400	0.9000,0.3000,0.4000
-/project1/ferroscope	base	tdxn	project1/ferroscope.tdxn	2026-10-20 22:50:25 UTC		1	099.2025.32820	400	0	0.3000,0.5000,0.9000
+/project1/ferroscope	base	tdxn	project1/ferroscope.tdxn	2026-10-21 16:16:03 UTC		4	099.2025.32820	400	0	0.3000,0.5000,0.9000
+/project1/ferroscope/transport	execute	py	project1/ferroscope/transport.py	2026-10-21 15:47:18 UTC				-1200	-1000	0.9000,0.3000,0.4000

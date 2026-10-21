@@ -67,30 +67,10 @@ def Download(comp, kind):
 	except Exception as error:
 		_fail(comp, kind, error)
 
-def Restart(comp, kind):
-	"""Jump kind's YouTube player to the start; when video and audio play the same
-	YouTube clip, restart both so picture and sound stay together."""
-	kinds = ('video', 'audio') if SameClip(comp) else (kind,)
-	for each in kinds:
-		player = comp.op(_KINDS[each]['player'])
-		player.par.cuepoint = 0
-		player.par.cuepulse.pulse()
-
-def SameClip(comp):
-	"""True when Video and Audio Source both play YouTube downloads of the same video."""
-	if comp.par.Videosource.eval() != 'youtube' or comp.par.Audiosource.eval() != 'youtube':
-		return False
-	video = _clipId(comp.par.Videodownloaded.eval())
-	return video != '' and video == _clipId(comp.par.Audiodownloaded.eval())
-
 def _linkFor(comp, kind):
 	"""The YouTube link for kind; audio falls back to the video link when its own is empty."""
 	link = comp.par.Audiolink.eval().strip() if kind == 'audio' else ''
 	return link or comp.par.Videolink.eval().strip()
-
-def _clipId(path):
-	"""The YouTube video id a downloaded file is named after ('' for no file)."""
-	return os.path.basename(path).split('.')[0]
 
 def _venvPython():
 	"""The project venv's Python, where yt-dlp is installed."""
@@ -152,8 +132,8 @@ def _finish(comp, kind, events, result):
 	comp.par[spec['par'] + 'downloaded'].val = os.path.relpath(path, project.folder).replace('\\', '/')
 	comp.par[spec['par'] + 'source'].val = 'youtube'
 	status.val = 'Ready: ' + result['title']
-	# Restart once the player has opened the new file, so a clip shared by video and audio starts together.
-	run(Restart, comp, kind, delayFrames=15)
+	# Start the new clip from the top once the player has opened it; a linked partner jumps with it.
+	run(comp.op('transport').module.Restart, comp, kind, delayFrames=15)
 
 def _fail(comp, kind, error):
 	"""Main thread: yt-dlp could not be started; report it."""

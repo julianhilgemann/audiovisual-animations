@@ -31,19 +31,13 @@ def _closeWindow(comp):
 	"""Close the output window."""
 	comp.op('window_out').par.winclose.pulse()
 
-def _restartMovie(comp):
-	"""Jump the movie file and the YouTube video back to their start."""
-	movie = comp.op('moviefilein')
-	movie.par.cuepoint = 0
-	movie.par.cuepulse.pulse()
-	comp.op('youtube_fetch').module.Restart(comp, 'video')
+def _restartVideo(comp):
+	"""Jump the video playhead back to the start (linked audio jumps with it)."""
+	comp.op('transport').module.Restart(comp, 'video')
 
 def _restartAudio(comp):
-	"""Jump the audio file and the YouTube audio back to their start."""
-	audio = comp.op('audiofilein')
-	audio.par.cuepoint = 0
-	audio.par.cuepulse.pulse()
-	comp.op('youtube_fetch').module.Restart(comp, 'audio')
+	"""Jump the audio playhead back to the start (linked video jumps with it)."""
+	comp.op('transport').module.Restart(comp, 'audio')
 
 def _downloadVideo(comp):
 	"""Fetch the YouTube Video Link and make it the video source."""
@@ -106,7 +100,7 @@ _PULSES = {
 	'Relearnbg': _relearnBackground,
 	'Openwindow': _openWindow,
 	'Closewindow': _closeWindow,
-	'Videorestart': _restartMovie,
+	'Videorestart': _restartVideo,
 	'Audiorestart': _restartAudio,
 	'Videodownload': _downloadVideo,
 	'Audiodownload': _downloadAudio,

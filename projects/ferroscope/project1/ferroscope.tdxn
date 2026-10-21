@@ -1,6 +1,6 @@
 format: tdxn
 version: '2.2'
-build: 1
+build: 4
 generator: Embody/6.2.72
 td_build: 099.2025.32820
 network_path: /project1/ferroscope
@@ -12,11 +12,14 @@ type_defaults:
     parameters:
       autoexportroot: =parent()
       index: =me.time.frame / root.time.rate
-      play: =parent.Ferro.par.Audioplay
+      play: =1 if parent.Ferro.par.Audioplay and (parent.Ferro.par.Videospeed > 0 or not parent.Ferro.par.Linked) else 0
       repeat: ='on' if parent.Ferro.par.Audioloop else 'off'
+      speed: =parent.Ferro.par.Videospeed if parent.Ferro.par.Linked else 1
       timecodeop: =tdu.Timecode()
     size: [130, 90]
     color: [0.67, 0.67, 0.67]
+    tags:
+    - tdxn_exclude:cuepoint
   blurTOP:
     parameters:
       extend: mirror
@@ -63,9 +66,9 @@ type_defaults:
     color: [0.67, 0.67, 0.67]
   moviefileinTOP:
     parameters:
-      index: =me.time.frame
-      play: =parent.Ferro.par.Videoplay
-      speed: =parent.Ferro.par.Videospeed
+      index: =parent.Ferro.par.Videotime
+      indexunit: seconds
+      playmode: specify
       textendright: ='cycle' if parent.Ferro.par.Videoloop else 'hold'
       timecodeop: =tdu.Timecode()
     size: [130, 90]
@@ -171,30 +174,6 @@ custom_pars:
     readOnly: true
     help: The downloaded YouTube video file that Video Source YouTube plays (set by Download Video).
     value: media/youtube/MtkHmdezGUs.video.mp4
-  - name: Videoplay
-    style: Toggle
-    label: Play Movie
-    startSection: true
-    default: true
-    help: Plays or pauses the movie file.
-  - name: Videoloop
-    style: Toggle
-    label: Loop Movie
-    default: true
-    help: Loops the movie at its end; off holds the last frame.
-    value: false
-  - name: Videospeed
-    style: Float
-    label: Movie Speed
-    default: 1
-    min: -4.0
-    max: 4.0
-    normMax: 2.0
-    help: Playback speed of the movie file or YouTube video. 1 = normal; keep it at 1 to stay in sync with the same clip's audio.
-  - name: Videorestart
-    style: Pulse
-    label: Restart Movie
-    help: Jump back to the start of the movie or YouTube video. When video and audio both play the same YouTube clip, the audio restarts with it so they stay together.
   - name: Audiosource
     style: Menu
     label: Audio Source
@@ -241,21 +220,6 @@ custom_pars:
     readOnly: true
     help: The downloaded YouTube audio file that Audio Source YouTube plays (set by Download Audio).
     value: media/youtube/MtkHmdezGUs.audio.m4a
-  - name: Audioplay
-    style: Toggle
-    label: Play Audio
-    startSection: true
-    default: true
-    help: Plays or pauses the audio file.
-  - name: Audioloop
-    style: Toggle
-    label: Loop Audio
-    default: true
-    help: Loops the audio file at its end.
-  - name: Audiorestart
-    style: Pulse
-    label: Restart Audio
-    help: Jump back to the start of the audio file or YouTube audio. When video and audio both play the same YouTube clip, the video restarts with it so they stay together.
   - name: Monitor
     style: Toggle
     label: Play to Speakers
@@ -271,6 +235,87 @@ custom_pars:
     clampMax: true
     help: Volume of the audio played to the speakers.
     value: 0.934
+  Transport:
+  - name: Link
+    style: Menu
+    label: Link Audio to Video
+    default: auto
+    menuNames:
+    - auto
+    - linked
+    - separate
+    menuLabels:
+    - Auto (Same Clip)
+    - Always
+    - Never
+    help: Whether the audio playhead moves with the video playhead. Auto links them while Video Source and Audio Source play the same clip (one YouTube video, or one file). Always links any file or YouTube video with any file or YouTube audio (past the end of shorter audio the video plays on alone); Never keeps them independent. Live sources (camera, microphone, external input) never link.
+  - name: Linked
+    style: Toggle
+    label: Audio Linked
+    readOnly: true
+    help: On while the audio follows the video playhead, as decided by Link Audio to Video. Read only.
+  - name: Videoplay
+    style: Toggle
+    label: Play Video
+    startSection: true
+    default: true
+    help: Plays or pauses the movie file or YouTube video. While the audio is linked it plays and pauses the audio too.
+  - name: Videotime
+    style: Float
+    label: Video Position
+    clampMin: true
+    normMax: 3626.0
+    help: Playhead of the movie file or YouTube video in seconds; drag to scrub, or type a time. The slider spans the whole clip. While the audio is linked the audio jumps with it.
+  - name: Videoclock
+    style: Str
+    label: Video Time
+    readOnly: true
+    help: Video Position and the length of the clip as minutes:seconds (hours:minutes:seconds for clips over an hour). Read only.
+  - name: Videospeed
+    style: Float
+    label: Video Speed
+    default: 1
+    min: -4.0
+    max: 4.0
+    normMax: 2.0
+    help: 'Playback speed of the movie file or YouTube video: 1 = normal, negative plays backwards. While the audio is linked it sets the audio speed (and pitch) too; linked audio is silent while the video plays backwards.'
+  - name: Videoloop
+    style: Toggle
+    label: Loop Video
+    default: true
+    help: Loops the video at its end (and at its start when playing backwards); off holds the last frame. While the audio is linked it loops the audio too.
+    value: false
+  - name: Videorestart
+    style: Pulse
+    label: Restart Video
+    help: Jump the video back to the start. While the audio is linked the audio jumps with it.
+  - name: Audioplay
+    style: Toggle
+    label: Play Audio
+    startSection: true
+    default: true
+    help: Plays or pauses the audio file or YouTube audio. While the audio is linked it plays and pauses the video too.
+  - name: Audiotime
+    style: Float
+    label: Audio Position
+    clampMin: true
+    normMax: 3626.0
+    help: Playhead of the audio file or YouTube audio in seconds; drag to scrub, or type a time. The slider spans the whole file. While the audio is linked the video jumps with it.
+  - name: Audioclock
+    style: Str
+    label: Audio Time
+    readOnly: true
+    help: Audio Position and the length of the audio as minutes:seconds (hours:minutes:seconds for files over an hour). Read only.
+  - name: Audioloop
+    style: Toggle
+    label: Loop Audio
+    default: true
+    help: Loops the audio at its end; off stops it there. While the audio is linked it loops the video too.
+    value: false
+  - name: Audiorestart
+    style: Pulse
+    label: Restart Audio
+    help: Jump the audio back to the start. While the audio is linked the video jumps with it.
   Sound:
   - name: Audioactive
     style: Toggle
@@ -1042,7 +1087,7 @@ custom_pars:
     clampMax: true
     normMax: 3.0
     help: 'How strongly the viewer pulls the fluid: spikes rise and lean toward where you are.'
-    value: 1.12
+    value: 1.8099999428
   - name: Lens
     style: Float
     default: 1
@@ -1085,7 +1130,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: How different from the empty room a pixel must be to count as you. Raise it in a dim room or with a plain background.
-    value: 0.566
+    value: 0.4280000031
   - name: Presenceweight
     style: Float
     label: Presence Weight
@@ -1103,7 +1148,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: Strength of movement (frame-to-frame change) in the pull field, so moving hands pull hardest.
-    value: 0.723
+    value: 0.5479999781
   - name: Relearnbg
     style: Pulse
     label: Relearn Background
@@ -1329,9 +1374,16 @@ custom_pars:
     help: Close the output window.
 parameters:
   parentshortcut: Ferro
+flags:
+- viewer
 color: [0.3, 0.5, 0.9]
 tags:
 - tdxn
+- tdxn_exclude:Audioclock
+- tdxn_exclude:Audiotime
+- tdxn_exclude:Linked
+- tdxn_exclude:Videoclock
+- tdxn_exclude:Videotime
 comment: Mic sonogram -> kaleidoscopic ferrofluid; webcam presence pulls the fluid toward the viewer.
 operators:
 - name: CRT
@@ -1500,6 +1552,18 @@ operators:
   position: [1200, -1200]
   inputs:
   - speed_time
+- name: transport
+  type: executeDAT
+  parameters:
+    fromop: =parent()
+    framestart: true
+    file: project1/ferroscope/transport.py
+    syncfile: true
+  position: [-1200, -1000]
+  size: [130, 90]
+  color: [0.9, 0.3, 0.4]
+  tags:
+  - py
 - name: audiodevin
   type: audiodeviceinCHOP
   parameters:
@@ -1691,6 +1755,14 @@ operators:
   - glsl_fluid
   - null_field
   - null_sono
+- name: info_audio
+  type: infoCHOP
+  parameters:
+    op: ='audiofilein_yt' if parent.Ferro.par.Audiosource == 'youtube' else 'audiofilein'
+    autoexportroot: =parent()
+  position: [-1600, -1000]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
 - name: lag_viewer
   type: lagCHOP
   parameters:
@@ -2105,7 +2177,7 @@ annotations:
 - name: annotate1
   mode: annotate
   title: Audio Source -> Sonogram
-  text: 'Audio Source (Sources page): microphone, audio file, the external audio input (FerroScope''s 2nd connector; silence when nothing is wired), or YouTube audio (audiofilein_yt plays the file Download Audio fetched; same clip as the video restarts together) -> switch_audio -> null_audio. audio_monitor plays file, YouTube or external audio to the speakers (never the mic). null_audio -> spectrum (FFT, log bins) -> spectrum_tex. glsl_sono writes the newest spectrum on the top row and scrolls older rows down (feedback via null_sono): R = loudness after Auto Gain, attack and release; G = onset; B = tracked peak. blur_sono feeds the smooth pool.'
+  text: 'Audio Source (Sources page): microphone, audio file, the external audio input (FerroScope''s 2nd connector; silence when nothing is wired), or YouTube audio (audiofilein_yt plays the file Download Audio fetched). The Transport group plays, cues and loops both audio players. -> switch_audio -> null_audio. audio_monitor plays file, YouTube or external audio to the speakers (never the mic). null_audio -> spectrum (FFT, log bins) -> spectrum_tex. glsl_sono writes the newest spectrum on the top row and scrolls older rows down (feedback via null_sono): R = loudness after Auto Gain, attack and release; G = onset; B = tracked peak. blur_sono feeds the smooth pool.'
   position: [-2070, -270]
   size: [4670, 930]
   color: [0.2, 0.35, 0.45]
@@ -2121,7 +2193,7 @@ annotations:
 - name: annotate3
   mode: annotate
   title: Video Source -> Viewer Field
-  text: 'Video Source (Sources page): webcam, movie file, the external video input (FerroScope''s 1st connector; black when nothing is wired), or YouTube video (moviefilein_yt plays the file Download Video fetched) -> switch_video -> null_video. At 160x90, mirrored: glsl_presence learns the empty room (feedback via null_state) and marks the viewer by difference from the room plus motion; blur_field -> null_field is the magnet field. glsl_viewer reduces it to centre + coverage -> null_viewer. Bottom row: the picture at 640x360 (fit_img -> flip_img -> blur_img -> null_img) for the Image page.'
+  text: 'Video Source (Sources page): webcam, movie file, the external video input (FerroScope''s 1st connector; black when nothing is wired), or YouTube video (moviefilein_yt plays the file Download Video fetched). Both movie players show Video Position from the Transport group. -> switch_video -> null_video. At 160x90, mirrored: glsl_presence learns the empty room (feedback via null_state) and marks the viewer by difference from the room plus motion; blur_field -> null_field is the magnet field. glsl_viewer reduces it to centre + coverage -> null_viewer. Bottom row: the picture at 640x360 (fit_img -> flip_img -> blur_img -> null_img) for the Image page.'
   position: [-2070, -2870]
   size: [7070, 1130]
   color: [0.35, 0.25, 0.45]
@@ -2133,4 +2205,12 @@ annotations:
   position: [3130, -670]
   size: [3500, 970]
   color: [0.45, 0.3, 0.2]
+  opacity: 0.6
+- name: annotate5
+  mode: annotate
+  title: Transport
+  text: 'transport (Execute DAT, every frame start) runs the Transport page. Video Position drives moviefilein / moviefilein_yt (Specify Index, seconds); Audio Position cues audiofilein / audiofilein_yt, which play sequentially. info_audio reads the active audio player''s length and read position. While the audio is linked (Link Audio to Video: same clip, or Always) the video follows the audio''s read position, and moving, playing or looping either side moves both.'
+  position: [-1670, -1070]
+  size: [1270, 400]
+  color: [0.2, 0.4, 0.3]
   opacity: 0.6
