@@ -1,0 +1,382 @@
+format: tdxn
+version: '2.2'
+generator: Embody/6.2.75
+td_build: 099.2025.32820
+options:
+  include_dat_content: false
+  include_storage: true
+type_defaults:
+  audiospectrumCHOP:
+    parameters:
+      autoexportroot: =parent()
+      fftsize: '2048'
+      outputmenu: setmanually
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  nullCHOP:
+    parameters:
+      autoexportroot: =parent()
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  outCHOP:
+    parameters:
+      autoexportroot: =parent()
+      label: =me.name
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+type: baseCOMP
+custom_pars:
+  Sources:
+  - name: Audiosource
+    style: Menu
+    label: Audio Source
+    default: mic
+    menuNames:
+    - mic
+    - file
+    - external
+    - youtube
+    menuLabels:
+    - Microphone
+    - Audio File
+    - External Input
+    - YouTube
+    help: 'Which audio the analyzer hears: the microphone (the default Windows input), an audio file, the interface (Interface Device below, or any CHOP wired into the analyzer''s input instead), or the audio downloaded from the YouTube Audio Link.'
+  - name: Audioactive
+    style: Toggle
+    label: Microphone On
+    default: true
+    help: Turns the microphone on or off. It only runs while Audio Source is Microphone.
+  - name: Audiofile
+    style: File
+    label: Audio File
+    default: $TT/Audio/JeremyCaulfield_www.dumb-unit.com.mp3
+    help: Audio file played when Audio Source is Audio File.
+  - name: Audiolink
+    style: Str
+    label: YouTube Audio Link
+    startSection: true
+    help: A YouTube link whose sound becomes the audio source. Leave it empty to use the YouTube Video Link, so one clip gives both picture and sound. Press Download Audio to fetch it.
+  - name: Audiodownload
+    style: Pulse
+    label: Download Audio
+    help: Download the audio of the YouTube Audio Link (or of the video link when that is empty) into the YouTube Folder and switch Audio Source to YouTube when it is ready. A link downloaded before loads instantly from that folder.
+  - name: Audiostatus
+    style: Str
+    label: Audio Download
+    readOnly: true
+    help: Progress of the YouTube audio download, the title once it is ready, or why it failed.
+  - name: Audiodownloaded
+    style: File
+    label: Downloaded Audio
+    readOnly: true
+    help: The downloaded YouTube audio file that Audio Source YouTube plays (set by Download Audio).
+  - name: Monitor
+    style: Toggle
+    label: Play to Speakers
+    startSection: true
+    default: true
+    help: Play the file or YouTube audio through the default audio device. Never the microphone (feedback) and never the interface (it is usually heard already).
+  - name: Monitorvolume
+    style: Float
+    label: Speaker Volume
+    default: 0.8
+    max: 2.0
+    clampMin: true
+    clampMax: true
+    help: Volume of the audio played to the speakers.
+  - name: Interface
+    style: StrMenu
+    label: Interface Device
+    startSection: true
+    default: default
+    menuSource: me.op('audiodevin_interface').par.device
+    help: Audio device that Audio Source External Input listens to, by its name in TouchDesigner (pick from the list). It is opened only while External Input is selected and nothing is wired into the analyzer. An unplugged device falls back to the default input with an "Unknown Device" warning.
+  - name: Interfacechannels
+    style: Str
+    label: Interface Channels
+    default: '*'
+    help: Which channels of the interface to use, by name (for example chan3 chan4). * or channels the device does not have mean all of them.
+  Transport:
+  - name: Audioplay
+    style: Toggle
+    label: Play Audio
+    default: true
+    help: Plays or pauses the audio file or YouTube audio. While the audio is linked it plays and pauses the video too.
+  - name: Audiotime
+    style: Float
+    label: Audio Position
+    clampMin: true
+    help: Playhead of the audio file or YouTube audio in seconds; drag to scrub, or type a time. The slider spans the whole file. While the audio is linked the video jumps with it.
+  - name: Audioclock
+    style: Str
+    label: Audio Time
+    readOnly: true
+    help: Audio Position and the length of the audio as minutes:seconds (hours:minutes:seconds for files over an hour). Read only.
+    value: Live input
+  - name: Audioloop
+    style: Toggle
+    label: Loop Audio
+    default: true
+    help: Loops the audio at its end; off stops it there. While the audio is linked it loops the video too.
+  - name: Audiorestart
+    style: Pulse
+    label: Restart Audio
+    help: Jump the audio back to the start. While the audio is linked the video jumps with it.
+  Analysis:
+  - name: Inputgain
+    style: Float
+    label: Input Gain
+    startSection: true
+    min: -24.0
+    max: 24.0
+    clampMin: true
+    clampMax: true
+    normMin: -24.0
+    normMax: 24.0
+    help: Gain in dB applied before any measurement. Normalization makes most sources usable at 0; raise it only for a very quiet microphone.
+  - name: Gate
+    style: Float
+    default: -50
+    min: -100.0
+    max: -20.0
+    clampMin: true
+    clampMax: true
+    normMin: -90.0
+    normMax: -30.0
+    help: 'Input level in dBFS below which the audio counts as silence: every feature falls to 0, a_active is 0 and no onsets fire. The laptop microphone hears its room at about -54 dBFS, a line input far lower. Gate + Range is also the quietest level that can read 1.'
+  - name: Range
+    style: Float
+    default: 30
+    min: 6.0
+    max: 72.0
+    clampMin: true
+    normMin: 6.0
+    normMax: 60.0
+    help: How many dB below the running peak read as 0. Smaller values make levels and bands jumpier, larger values smoother and fuller.
+  - name: Normspeed
+    style: Float
+    label: Normalize Speed
+    default: 4
+    max: 40.0
+    clampMin: true
+    normMax: 20.0
+    help: How fast, in dB per second, the running peak of each level falls after a loud passage, so quieter passages fill the range again. 0 keeps the loudest level ever measured.
+  - name: Attack
+    style: Float
+    startSection: true
+    default: 0.01
+    max: 2.0
+    clampMin: true
+    normMax: 0.3
+    help: Rise time in seconds of the level and band features.
+  - name: Release
+    style: Float
+    default: 0.18
+    max: 5.0
+    clampMin: true
+    help: Fall time in seconds of the level and band features.
+  - name: Slowtime
+    style: Float
+    label: Slow Energy Time
+    default: 6
+    min: 0.5
+    max: 60.0
+    clampMin: true
+    normMin: 0.5
+    normMax: 30.0
+    help: 'Averaging time in seconds of a_energy_slow, the musical intensity. a_build compares the last second against it: above 0.5 the music is building up, below 0.5 it is dropping off.'
+  Onsets:
+  - name: Kicksens
+    style: Float
+    label: Kick Sensitivity
+    default: 0.5
+    clampMin: true
+    clampMax: true
+    help: How readily kick drums (35-150 Hz) fire a_Kick triggers. 0 fires only on clear hits, 1 on almost every rise.
+  - name: Snaresens
+    style: Float
+    label: Snare Sensitivity
+    default: 0.5
+    clampMin: true
+    clampMax: true
+    help: How readily snares and claps (180-400 Hz plus 1.5-5 kHz) fire a_Snare triggers. 0 fires only on clear hits, 1 on almost every rise.
+  - name: Hatsens
+    style: Float
+    label: Hat Sensitivity
+    default: 0.5
+    clampMin: true
+    clampMax: true
+    help: How readily hi-hats and cymbals (7-16 kHz) fire a_Hat triggers. 0 fires only on clear hits, 1 on almost every rise.
+  - name: Onsetsens
+    style: Float
+    label: Onset Sensitivity
+    default: 0.5
+    clampMin: true
+    clampMax: true
+    help: How readily any new sound across the whole spectrum fire a_Onset triggers. 0 fires only on clear hits, 1 on almost every rise.
+  - name: Decay
+    style: Float
+    label: Envelope Decay
+    startSection: true
+    default: 0.25
+    min: 0.02
+    max: 5.0
+    clampMin: true
+    normMin: 0.02
+    help: Time in seconds for the onset envelopes (a_kick_env and the rest) to fall to about a third after each hit.
+  Module:
+  - name: Youtubefolder
+    style: Folder
+    label: YouTube Folder
+    default: media/youtube
+    help: Folder the YouTube downloads go to, relative to the project folder unless absolute. Each video id and stream is one file there, so a link fetched before loads instantly.
+  - name: Savemodule
+    style: Pulse
+    label: Save Module
+    startSection: true
+    help: 'Save this analyzer as the shared module: a clean copy (no bindings to the host, default values) goes to the External .tox Path on the Common page, with readable .tdxn, .py and .tsv versions beside it when Embody is in the project. Every project that loads that .tox picks the change up the next time it opens.'
+parameters:
+  parentshortcut: Audio
+flags:
+- -allowCooking
+color: [0.05, 0.5, 0.35]
+comment: 'Shared module: audio in (microphone, file, interface or wired CHOP, YouTube) and its analysis. Out 1: features (a_*), Out 2: 128-bin log spectrum, Out 3: the audio. Master: ../00-custom-modules/audio-analyzer/audio_analyzer.tox'
+operators:
+- name: out_audio
+  type: outCHOP
+  parameters:
+    connectorder: 2
+  position: [800, -800]
+  inputs:
+  - null_audio
+- name: null_audio
+  type: nullCHOP
+  position: [400, 0]
+  inputs:
+  - source: source_deck
+    out: 1
+- name: in_external
+  type: inCHOP
+  parameters:
+    label: =me.name
+    autoexportroot: =parent()
+  position: [-800, -400]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+- name: out_features
+  type: outCHOP
+  flags:
+  - viewer
+  position: [2000, 0]
+  inputs:
+  - null_features
+- name: out_spectrum
+  type: outCHOP
+  parameters:
+    connectorder: 1
+  position: [1600, -400]
+  inputs:
+  - null_spectrum
+- name: null_features
+  type: nullCHOP
+  flags:
+  - viewer
+  position: [1600, 0]
+  inputs:
+  - script_features
+- name: null_spectrum
+  type: nullCHOP
+  position: [1200, -400]
+  inputs:
+  - audiospectrum_visual
+- name: script_features
+  type: scriptCHOP
+  parameters:
+    callbacks: script_features_callbacks
+    autoexportroot: =parent()
+  custom_pars:
+    Drive:
+    - name: Frame
+      style: Float
+      help: Tied to absTime.frame so the features update every frame, also while the input is silent.
+      value: =absTime.frame
+  position: [1200, 0]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - audiospectrum_linear
+  - null_audio
+- name: switch_external
+  type: switchCHOP
+  parameters:
+    index: =1 if op('in_external').numChans else 0
+    autoexportroot: =parent()
+  position: [-400, 0]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - select_interface
+  - in_external
+- name: module_callbacks
+  type: parameterexecuteDAT
+  parameters:
+    fromop: =parent()
+    op: ..
+    pars: '*'
+    valuechange: false
+    builtin: false
+  position: [2000, 400]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  tags:
+  - tdxn_exclude:dat_content
+- name: select_interface
+  type: selectCHOP
+  parameters:
+    channames: =' '.join(n for n in parent.Audio.par.Interfacechannels.eval().split() if me.inputs and me.inputs[0][n] is not None) or '*'
+    autoexportroot: =parent()
+  position: [-800, 0]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - audiodevin_interface
+- name: audiodevin_interface
+  type: audiodeviceinCHOP
+  parameters:
+    active: =parent.Audio.par.Audiosource == 'external' and not op('in_external').numChans
+    device: =parent.Audio.par.Interface
+    format: multichannel
+    numchan: 8
+    autoexportroot: =parent()
+  position: [-1200, 0]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+- name: audiospectrum_linear
+  type: audiospectrumCHOP
+  parameters:
+    frequencylog: 0
+    highfreqboost: 0
+    outlength: 1024
+  position: [800, 200]
+  inputs:
+  - null_audio
+- name: audiospectrum_visual
+  type: audiospectrumCHOP
+  parameters:
+    outlength: 128
+  position: [800, -400]
+  inputs:
+  - null_audio
+- name: script_features_callbacks
+  type: textDAT
+  parameters:
+    language: python
+  flags:
+  - viewer
+  position: [1200, -120]
+  size: [130, 90]
+  color: [0.9, 0.3, 0.4]
+  tags:
+  - tdxn_exclude:dat_content
+  dock: script_features

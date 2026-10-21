@@ -1,0 +1,6 @@
+source	dest	amount	curve	comment
+a_kick_env	pulse	0.7	lin	audio kicks
+mt1_env	pulse	0.3	lin	MIDI track 1 notes
+a_energy	energy	1	lin	
+lfo1	sweep	0.5	bi	one bar, locked to the clock
+xfade	fader	1	lin	

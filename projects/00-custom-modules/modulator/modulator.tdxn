@@ -1,0 +1,262 @@
+format: tdxn
+version: '2.2'
+generator: Embody/6.2.75
+td_build: 099.2025.32820
+options:
+  include_dat_content: false
+  include_storage: true
+type_defaults:
+  inCHOP:
+    parameters:
+      autoexportroot: =parent()
+      label: =me.name
+    flags:
+    - viewer
+    color: [0.67, 0.67, 0.67]
+  mergeCHOP:
+    parameters:
+      autoexportroot: =parent()
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  nullCHOP:
+    parameters:
+      autoexportroot: =parent()
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  outCHOP:
+    parameters:
+      autoexportroot: =parent()
+      label: =me.name
+    flags:
+    - viewer
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  scriptCHOP:
+    parameters:
+      autoexportroot: =parent()
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  tableDAT:
+    size: [130, 90]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - tdxn_exclude:dat_content
+  textDAT:
+    parameters:
+      language: python
+    size: [130, 90]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - tdxn_exclude:dat_content
+type: baseCOMP
+custom_pars:
+  Depth:
+  - name: Master
+    style: Float
+    label: Master Depth
+    default: 1
+    max: 4.0
+    clampMin: true
+    normMax: 2.0
+    help: 'Scales every route at once: 0 leaves only the bases, 1 is the routes as written, 2 doubles them.'
+  - name: Audiodepth
+    style: Float
+    label: Audio Depth
+    startSection: true
+    default: 1
+    max: 4.0
+    clampMin: true
+    normMax: 2.0
+    help: Scales the routes whose source is an audio feature (a_*).
+  - name: Mididepth
+    style: Float
+    label: MIDI Depth
+    default: 1
+    max: 4.0
+    clampMin: true
+    normMax: 2.0
+    help: 'Scales the routes whose source is any other channel (MIDI: t*, mt*, keys, xfade, scenes, pattern, notes, and anything else wired in).'
+  - name: Lfodepth
+    style: Float
+    label: LFO Depth
+    default: 1
+    max: 4.0
+    clampMin: true
+    normMax: 2.0
+    help: Scales the routes whose source is an LFO (lfo*).
+  - name: Clockdepth
+    style: Float
+    label: Clock Depth
+    default: 1
+    max: 4.0
+    clampMin: true
+    normMax: 2.0
+    help: Scales the routes whose source is a clock channel (clk_*).
+  - name: Hold
+    style: Toggle
+    startSection: true
+    help: Freeze every destination at its current value; routes and bases are ignored until Hold is off again.
+  - name: Bypass
+    style: Toggle
+    help: Output the bases alone, with no modulation.
+  Mapping:
+  - name: Destinations
+    style: DAT
+    help: 'Table of destinations: name, min, max, base, smooth (seconds), target (a note on what it drives). One output channel each. Empty uses the module''s own example table (pulse, energy, sweep, fader), which is replaced whenever the module reloads.'
+  - name: Routes
+    style: DAT
+    help: 'Table of routes: source (any input channel or LFO), dest, amount (fraction of the destination''s range), curve (lin, sq, sqrt, inv, bi, step), comment. A # before the source turns a row off. Empty uses the module''s own examples.'
+  - name: Lfos
+    style: DAT
+    label: LFOs
+    help: 'Table of LFOs: name, shape, sync (beat or free), rate, depth, phase, rate_src, rate_amt, depth_src, depth_amt, reset_src, smooth. Empty uses the module''s six default LFOs.'
+  - name: Basescomp
+    style: COMP
+    label: Bases COMP
+    startSection: true
+    help: 'COMP that keeps a Base<name> slider per destination on its Bases page (created and updated from the destinations). Use a COMP that your project saves, not one inside a module, or the sliders vanish on reload. Empty: the bases come from the base column of the destinations.'
+  Module:
+  - name: Savemodule
+    style: Pulse
+    label: Save Module
+    help: 'Save the modulator as the shared module: a clean copy (no bindings to the host, default values) goes to the External .tox Path on the Common page, with readable .tdxn, .py and .tsv versions beside it when Embody is in the project. Every project that loads that .tox picks the change up the next time it opens.'
+parameters:
+  parentshortcut: Mod
+flags:
+- -allowCooking
+color: [0.35, 0.05, 0.5]
+comment: 'Shared module: LFO bank and routing matrix. In 1 and 2: source CHOPs (audio features, MIDI channels, anything named). Out 1: one channel per destination, Out 2: every source plus the LFOs. Master: ../00-custom-modules/modulator/modulator.tox'
+operators:
+- name: routes
+  type: tableDAT
+  parameters:
+    rows: 18
+    cols: 5
+  position: [2800, 1200]
+- name: in_midi
+  type: inCHOP
+  parameters:
+    connectorder: 1
+  position: [0, 600]
+  size: [131, 90]
+- name: out_bus
+  type: outCHOP
+  parameters:
+    connectorder: 1
+  position: [2400, 400]
+  inputs:
+  - null_bus
+- name: in_audio
+  type: inCHOP
+  position: [0, 1000]
+  size: [130, 90]
+- name: null_bus
+  type: nullCHOP
+  flags:
+  - viewer
+  position: [2000, 800]
+  inputs:
+  - merge_bus
+- name: out_dest
+  type: outCHOP
+  position: [3200, 800]
+  inputs:
+  - null_dest
+- name: lfo_table
+  type: tableDAT
+  parameters:
+    rows: 7
+    cols: 12
+  position: [1200, 0]
+- name: merge_bus
+  type: mergeCHOP
+  flags:
+  - viewer
+  position: [1600, 800]
+  inputs:
+  - null_sources
+  - script_lfo
+- name: null_dest
+  type: nullCHOP
+  flags:
+  - viewer
+  position: [2800, 800]
+  inputs:
+  - script_matrix
+- name: script_lfo
+  type: scriptCHOP
+  parameters:
+    callbacks: script_lfo_callbacks
+  custom_pars:
+    Drive:
+    - name: Frame
+      style: Float
+      help: Tied to absTime.frame so the LFOs update every frame.
+      value: =absTime.frame
+  position: [1200, 400]
+  inputs:
+  - null_sources
+- name: destinations
+  type: tableDAT
+  parameters:
+    rows: 15
+    cols: 6
+  position: [2400, 1200]
+- name: null_sources
+  type: nullCHOP
+  position: [800, 800]
+  inputs:
+  - merge_sources
+- name: merge_sources
+  type: mergeCHOP
+  position: [400, 800]
+  inputs:
+  - in_audio
+  - in_midi
+- name: script_matrix
+  type: scriptCHOP
+  parameters:
+    callbacks: script_matrix_callbacks
+  custom_pars:
+    Drive:
+    - name: Frame
+      style: Float
+      help: Tied to absTime.frame so the destinations update every frame.
+      value: =absTime.frame
+  position: [2400, 800]
+  inputs:
+  - null_bus
+- name: sources_table
+  type: choptoDAT
+  parameters:
+    chop: null_bus
+  flags:
+  - viewer
+  position: [2800, 400]
+  size: [321, 90]
+  color: [0.67, 0.67, 0.67]
+  tags:
+  - tdxn_exclude:dat_content
+- name: module_callbacks
+  type: parameterexecuteDAT
+  parameters:
+    fromop: =parent()
+    op: ..
+    pars: '*'
+    valuechange: false
+    builtin: false
+  position: [3200, 1200]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  tags:
+  - tdxn_exclude:dat_content
+- name: script_lfo_callbacks
+  type: textDAT
+  flags:
+  - viewer
+  position: [1200, 280]
+  dock: script_lfo
+- name: script_matrix_callbacks
+  type: textDAT
+  position: [2400, 700]
+  dock: script_matrix

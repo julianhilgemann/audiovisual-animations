@@ -1,0 +1,54 @@
+cc	name	scope	kind	label
+16	src_a	track	knob	Playback (SRC) page knob A
+17	src_b	track	knob	Playback (SRC) page knob B
+18	src_c	track	knob	Playback (SRC) page knob C
+19	src_d	track	knob	Playback (SRC) page knob D
+20	src_e	track	knob	Playback (SRC) page knob E
+21	src_f	track	knob	Playback (SRC) page knob F
+22	amp_a	track	knob	AMP page knob A (Attack)
+23	amp_b	track	knob	AMP page knob B (Hold)
+24	amp_c	track	knob	AMP page knob C (Release)
+25	amp_d	track	knob	AMP page knob D (Volume)
+26	amp_e	track	knob	AMP page knob E (Balance)
+28	lfo_a	track	knob	LFO page knob A (Speed 1)
+29	lfo_b	track	knob	LFO page knob B (Speed 2)
+30	lfo_c	track	knob	LFO page knob C (Speed 3)
+31	lfo_d	track	knob	LFO page knob D (Depth 1)
+32	lfo_e	track	knob	LFO page knob E (Depth 2)
+33	lfo_f	track	knob	LFO page knob F (Depth 3)
+34	fx1_a	track	knob	FX1 page knob A
+35	fx1_b	track	knob	FX1 page knob B
+36	fx1_c	track	knob	FX1 page knob C
+37	fx1_d	track	knob	FX1 page knob D
+38	fx1_e	track	knob	FX1 page knob E
+39	fx1_f	track	knob	FX1 page knob F
+40	fx2_a	track	knob	FX2 page knob A
+41	fx2_b	track	knob	FX2 page knob B
+42	fx2_c	track	knob	FX2 page knob C
+43	fx2_d	track	knob	FX2 page knob D
+44	fx2_e	track	knob	FX2 page knob E
+45	fx2_f	track	knob	FX2 page knob F
+46	level	track	knob	Track level
+47	cue	track	knob	Cue level
+49	mute	track	switch	Track mute
+50	solo	track	switch	Track solo
+51	cued	track	switch	Track cue
+48	xfade	global	knob	Crossfader
+55	scene_a	global	scene	Scene A (0-15 as 0-1)
+56	scene_b	global	scene	Scene B (0-15 as 0-1)
+112	mt1_mute	global	switch	MIDI track 1 mute
+113	mt2_mute	global	switch	MIDI track 2 mute
+114	mt3_mute	global	switch	MIDI track 3 mute
+115	mt4_mute	global	switch	MIDI track 4 mute
+116	mt5_mute	global	switch	MIDI track 5 mute
+117	mt6_mute	global	switch	MIDI track 6 mute
+118	mt7_mute	global	switch	MIDI track 7 mute
+119	mt8_mute	global	switch	MIDI track 8 mute
+120	mt1_solo	global	switch	MIDI track 1 solo
+121	mt2_solo	global	switch	MIDI track 2 solo
+122	mt3_solo	global	switch	MIDI track 3 solo
+123	mt4_solo	global	switch	MIDI track 4 solo
+124	mt5_solo	global	switch	MIDI track 5 solo
+125	mt6_solo	global	switch	MIDI track 6 solo
+126	mt7_solo	global	switch	MIDI track 7 solo
+127	mt8_solo	global	switch	MIDI track 8 solo

@@ -1,0 +1,281 @@
+format: tdxn
+version: '2.2'
+generator: Embody/6.2.75
+td_build: 099.2025.32820
+options:
+  include_dat_content: false
+  include_storage: true
+type_defaults:
+  midiinDAT:
+    parameters:
+      fromop: =parent()
+      id: =parent.Midi.par.Mididevice
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+    tags:
+    - tdxn_exclude:dat_content
+  tableDAT:
+    parameters:
+      cols: 5
+    size: [130, 90]
+    color: [0.9, 0.3, 0.4]
+    tags:
+    - tdxn_exclude:dat_content
+  textDAT:
+    size: [130, 90]
+    tags:
+    - tdxn_exclude:dat_content
+type: baseCOMP
+custom_pars:
+  MIDI:
+  - name: Mididevice
+    style: Str
+    label: MIDI Device ID
+    default: '1'
+    help: Device ID of the MIDI input in Dialogs > MIDI Device Mapper (the first device is 1).
+  - name: Trackchannels
+    style: Str
+    label: Audio Track Channels
+    default: 1 2 3 4 5 6 7 8
+    help: 'MIDI channels of audio tracks 1-8 (on the Octatrack: PROJECT > MIDI > CHANNELS, TRIG CH). 0 turns a track off. Their CCs become t1_* to t8_* through the CC map.'
+  - name: Midichannels
+    style: Str
+    label: MIDI Track Channels
+    default: 1 2 3 4 5 6 7 8
+    help: MIDI channels of the Octatrack MIDI tracks 1-8 (NOTE SETUP > CHAN on each MIDI track). 0 turns a lane off. Notes, pitch bend and pressure there become mt1_* to mt8_*.
+  - name: Ccsmooth
+    style: Float
+    label: CC Smoothing
+    default: 0.06
+    max: 2.0
+    clampMin: true
+    normMax: 0.5
+    help: Seconds a knob value takes to glide most of the way to a new CC value, hiding the 128 steps. 0 jumps straight to it. Switches and scenes never glide.
+  - name: Envdecay
+    style: Float
+    label: Note Envelope Decay
+    default: 0.3
+    min: 0.01
+    max: 5.0
+    clampMin: true
+    normMin: 0.02
+    normMax: 2.0
+    help: Seconds for note envelopes (mt*_env, key envelopes, note_env) to fall to about a third after a note-on. They jump to the note velocity.
+  - name: Lastevent
+    style: Str
+    label: Last Event
+    readOnly: true
+    help: The last note, CC or program change received, and the channels it changed. Move a knob to see its name.
+  - name: Reset
+    style: Pulse
+    label: Reset Values
+    help: Forget every stored knob value, note and count, and restart the clock. Knob values come back as the knobs move.
+  Clock:
+  - name: Clocksource
+    style: Menu
+    label: Clock Source
+    default: auto
+    menuNames:
+    - auto
+    - midi
+    - internal
+    menuLabels:
+    - Auto
+    - MIDI Clock
+    - Internal
+    help: Auto follows MIDI clock while ticks arrive and falls back to Internal BPM half a second after they stop. MIDI always follows the Octatrack (and waits for it). Internal ignores MIDI clock.
+  - name: Internalbpm
+    style: Float
+    label: Internal BPM
+    default: 120
+    min: 20.0
+    max: 300.0
+    clampMin: true
+    clampMax: true
+    normMin: 60.0
+    normMax: 180.0
+    help: Tempo of the internal clock, used when no MIDI clock arrives (or Clock Source is Internal).
+  - name: Beatsperbar
+    style: Int
+    label: Beats per Bar
+    default: 4
+    min: 1.0
+    max: 16.0
+    clampMin: true
+    clampMax: true
+    normMin: 1.0
+    normMax: 8.0
+    help: Beats in a bar, for clk_bar, clk_bar_phase, clk_phrase_phase (4 bars) and clk_step (16ths within the bar).
+  - name: Freezestopped
+    style: Toggle
+    label: Freeze When Stopped
+    help: While MIDI clock runs but the sequencer is stopped, hold the beat position instead of free-running at the measured tempo. Start always jumps to beat 0.
+  - name: Restartclock
+    style: Pulse
+    label: Restart Clock
+    help: Put the clock on beat 0 now. A MIDI start or song position message does the same.
+  - name: Clockstatus
+    style: Str
+    label: Clock Status
+    readOnly: true
+    help: Which clock is running, its tempo, and whether the Octatrack is playing.
+  Learn:
+  - name: Learnname
+    style: Str
+    label: Learn Name
+    help: Channel name for the next Learn, such as knob1 or kick. Empty picks learnN. Learning an existing name replaces its row in the custom map.
+  - name: Learntype
+    style: Menu
+    label: Learn Type
+    default: cc
+    menuNames:
+    - cc
+    - note
+    - any
+    menuLabels:
+    - CC
+    - Note
+    - Any
+    help: What Learn listens for. CC (the default) ignores notes, so the running sequencer cannot take a knob mapping; Note ignores CCs; Any takes whichever comes first.
+  - name: Learn
+    style: Pulse
+    help: 'Map the next CC or note (Learn Type) to Learn Name, as a row in the custom map: a note gives <name>, <name>_trig, <name>_env and <name>_count; a CC gives <name>.'
+  - name: Learnstatus
+    style: Str
+    label: Learn Status
+    readOnly: true
+    help: What Learn is waiting for, or what it mapped last.
+  Mapping:
+  - name: Ccmap
+    style: DAT
+    label: CC Map
+    help: 'Table naming each CC: cc, name, scope (track: read on the Audio Track Channels as t<n>_<name>; global: any channel), kind (knob, switch or scene), label. Empty uses the module''s own ot_cc, the Octatrack''s map.'
+  - name: Custommap
+    style: DAT
+    label: Custom Map
+    help: 'Table of extra names: name, type (note or cc), channel (0 = any), number, comment. Learn writes here. Empty uses the module''s own custom_map, which is replaced whenever the module reloads, so point this at a table in your project to keep its rows.'
+  Module:
+  - name: Savemodule
+    style: Pulse
+    label: Save Module
+    help: 'Save this analyzer as the shared module: a clean copy (no bindings to the host, default values) goes to the External .tox Path on the Common page, with readable .tdxn, .py and .tsv versions beside it when Embody is in the project. Every project that loads that .tox picks the change up the next time it opens.'
+parameters:
+  parentshortcut: Midi
+flags:
+- -allowCooking
+color: [0.45, 0.45, 0.45]
+comment: 'Shared module: MIDI in as named modulation channels (Octatrack CC map by default: t1_* audio tracks, mt1_* MIDI tracks, xfade, scenes, pattern) plus a clock locked to MIDI clock and transport. Master: ../00-custom-modules/midi-analyzer/midi_analyzer.tox'
+operators:
+- name: ot_cc
+  type: tableDAT
+  parameters:
+    rows: 54
+  position: [0, 800]
+- name: midi_in
+  type: midiinDAT
+  parameters:
+    skiptiming: false
+    callbacks: midi_in_callbacks
+    maxlines: 8
+  position: [0, 400]
+- name: out_midi
+  type: outCHOP
+  parameters:
+    label: =me.name
+    autoexportroot: =parent()
+  flags:
+  - viewer
+  position: [2000, 400]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - null_midi
+- name: null_midi
+  type: nullCHOP
+  parameters:
+    autoexportroot: =parent()
+  flags:
+  - viewer
+  position: [1600, 400]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - rename_midi
+- name: ot_engine
+  type: textDAT
+  parameters:
+    language: python
+  position: [400, 400]
+  color: [0.9, 0.3, 0.4]
+- name: custom_map
+  type: tableDAT
+  parameters:
+    rows: 5
+  position: [400, 800]
+- name: rename_midi
+  type: renameCHOP
+  parameters:
+    renameto: =op('channel_names').text
+    autoexportroot: =parent()
+  flags:
+  - viewer
+  position: [1200, 400]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - script_midi
+- name: script_midi
+  type: scriptCHOP
+  parameters:
+    callbacks: script_midi_callbacks
+    autoexportroot: =parent()
+  custom_pars:
+    Drive:
+    - name: Frame
+      style: Float
+      help: Tied to absTime.frame so the channels update every frame, also when no MIDI arrives.
+      value: =absTime.frame
+  flags:
+  - viewer
+  position: [800, 400]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+- name: midi_monitor
+  type: midiinDAT
+  parameters:
+    maxlines: 40
+- name: channel_names
+  type: textDAT
+  position: [800, 800]
+  color: [0.67, 0.67, 0.67]
+- name: module_callbacks
+  type: parameterexecuteDAT
+  parameters:
+    fromop: =parent()
+    op: ..
+    pars: '*'
+    valuechange: false
+    builtin: false
+  position: [1600, 800]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  tags:
+  - tdxn_exclude:dat_content
+- name: midi_in_callbacks
+  type: textDAT
+  parameters:
+    language: python
+  flags:
+  - viewer
+  position: [0, 280]
+  color: [0.9, 0.3, 0.4]
+  dock: midi_in
+- name: script_midi_callbacks
+  type: textDAT
+  parameters:
+    language: python
+  flags:
+  - viewer
+  position: [800, 280]
+  color: [0.9, 0.3, 0.4]
+  dock: script_midi

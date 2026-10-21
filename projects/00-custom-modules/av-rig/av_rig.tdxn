@@ -1,0 +1,488 @@
+format: tdxn
+version: '2.2'
+generator: Embody/6.2.75
+td_build: 099.2025.32820
+options:
+  include_dat_content: false
+  include_storage: true
+type_defaults:
+  nullCHOP:
+    parameters:
+      autoexportroot: =parent()
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+  outCHOP:
+    parameters:
+      autoexportroot: =parent()
+      label: =me.name
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+type: baseCOMP
+custom_pars:
+  Audio:
+  - name: Audiosource
+    style: Menu
+    label: Audio Source
+    default: mic
+    menuNames:
+    - mic
+    - file
+    - external
+    - youtube
+    menuLabels:
+    - Microphone
+    - Audio File
+    - External Input
+    - YouTube
+    help: 'Which audio the analyzer hears: the microphone (the default Windows input), an audio file, the interface (Interface Device below, or any CHOP wired into the analyzer''s input instead), or the audio downloaded from the YouTube Audio Link.'
+  - name: Audioactive
+    style: Toggle
+    label: Microphone On
+    default: true
+    help: Turns the microphone on or off. It only runs while Audio Source is Microphone.
+  - name: Audiofile
+    style: File
+    label: Audio File
+    default: $TT/Audio/JeremyCaulfield_www.dumb-unit.com.mp3
+    help: Audio file played when Audio Source is Audio File.
+  - name: Audiolink
+    style: Str
+    label: YouTube Audio Link
+    startSection: true
+    help: A YouTube link whose sound becomes the audio source. Leave it empty to use the YouTube Video Link, so one clip gives both picture and sound. Press Download Audio to fetch it.
+  - name: Audiodownload
+    style: Pulse
+    label: Download Audio
+    help: Download the audio of the YouTube Audio Link (or of the video link when that is empty) into the YouTube Folder and switch Audio Source to YouTube when it is ready. A link downloaded before loads instantly from that folder.
+  - name: Audiostatus
+    style: Str
+    label: Audio Download
+    readOnly: true
+    help: Progress of the YouTube audio download, the title once it is ready, or why it failed.
+  - name: Audiodownloaded
+    style: File
+    label: Downloaded Audio
+    readOnly: true
+    help: The downloaded YouTube audio file that Audio Source YouTube plays (set by Download Audio).
+  - name: Monitor
+    style: Toggle
+    label: Play to Speakers
+    startSection: true
+    default: true
+    help: Play the file or YouTube audio through the default audio device. Never the microphone (feedback) and never the interface (it is usually heard already).
+  - name: Monitorvolume
+    style: Float
+    label: Speaker Volume
+    default: 0.8
+    max: 2.0
+    clampMin: true
+    clampMax: true
+    help: Volume of the audio played to the speakers.
+  - name: Interface
+    style: StrMenu
+    label: Interface Device
+    startSection: true
+    default: default
+    menuSource: me.op('audio_analyzer/audiodevin_interface').par.device
+    help: Audio device that Audio Source External Input listens to, by its name in TouchDesigner (pick from the list). It is opened only while External Input is selected and nothing is wired into the analyzer. An unplugged device falls back to the default input with an "Unknown Device" warning.
+  - name: Interfacechannels
+    style: Str
+    label: Interface Channels
+    default: '*'
+    help: Which channels of the interface to use, by name (for example chan3 chan4). * or channels the device does not have mean all of them.
+  Transport:
+  - name: Audioplay
+    style: Toggle
+    label: Play Audio
+    default: true
+    help: Plays or pauses the audio file or YouTube audio. While the audio is linked it plays and pauses the video too.
+  - name: Audiotime
+    style: Float
+    label: Audio Position
+    clampMin: true
+    help: Playhead of the audio file or YouTube audio in seconds; drag to scrub, or type a time. The slider spans the whole file. While the audio is linked the video jumps with it.
+  - name: Audioclock
+    style: Str
+    label: Audio Time
+    readOnly: true
+    help: Audio Position and the length of the audio as minutes:seconds (hours:minutes:seconds for files over an hour). Read only.
+    value: Live input
+  - name: Audioloop
+    style: Toggle
+    label: Loop Audio
+    default: true
+    help: Loops the audio at its end; off stops it there. While the audio is linked it loops the video too.
+  - name: Audiorestart
+    style: Pulse
+    label: Restart Audio
+    help: Jump the audio back to the start. While the audio is linked the video jumps with it.
+  Analysis:
+  - name: Inputgain
+    style: Float
+    label: Input Gain
+    startSection: true
+    min: -24.0
+    max: 24.0
+    clampMin: true
+    clampMax: true
+    normMin: -24.0
+    normMax: 24.0
+    help: Gain in dB applied before any measurement. Normalization makes most sources usable at 0; raise it only for a very quiet microphone.
+  - name: Gate
+    style: Float
+    default: -50
+    min: -100.0
+    max: -20.0
+    clampMin: true
+    clampMax: true
+    normMin: -90.0
+    normMax: -30.0
+    help: 'Input level in dBFS below which the audio counts as silence: every feature falls to 0, a_active is 0 and no onsets fire. The laptop microphone hears its room at about -54 dBFS, a line input far lower. Gate + Range is also the quietest level that can read 1.'
+  - name: Range
+    style: Float
+    default: 30
+    min: 6.0
+    max: 72.0
+    clampMin: true
+    normMin: 6.0
+    normMax: 60.0
+    help: How many dB below the running peak read as 0. Smaller values make levels and bands jumpier, larger values smoother and fuller.
+  - name: Normspeed
+    style: Float
+    label: Normalize Speed
+    default: 4
+    max: 40.0
+    clampMin: true
+    normMax: 20.0
+    help: How fast, in dB per second, the running peak of each level falls after a loud passage, so quieter passages fill the range again. 0 keeps the loudest level ever measured.
+  - name: Attack
+    style: Float
+    startSection: true
+    default: 0.01
+    max: 2.0
+    clampMin: true
+    normMax: 0.3
+    help: Rise time in seconds of the level and band features.
+  - name: Release
+    style: Float
+    default: 0.18
+    max: 5.0
+    clampMin: true
+    help: Fall time in seconds of the level and band features.
+  - name: Slowtime
+    style: Float
+    label: Slow Energy Time
+    default: 6
+    min: 0.5
+    max: 60.0
+    clampMin: true
+    normMin: 0.5
+    normMax: 30.0
+    help: 'Averaging time in seconds of a_energy_slow, the musical intensity. a_build compares the last second against it: above 0.5 the music is building up, below 0.5 it is dropping off.'
+  Onsets:
+  - name: Kicksens
+    style: Float
+    label: Kick Sensitivity
+    default: 0.5
+    clampMin: true
+    clampMax: true
+    help: How readily kick drums (35-150 Hz) fire a_Kick triggers. 0 fires only on clear hits, 1 on almost every rise.
+  - name: Snaresens
+    style: Float
+    label: Snare Sensitivity
+    default: 0.5
+    clampMin: true
+    clampMax: true
+    help: How readily snares and claps (180-400 Hz plus 1.5-5 kHz) fire a_Snare triggers. 0 fires only on clear hits, 1 on almost every rise.
+  - name: Hatsens
+    style: Float
+    label: Hat Sensitivity
+    default: 0.5
+    clampMin: true
+    clampMax: true
+    help: How readily hi-hats and cymbals (7-16 kHz) fire a_Hat triggers. 0 fires only on clear hits, 1 on almost every rise.
+  - name: Onsetsens
+    style: Float
+    label: Onset Sensitivity
+    default: 0.5
+    clampMin: true
+    clampMax: true
+    help: How readily any new sound across the whole spectrum fire a_Onset triggers. 0 fires only on clear hits, 1 on almost every rise.
+  - name: Decay
+    style: Float
+    label: Envelope Decay
+    startSection: true
+    default: 0.25
+    min: 0.02
+    max: 5.0
+    clampMin: true
+    normMin: 0.02
+    help: Time in seconds for the onset envelopes (a_kick_env and the rest) to fall to about a third after each hit.
+  MIDI:
+  - name: Mididevice
+    style: Str
+    label: MIDI Device ID
+    default: '1'
+    help: Device ID of the MIDI input in Dialogs > MIDI Device Mapper (the first device is 1).
+  - name: Trackchannels
+    style: Str
+    label: Audio Track Channels
+    default: 1 2 3 4 5 6 7 8
+    help: 'MIDI channels of audio tracks 1-8 (on the Octatrack: PROJECT > MIDI > CHANNELS, TRIG CH). 0 turns a track off. Their CCs become t1_* to t8_* through the CC map.'
+  - name: Midichannels
+    style: Str
+    label: MIDI Track Channels
+    default: 1 2 3 4 5 6 7 8
+    help: MIDI channels of the Octatrack MIDI tracks 1-8 (NOTE SETUP > CHAN on each MIDI track). 0 turns a lane off. Notes, pitch bend and pressure there become mt1_* to mt8_*.
+  - name: Ccsmooth
+    style: Float
+    label: CC Smoothing
+    default: 0.06
+    max: 2.0
+    clampMin: true
+    normMax: 0.5
+    help: Seconds a knob value takes to glide most of the way to a new CC value, hiding the 128 steps. 0 jumps straight to it. Switches and scenes never glide.
+  - name: Envdecay
+    style: Float
+    label: Note Envelope Decay
+    default: 0.3
+    min: 0.01
+    max: 5.0
+    clampMin: true
+    normMin: 0.02
+    normMax: 2.0
+    help: Seconds for note envelopes (mt*_env, key envelopes, note_env) to fall to about a third after a note-on. They jump to the note velocity.
+  - name: Lastevent
+    style: Str
+    label: Last Event
+    readOnly: true
+    help: The last note, CC or program change received, and the channels it changed. Move a knob to see its name.
+  - name: Reset
+    style: Pulse
+    label: Reset Values
+    help: Forget every stored knob value, note and count, and restart the clock. Knob values come back as the knobs move.
+  Clock:
+  - name: Clocksource
+    style: Menu
+    label: Clock Source
+    default: auto
+    menuNames:
+    - auto
+    - midi
+    - internal
+    menuLabels:
+    - Auto
+    - MIDI Clock
+    - Internal
+    help: Auto follows MIDI clock while ticks arrive and falls back to Internal BPM half a second after they stop. MIDI always follows the Octatrack (and waits for it). Internal ignores MIDI clock.
+  - name: Internalbpm
+    style: Float
+    label: Internal BPM
+    default: 120
+    min: 20.0
+    max: 300.0
+    clampMin: true
+    clampMax: true
+    normMin: 60.0
+    normMax: 180.0
+    help: Tempo of the internal clock, used when no MIDI clock arrives (or Clock Source is Internal).
+  - name: Beatsperbar
+    style: Int
+    label: Beats per Bar
+    default: 4
+    min: 1.0
+    max: 16.0
+    clampMin: true
+    clampMax: true
+    normMin: 1.0
+    normMax: 8.0
+    help: Beats in a bar, for clk_bar, clk_bar_phase, clk_phrase_phase (4 bars) and clk_step (16ths within the bar).
+  - name: Freezestopped
+    style: Toggle
+    label: Freeze When Stopped
+    help: While MIDI clock runs but the sequencer is stopped, hold the beat position instead of free-running at the measured tempo. Start always jumps to beat 0.
+  - name: Restartclock
+    style: Pulse
+    label: Restart Clock
+    help: Put the clock on beat 0 now. A MIDI start or song position message does the same.
+  - name: Clockstatus
+    style: Str
+    label: Clock Status
+    readOnly: true
+    help: Which clock is running, its tempo, and whether the Octatrack is playing.
+  Learn:
+  - name: Learnname
+    style: Str
+    label: Learn Name
+    help: Channel name for the next Learn, such as knob1 or kick. Empty picks learnN. Learning an existing name replaces its row in the custom map.
+  - name: Learntype
+    style: Menu
+    label: Learn Type
+    default: cc
+    menuNames:
+    - cc
+    - note
+    - any
+    menuLabels:
+    - CC
+    - Note
+    - Any
+    help: What Learn listens for. CC (the default) ignores notes, so the running sequencer cannot take a knob mapping; Note ignores CCs; Any takes whichever comes first.
+  - name: Learn
+    style: Pulse
+    help: 'Map the next CC or note (Learn Type) to Learn Name, as a row in the custom map: a note gives <name>, <name>_trig, <name>_env and <name>_count; a CC gives <name>.'
+  - name: Learnstatus
+    style: Str
+    label: Learn Status
+    readOnly: true
+    help: What Learn is waiting for, or what it mapped last.
+  Modulation:
+  - name: Master
+    style: Float
+    label: Master Depth
+    default: 1
+    max: 4.0
+    clampMin: true
+    normMax: 2.0
+    help: 'Scales every route at once: 0 leaves only the bases, 1 is the routes as written, 2 doubles them.'
+  - name: Audiodepth
+    style: Float
+    label: Audio Depth
+    startSection: true
+    default: 1
+    max: 4.0
+    clampMin: true
+    normMax: 2.0
+    help: Scales the routes whose source is an audio feature (a_*).
+  - name: Mididepth
+    style: Float
+    label: MIDI Depth
+    default: 1
+    max: 4.0
+    clampMin: true
+    normMax: 2.0
+    help: 'Scales the routes whose source is any other channel (MIDI: t*, mt*, keys, xfade, scenes, pattern, notes, and anything else wired in).'
+  - name: Lfodepth
+    style: Float
+    label: LFO Depth
+    default: 1
+    max: 4.0
+    clampMin: true
+    normMax: 2.0
+    help: Scales the routes whose source is an LFO (lfo*).
+  - name: Clockdepth
+    style: Float
+    label: Clock Depth
+    default: 1
+    max: 4.0
+    clampMin: true
+    normMax: 2.0
+    help: Scales the routes whose source is a clock channel (clk_*).
+  - name: Hold
+    style: Toggle
+    startSection: true
+    help: Freeze every destination at its current value; routes and bases are ignored until Hold is off again.
+  - name: Bypass
+    style: Toggle
+    help: Output the bases alone, with no modulation.
+  Mapping:
+  - name: Mapping
+    style: COMP
+    help: 'This project''s mapping: a COMP beside the rig holding destinations, routes, lfo_table and custom_map tables, with a Base slider per destination on its Bases page. Empty uses the modules'' example tables, which are replaced whenever the modules reload. Create Mapping makes one.'
+  - name: Createmapping
+    style: Pulse
+    label: Create Mapping
+    help: Create <rig name>_mapping beside the rig with copies of the example tables (an existing one and its tables are kept) and point Mapping at it. Edit its tables to route anything to anything; the project saves them.
+  - name: Ccmap
+    style: DAT
+    label: CC Map
+    startSection: true
+    help: 'Table naming each CC: cc, name, scope (track: read on the Audio Track Channels as t<n>_<name>; global: any channel), kind (knob, switch or scene), label. Empty uses the module''s own ot_cc, the Octatrack''s map.'
+  Module:
+  - name: Youtubefolder
+    style: Folder
+    label: YouTube Folder
+    default: media/youtube
+    help: Folder the YouTube downloads go to, relative to the project folder unless absolute. Each video id and stream is one file there, so a link fetched before loads instantly.
+  - name: Savemodule
+    style: Pulse
+    label: Save Module
+    startSection: true
+    help: 'Save the rig as the shared module: a clean copy (no bindings to the host, default values) goes to the External .tox Path on the Common page, with readable .tdxn and .py versions beside it when Embody is in the project. The three modules inside stay separate .tox files and load from their own folders.'
+parameters:
+  parentshortcut: Rig
+flags:
+- -allowCooking
+color: [0.05, 0.4, 0.45]
+comment: 'Shared module: audio_analyzer + midi_analyzer + modulator, wired. In 1: optional audio CHOP. Out 1: destinations, Out 2: every source, Out 3: spectrum, Out 4: the audio. Per-project mapping lives in <name>_mapping beside it (Create Mapping). Master: ../00-custom-modules/av-rig/av_rig.tox'
+operators:
+- name: out_bus
+  type: outCHOP
+  parameters:
+    connectorder: 1
+  position: [1200, -600]
+  inputs:
+  - null_bus
+- name: in_audio
+  type: inCHOP
+  parameters:
+    label: =me.name
+    autoexportroot: =parent()
+  position: [-400, 0]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+- name: null_bus
+  type: nullCHOP
+  position: [800, -600]
+  inputs:
+  - source: modulator
+    out: 1
+- name: out_dest
+  type: outCHOP
+  position: [1200, -200]
+  inputs:
+  - null_dest
+- name: null_dest
+  type: nullCHOP
+  position: [800, -200]
+  inputs:
+  - modulator
+- name: out_audio
+  type: outCHOP
+  parameters:
+    connectorder: 3
+  position: [1200, 600]
+  inputs:
+  - null_audio
+- name: null_audio
+  type: nullCHOP
+  position: [800, 600]
+  inputs:
+  - source: audio_analyzer
+    out: 2
+- name: out_spectrum
+  type: outCHOP
+  parameters:
+    connectorder: 2
+  position: [1200, 200]
+  inputs:
+  - null_spectrum
+- name: null_spectrum
+  type: nullCHOP
+  position: [800, 200]
+  inputs:
+  - source: audio_analyzer
+    out: 1
+- name: module_callbacks
+  type: parameterexecuteDAT
+  parameters:
+    fromop: =parent()
+    op: ..
+    pars: '*'
+    valuechange: false
+    builtin: false
+  position: [1200, -1000]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  tags:
+  - tdxn_exclude:dat_content

@@ -1,0 +1,5 @@
+name	min	max	base	smooth	target
+pulse	0	1	0	0.02	example: hits (kicks, MIDI track 1)
+energy	0	1	0	0.1	example: overall intensity
+sweep	0	1	0.5	0.05	example: a swing once a bar
+fader	0	1	0	0.05	example: the Octatrack crossfader

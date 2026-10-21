@@ -79,3 +79,26 @@ Decisions already made (section 5 says why). Steps in order:
 - `get_op_errors` on the host returns 0 errors. Ferroscope's `glsl_fluid` cook-loop warning is older and unrelated: its uniform reads `me.width / me.height`.
 - `get_project_performance`: fps and dropped frames unchanged. Memory can briefly rise after test loads and comes back down.
 - After the user's Ctrl+S, `diff_tdxn` returns `changed_count: 0`.
+
+## 7. Nested modules and per-project data (second run)
+
+Later on 2026-10-21 the input layer of `octatrack-av-setup` became four modules: `audio-analyzer/` (with a source_deck inside), `midi-analyzer/`, `modulator/` and `av-rig/`, which nests the other three. Measured on the same TD build with Embody 6.2.75:
+
+| What | What happens |
+|---|---|
+| A COMP with External .tox enabled, inside a COMP saved as `.tox` | Its contents are written into the outer `.tox` (93.9 KB against the inner module's 99.4 KB), but on load the inner COMP reloads from its own file: a marker op added to the embedded copy was gone. So nested modules stay live. |
+| The inner instance's parameter values (Reload Custom off) | Kept from the outer `.tox` across the load. |
+| A custom parameter created on an instance after it loaded | Dropped on the next reload. Sliders made at run time (the modulator's Bases) must live on a COMP the host saves. |
+| Module storage | Replaced on every reload. The MIDI analyzer keeps the last knob values in `root` storage, keyed by its path. |
+| A bind chain A ← B ← C (C binds to B, B to A) | Values pass down two levels, and a script writing `C.par.X.val` (a status readout) writes through to A. |
+| An OP parameter on a COMP, value `name` | Resolved beside the COMP (its siblings), not inside it. So a nested module gets a table from the outer COMP as an expression that hands over the OP: `(parent.Rig.par.Mapping.eval() or me).op('routes')`, which falls back to the module's own table. |
+| A new instance with Reload Built-In off | Has no Parent Shortcut until it is set by hand (every nested instance too). |
+| `run(function, arg, delayFrames=1)` | Accepts a callable. The matrix uses it to create parameters outside its cook. |
+| `COMP.copyOPs()` | Kept the wires and the docked DATs, and shifted the copies up by 400. Reposition them after. |
+
+Choices that followed:
+
+- **Each project owns its mapping.** The modules take their tables as DAT parameters and fall back to their own examples. `av_rig`'s Create Mapping pulse makes a `<rig>_mapping` COMP beside the rig, with copies of the example tables and the Bases sliders. The host's Embody externalizes it, so a project's routing shows up in its own git diff.
+- **Save Module writes tables as `.tsv`** next to the `.py` files, and skips DATs tagged `tdxn_exclude:dat_content` (MIDI logs, generated channel names).
+- **The rig shows the modules' parameters on its own pages** (copied with `appendPar(name, par=...)`, so style, range and menu match) and binds the modules to them. Pulses are pressed from the rig's `module_callbacks`. OP-type parameters use expressions, not binds.
+- **One fresh-load test per module before the next one depends on it**: load the saved `.tox`, expect 0 errors and signal at the outputs, delete it. Then a reload of the host's rig instance (`enableexternaltoxpulse`) to prove the project's values, mapping, bases and knob memory survive.

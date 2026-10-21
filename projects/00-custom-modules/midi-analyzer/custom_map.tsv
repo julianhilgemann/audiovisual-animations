@@ -1,0 +1,2 @@
+name	type	channel	number	comment
+#kick	note	1	36	example: C1 on channel 1 as kick, kick_trig, kick_env, kick_count (remove the # to use it)
