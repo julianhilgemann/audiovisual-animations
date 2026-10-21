@@ -1,4 +1,7 @@
-# Central transport for FerroScope (Transport page): a playhead for the video and one for the
+# Written by Save Module from source_deck.tox so git shows readable diffs. Edit this
+# DAT inside source_deck in TouchDesigner, then press Save Module; edits here change nothing.
+
+# Transport of the source deck (Transport page): a playhead for the video and one for the
 # audio, moving together while the audio is linked. onFrameStart runs it once per frame.
 #
 # The movie players run in Specify Index mode and show Video Position. The audio players play
@@ -146,10 +149,11 @@ def _write(par, value):
 		par.val = value
 
 def _showClock(timePar, clockPar, player, length):
-	"""Fit the position slider to the clip and show position / length as a clock."""
+	"""Fit the position slider (and a host slider bound to it) to the clip and show position / length as a clock."""
 	top = max(1, math.ceil(length))
-	if timePar.normMax != top:
-		timePar.normMax = top
+	for par in (timePar, timePar.bindMaster):
+		if isinstance(par, Par) and par.normMax != top:
+			par.normMax = top
 	if player is None:
 		_write(clockPar, 'Live input')
 		return

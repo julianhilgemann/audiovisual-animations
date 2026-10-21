@@ -31,21 +31,12 @@ def _closeWindow(comp):
 	"""Close the output window."""
 	comp.op('window_out').par.winclose.pulse()
 
-def _restartVideo(comp):
-	"""Jump the video playhead back to the start (linked audio jumps with it)."""
-	comp.op('transport').module.Restart(comp, 'video')
-
-def _restartAudio(comp):
-	"""Jump the audio playhead back to the start (linked video jumps with it)."""
-	comp.op('transport').module.Restart(comp, 'audio')
-
-def _downloadVideo(comp):
-	"""Fetch the YouTube Video Link and make it the video source."""
-	comp.op('youtube_fetch').module.Download(comp, 'video')
-
-def _downloadAudio(comp):
-	"""Fetch the YouTube Audio Link (or the video link) and make it the audio source."""
-	comp.op('youtube_fetch').module.Download(comp, 'audio')
+def _deckPulse(name):
+	"""A handler that presses the same pulse on source_deck, the shared module that owns the
+	sources, the YouTube downloads and the transport."""
+	def press(comp):
+		comp.op('source_deck').par[name].pulse()
+	return press
 
 def _refreshPresetMenu(comp):
 	"""Rebuild the Preset menu from the columns of the presets table."""
@@ -100,10 +91,10 @@ _PULSES = {
 	'Relearnbg': _relearnBackground,
 	'Openwindow': _openWindow,
 	'Closewindow': _closeWindow,
-	'Videorestart': _restartVideo,
-	'Audiorestart': _restartAudio,
-	'Videodownload': _downloadVideo,
-	'Audiodownload': _downloadAudio,
+	'Videorestart': _deckPulse('Videorestart'),
+	'Audiorestart': _deckPulse('Audiorestart'),
+	'Videodownload': _deckPulse('Videodownload'),
+	'Audiodownload': _deckPulse('Audiodownload'),
 	'Applypreset': _applyPreset,
 	'Storepreset': _storePreset,
 }

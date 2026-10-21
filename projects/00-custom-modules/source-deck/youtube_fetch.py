@@ -1,14 +1,16 @@
-# YouTube sources for FerroScope: yt-dlp downloads a link's picture or sound into
-# media/youtube/ (one file per video id and stream, so a link fetched before loads
+# Written by Save Module from source_deck.tox so git shows readable diffs. Edit this
+# DAT inside source_deck in TouchDesigner, then press Save Module; edits here change nothing.
+
+# YouTube sources for the source deck: yt-dlp downloads a link's picture or sound into
+# the YouTube Folder (one file per video id and stream, so a link fetched before loads
 # instantly) and the Sources page plays it through moviefilein_yt / audiofilein_yt.
 # yt-dlp runs as a subprocess on a standalone Thread Manager thread that touches no
 # TD object; its output lines come back through a queue drained by main-thread hooks.
+# It comes from the host project's venv (op.Embody.InstallPackages(['yt-dlp', 'yt-dlp-ejs'])).
 
 import os
 import queue
 import subprocess
-
-_FOLDER = 'media/youtube'
 
 # Video: H.264 at most 720p (inside the 1280 px licence cap, decodes on any GPU).
 # Audio: the AAC m4a stream. Single streams need no ffmpeg to merge them.
@@ -32,7 +34,7 @@ def Download(comp, kind):
 	if kind in _downloading:
 		status.val = 'Still downloading the previous link'
 		return
-	folder = os.path.join(project.folder, _FOLDER)
+	folder = os.path.join(project.folder, comp.par.Youtubefolder.eval() or 'media/youtube')
 	os.makedirs(folder, exist_ok=True)
 	cmd = [
 		_venvPython(), '-I', '-X', 'utf8', '-m', 'yt_dlp', link,
@@ -108,6 +110,8 @@ def _drain(comp, kind, events, result):
 			result['file'] = value[len('@@FILE '):]
 		elif value.startswith('ERROR'):
 			result['error'] = value
+		elif 'No module named yt_dlp' in value:
+			result['error'] = "yt-dlp is not installed in this project's venv: op.Embody.InstallPackages(['yt-dlp', 'yt-dlp-ejs'])"
 	if not changed:
 		return
 	status = comp.par[_KINDS[kind]['par'] + 'status']

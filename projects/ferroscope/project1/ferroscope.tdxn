@@ -8,18 +8,6 @@ options:
   include_dat_content: false
   include_storage: true
 type_defaults:
-  audiofileinCHOP:
-    parameters:
-      autoexportroot: =parent()
-      index: =me.time.frame / root.time.rate
-      play: =1 if parent.Ferro.par.Audioplay and (parent.Ferro.par.Videospeed > 0 or not parent.Ferro.par.Linked) else 0
-      repeat: ='on' if parent.Ferro.par.Audioloop else 'off'
-      speed: =parent.Ferro.par.Videospeed if parent.Ferro.par.Linked else 1
-      timecodeop: =tdu.Timecode()
-    size: [130, 90]
-    color: [0.67, 0.67, 0.67]
-    tags:
-    - tdxn_exclude:cuepoint
   blurTOP:
     parameters:
       extend: mirror
@@ -64,15 +52,6 @@ type_defaults:
       autoexportroot: =parent()
     size: [130, 90]
     color: [0.67, 0.67, 0.67]
-  moviefileinTOP:
-    parameters:
-      index: =parent.Ferro.par.Videotime
-      indexunit: seconds
-      playmode: specify
-      textendright: ='cycle' if parent.Ferro.par.Videoloop else 'hold'
-      timecodeop: =tdu.Timecode()
-    size: [130, 90]
-    color: [0.67, 0.67, 0.67]
   nullCHOP:
     parameters:
       autoexportroot: =parent()
@@ -83,9 +62,15 @@ type_defaults:
     color: [0.67, 0.67, 0.67]
   textDAT:
     parameters:
+      extension: frag
+      language: glsl
       syncfile: true
+    flags:
+    - viewer
     size: [130, 90]
     color: [0.9, 0.3, 0.4]
+    tags:
+    - glsl
 type: baseCOMP
 custom_pars:
   Presets:
@@ -138,12 +123,10 @@ custom_pars:
     - file
     - external
     - youtube
-    - YouTube
     menuLabels:
     - Camera
     - Movie File
     - External Input
-    - youtube
     - YouTube
     help: 'What drives the viewer pull and the Image page: the webcam, a movie file, any TOP wired into FerroScope''s video input from outside, or the video downloaded from the YouTube Video Link.'
     value: youtube
@@ -184,12 +167,10 @@ custom_pars:
     - file
     - external
     - youtube
-    - YouTube
     menuLabels:
     - Microphone
     - Audio File
     - External Input
-    - youtube
     - YouTube
     help: 'What feeds the sonogram: the microphone, an audio file, any CHOP wired into FerroScope''s audio input from outside, or the audio downloaded from the YouTube Audio Link (heard through Play to Speakers).'
     value: youtube
@@ -1385,6 +1366,12 @@ tags:
 - tdxn_exclude:Videoclock
 - tdxn_exclude:Videotime
 comment: Mic sonogram -> kaleidoscopic ferrofluid; webcam presence pulls the fluid toward the viewer.
+storage:
+  _t_dl_before:
+    $type: tuple
+    $value:
+    - 'Ready: Oscar Mulero at Intercell x Yanamaste Invites | ADE 2025'
+    - 1414.6
 operators:
 - name: CRT
   type: baseCOMP
@@ -1552,26 +1539,6 @@ operators:
   position: [1200, -1200]
   inputs:
   - speed_time
-- name: transport
-  type: executeDAT
-  parameters:
-    fromop: =parent()
-    framestart: true
-    file: project1/ferroscope/transport.py
-    syncfile: true
-  position: [-1200, -1000]
-  size: [130, 90]
-  color: [0.9, 0.3, 0.4]
-  tags:
-  - py
-- name: audiodevin
-  type: audiodeviceinCHOP
-  parameters:
-    active: =parent.Ferro.par.Audioactive and parent.Ferro.par.Audiosource == 'mic'
-    autoexportroot: =parent()
-  position: [-1600, 0]
-  size: [130, 90]
-  color: [0.67, 0.67, 0.67]
 - name: bloom_glow
   type: bloomTOP
   parameters:
@@ -1755,14 +1722,6 @@ operators:
   - glsl_fluid
   - null_field
   - null_sono
-- name: info_audio
-  type: infoCHOP
-  parameters:
-    op: ='audiofilein_yt' if parent.Ferro.par.Audiosource == 'youtube' else 'audiofilein'
-    autoexportroot: =parent()
-  position: [-1600, -1000]
-  size: [130, 90]
-  color: [0.67, 0.67, 0.67]
 - name: lag_viewer
   type: lagCHOP
   parameters:
@@ -1775,7 +1734,8 @@ operators:
   type: nullCHOP
   position: [-800, 0]
   inputs:
-  - switch_audio
+  - source: source_deck
+    out: 1
 - name: null_field
   type: nullTOP
   position: [3200, -2000]
@@ -1800,7 +1760,7 @@ operators:
   type: nullTOP
   position: [-800, -2000]
   inputs:
-  - switch_video
+  - source_deck
 - name: speed_time
   type: speedCHOP
   parameters:
@@ -1812,15 +1772,6 @@ operators:
   color: [0.67, 0.67, 0.67]
   inputs:
   - const_rates
-- name: videodevin
-  type: videodeviceinTOP
-  parameters:
-    active: =parent.Ferro.par.Videoactive and parent.Ferro.par.Videosource == 'camera'
-    device: V1|||\\?\usb#vid_3277&pid_0010&mi_00#7&df5034d&0&0000#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\global|||0|||0|||ASUS FHD webcam
-    signalformat: f1920x1080p-30.00hz
-  position: [-1600, -2000]
-  size: [130, 90]
-  color: [0.67, 0.67, 0.67]
 - name: window_out
   type: windowCOMP
   parameters:
@@ -1842,11 +1793,6 @@ operators:
   color: [0.67, 0.67, 0.67]
   inputs:
   - null_audio
-- name: audiofilein
-  type: audiofileinCHOP
-  parameters:
-    file: =parent.Ferro.par.Audiofile.eval().replace('$TT', app.samplesFolder)
-  position: [-1600, -200]
 - name: const_black
   type: constantTOP
   parameters:
@@ -1880,11 +1826,6 @@ operators:
   position: [3600, -2000]
   inputs:
   - null_field
-- name: moviefilein
-  type: moviefileinTOP
-  parameters:
-    file: =parent.Ferro.par.Videofile.eval().replace('$TT', app.samplesFolder)
-  position: [-1600, -2200]
 - name: null_viewer
   type: nullCHOP
   position: [4800, -2000]
@@ -1908,31 +1849,6 @@ operators:
   position: [800, 0]
   size: [130, 90]
   color: [0.67, 0.67, 0.67]
-- name: switch_audio
-  type: switchCHOP
-  parameters:
-    index: =parent.Ferro.par.Audiosource.menuIndex
-    autoexportroot: =parent()
-  position: [-1200, 0]
-  size: [130, 90]
-  color: [0.67, 0.67, 0.67]
-  inputs:
-  - audiodevin
-  - audiofilein
-  - in_audio
-  - audiofilein_yt
-- name: switch_video
-  type: switchTOP
-  parameters:
-    index: =parent.Ferro.par.Videosource.menuIndex
-  position: [-1200, -2000]
-  size: [130, 90]
-  color: [0.67, 0.67, 0.67]
-  inputs:
-  - videodevin
-  - moviefilein
-  - in_video
-  - moviefilein_yt
 - name: topto_viewer
   type: toptoCHOP
   parameters:
@@ -1947,17 +1863,6 @@ operators:
   position: [4000, -2000]
   size: [130, 90]
   color: [0.67, 0.67, 0.67]
-- name: audio_monitor
-  type: audiodeviceoutCHOP
-  parameters:
-    active: =parent.Ferro.par.Monitor and parent.Ferro.par.Audiosource != 'mic'
-    volume: =parent.Ferro.par.Monitorvolume
-    autoexportroot: =parent()
-  position: [-400, -200]
-  size: [130, 90]
-  color: [0.67, 0.67, 0.67]
-  inputs:
-  - null_audio
 - name: const_silence
   type: constantCHOP
   sequences:
@@ -1993,19 +1898,6 @@ operators:
   - null_cam
   - feedback_state
   - feedback_prevcam
-- name: youtube_fetch
-  type: textDAT
-  parameters:
-    file: project1/ferroscope/youtube_fetch.py
-    language: python
-  position: [6000, -600]
-  tags:
-  - py
-- name: audiofilein_yt
-  type: audiofileinCHOP
-  parameters:
-    file: =parent.Ferro.par.Audiodownloaded
-  position: [-1600, 400]
 - name: feedback_fluid
   type: feedbackTOP
   parameters:
@@ -2027,11 +1919,6 @@ operators:
   position: [1675, -120]
   dock: glsl_sono
   dat_read_only: true
-- name: moviefilein_yt
-  type: moviefileinTOP
-  parameters:
-    file: =parent.Ferro.par.Videodownloaded
-  position: [-1600, -2600]
 - name: const_sono_seed
   type: constantTOP
   parameters:
@@ -2059,13 +1946,7 @@ operators:
   type: textDAT
   parameters:
     file: project1/ferroscope/glsl_sono_pixel.glsl
-    language: glsl
-    extension: frag
-  flags:
-  - viewer
   position: [1525, -120]
-  tags:
-  - glsl
   dock: glsl_sono
 - name: const_fluid_seed
   type: constantTOP
@@ -2100,25 +1981,13 @@ operators:
   type: textDAT
   parameters:
     file: project1/ferroscope/glsl_fluid_pixel.glsl
-    language: glsl
-    extension: frag
-  flags:
-  - viewer
   position: [3925, -120]
-  tags:
-  - glsl
   dock: glsl_fluid
 - name: glsl_shade_pixel
   type: textDAT
   parameters:
     file: project1/ferroscope/glsl_shade_pixel.glsl
-    language: glsl
-    extension: frag
-  flags:
-  - viewer
   position: [4325, -120]
-  tags:
-  - glsl
   dock: glsl_shade
 - name: glsl_viewer_info
   type: infoDAT
@@ -2131,13 +2000,7 @@ operators:
   type: textDAT
   parameters:
     file: project1/ferroscope/glsl_viewer_pixel.glsl
-    language: glsl
-    extension: frag
-  flags:
-  - viewer
   position: [3525, -2120]
-  tags:
-  - glsl
   dock: glsl_viewer
 - name: controls_callbacks
   type: parameterexecuteDAT
@@ -2165,19 +2028,13 @@ operators:
   type: textDAT
   parameters:
     file: project1/ferroscope/glsl_presence_pixel.glsl
-    language: glsl
-    extension: frag
-  flags:
-  - viewer
   position: [1925, -2120]
-  tags:
-  - glsl
   dock: glsl_presence
 annotations:
 - name: annotate1
   mode: annotate
   title: Audio Source -> Sonogram
-  text: 'Audio Source (Sources page): microphone, audio file, the external audio input (FerroScope''s 2nd connector; silence when nothing is wired), or YouTube audio (audiofilein_yt plays the file Download Audio fetched). The Transport group plays, cues and loops both audio players. -> switch_audio -> null_audio. audio_monitor plays file, YouTube or external audio to the speakers (never the mic). null_audio -> spectrum (FFT, log bins) -> spectrum_tex. glsl_sono writes the newest spectrum on the top row and scrolls older rows down (feedback via null_sono): R = loudness after Auto Gain, attack and release; G = onset; B = tracked peak. blur_sono feeds the smooth pool.'
+  text: 'Audio comes from source_deck (Audio Source on the Sources page: microphone, audio file, the external audio input (FerroScope''s 2nd connector, passed through in_audio; silence from const_silence when nothing is wired), or YouTube audio) -> null_audio; source_deck also plays it to the speakers. null_audio -> spectrum (FFT, log bins) -> spectrum_tex. glsl_sono writes the newest spectrum on the top row and scrolls older rows down (feedback via null_sono): R = loudness after Auto Gain, attack and release; G = onset; B = tracked peak. blur_sono feeds the smooth pool.'
   position: [-2070, -270]
   size: [4670, 930]
   color: [0.2, 0.35, 0.45]
@@ -2193,7 +2050,7 @@ annotations:
 - name: annotate3
   mode: annotate
   title: Video Source -> Viewer Field
-  text: 'Video Source (Sources page): webcam, movie file, the external video input (FerroScope''s 1st connector; black when nothing is wired), or YouTube video (moviefilein_yt plays the file Download Video fetched). Both movie players show Video Position from the Transport group. -> switch_video -> null_video. At 160x90, mirrored: glsl_presence learns the empty room (feedback via null_state) and marks the viewer by difference from the room plus motion; blur_field -> null_field is the magnet field. glsl_viewer reduces it to centre + coverage -> null_viewer. Bottom row: the picture at 640x360 (fit_img -> flip_img -> blur_img -> null_img) for the Image page.'
+  text: 'Video comes from source_deck (Video Source on the Sources page: webcam, movie file, the external video input (FerroScope''s 1st connector, passed through in_video; black from const_black when nothing is wired), or YouTube video) -> null_video. At 160x90, mirrored: glsl_presence learns the empty room (feedback via null_state) and marks the viewer by difference from the room plus motion; blur_field -> null_field is the magnet field. glsl_viewer reduces it to centre + coverage -> null_viewer. Bottom row: the picture at 640x360 (fit_img -> flip_img -> blur_img -> null_img) for the Image page.'
   position: [-2070, -2870]
   size: [7070, 1130]
   color: [0.35, 0.25, 0.45]
@@ -2201,15 +2058,15 @@ annotations:
 - name: annotate4
   mode: annotate
   title: Ferrofluid Render and Output
-  text: 'glsl_fluid (GLSL Multi): hex or square spike lattice with honeycomb ridges and a nested sub-grid; heights and colours from the kaleidoscope-folded sonogram (8 modes); liquid warp and swirl; raised, leaned and lensed toward the viewer; camera picture as colour, relief or spikes; feedback_fluid feeds back the last frame for viscosity. glsl_shade: black glossy body, white key highlight, sound-coloured rim, tip glow, sonogram glow. bloom -> ACES tone map -> CRT (reusable filter) -> out1; window_out shows null_final in its own window; controls_callbacks handles the pulse buttons; youtube_fetch downloads the Sources page''s YouTube links with yt-dlp on a Thread Manager thread (cached per video id in media/youtube/).'
+  text: 'glsl_fluid (GLSL Multi): hex or square spike lattice with honeycomb ridges and a nested sub-grid; heights and colours from the kaleidoscope-folded sonogram (8 modes); liquid warp and swirl; raised, leaned and lensed toward the viewer; camera picture as colour, relief or spikes; feedback_fluid feeds back the last frame for viscosity. glsl_shade: black glossy body, white key highlight, sound-coloured rim, tip glow, sonogram glow. bloom -> ACES tone map -> CRT (reusable filter) -> out1; window_out shows null_final in its own window; controls_callbacks handles the pulse buttons and forwards the source and transport ones to source_deck.'
   position: [3130, -670]
   size: [3500, 970]
   color: [0.45, 0.3, 0.2]
   opacity: 0.6
 - name: annotate5
   mode: annotate
-  title: Transport
-  text: 'transport (Execute DAT, every frame start) runs the Transport page. Video Position drives moviefilein / moviefilein_yt (Specify Index, seconds); Audio Position cues audiofilein / audiofilein_yt, which play sequentially. info_audio reads the active audio player''s length and read position. While the audio is linked (Link Audio to Video: same clip, or Always) the video follows the audio''s read position, and moving, playing or looping either side moves both.'
+  title: Source Deck (shared module)
+  text: 'source_deck is the shared sources-and-transport module, loaded from ../00-custom-modules/source-deck/source_deck.tox (External .tox, Reload Custom Parameters off, so its settings stay in this project). Its parameters are bound to FerroScope''s Sources and Transport pages plus Camera On and Microphone On, so this panel drives it; controls_callbacks forwards the Restart and Download pulses. It is tagged tdxn_exclude: the module''s own text lives beside its .tox. Video out -> null_video, audio out -> null_audio.'
   position: [-1670, -1070]
   size: [1270, 400]
   color: [0.2, 0.4, 0.3]

@@ -1,0 +1,450 @@
+format: tdxn
+version: '2.2'
+generator: Embody/6.2.72
+td_build: 099.2025.32820
+options:
+  include_dat_content: false
+  include_storage: true
+type_defaults:
+  audiofileinCHOP:
+    parameters:
+      autoexportroot: =parent()
+      index: =me.time.frame / root.time.rate
+      play: =1 if parent.SourceDeck.par.Audioplay and (parent.SourceDeck.par.Videospeed > 0 or not parent.SourceDeck.par.Linked) else 0
+      repeat: ='on' if parent.SourceDeck.par.Audioloop else 'off'
+      speed: =parent.SourceDeck.par.Videospeed if parent.SourceDeck.par.Linked else 1
+      timecodeop: =tdu.Timecode()
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+    tags:
+    - tdxn_exclude:cuepoint
+  moviefileinTOP:
+    parameters:
+      index: =parent.SourceDeck.par.Videotime
+      indexunit: seconds
+      playmode: specify
+      textendright: ='cycle' if parent.SourceDeck.par.Videoloop else 'hold'
+      timecodeop: =tdu.Timecode()
+    size: [130, 90]
+    color: [0.67, 0.67, 0.67]
+type: baseCOMP
+custom_pars:
+  Sources:
+  - name: Videosource
+    style: Menu
+    label: Video Source
+    default: camera
+    menuNames:
+    - camera
+    - file
+    - external
+    - youtube
+    menuLabels:
+    - Camera
+    - Movie File
+    - External Input
+    - YouTube
+    help: 'Which video the deck outputs: the webcam, a movie file, any TOP wired into the deck''s video input (black when nothing is wired), or the video downloaded from the YouTube Video Link.'
+  - name: Videoactive
+    style: Toggle
+    label: Camera On
+    default: true
+    help: Turns the webcam on or off. It only runs while Video Source is Camera.
+  - name: Videofile
+    style: File
+    label: Movie File
+    default: $TT/Map/Nature/Movie.1.mp4
+    help: Movie (or image) played when Video Source is Movie File.
+  - name: Videolink
+    style: Str
+    label: YouTube Video Link
+    startSection: true
+    help: A YouTube link (watch, youtu.be or shorts URL) whose picture becomes the video source. Press Download Video to fetch it.
+  - name: Videodownload
+    style: Pulse
+    label: Download Video
+    help: Download the YouTube Video Link's picture (H.264, at most 720p, no sound) into the YouTube Folder and switch Video Source to YouTube when it is ready. A link downloaded before loads instantly from that folder.
+  - name: Videostatus
+    style: Str
+    label: Video Download
+    readOnly: true
+    help: Progress of the YouTube video download, the title once it is ready, or why it failed.
+  - name: Videodownloaded
+    style: File
+    label: Downloaded Video
+    readOnly: true
+    help: The downloaded YouTube video file that Video Source YouTube plays (set by Download Video).
+  - name: Audiosource
+    style: Menu
+    label: Audio Source
+    startSection: true
+    default: mic
+    menuNames:
+    - mic
+    - file
+    - external
+    - youtube
+    menuLabels:
+    - Microphone
+    - Audio File
+    - External Input
+    - YouTube
+    help: 'Which audio the deck outputs: the microphone, an audio file, any CHOP wired into the deck''s audio input (silence when nothing is wired), or the audio downloaded from the YouTube Audio Link.'
+  - name: Audioactive
+    style: Toggle
+    label: Microphone On
+    default: true
+    help: Turns the microphone on or off. It only runs while Audio Source is Microphone.
+  - name: Audiofile
+    style: File
+    label: Audio File
+    default: $TT/Audio/JeremyCaulfield_www.dumb-unit.com.mp3
+    help: Audio file played when Audio Source is Audio File.
+  - name: Audiolink
+    style: Str
+    label: YouTube Audio Link
+    startSection: true
+    help: A YouTube link whose sound becomes the audio source. Leave it empty to use the YouTube Video Link, so one clip gives both picture and sound. Press Download Audio to fetch it.
+  - name: Audiodownload
+    style: Pulse
+    label: Download Audio
+    help: Download the audio of the YouTube Audio Link (or of the video link when that is empty) into the YouTube Folder and switch Audio Source to YouTube when it is ready. A link downloaded before loads instantly from that folder.
+  - name: Audiostatus
+    style: Str
+    label: Audio Download
+    readOnly: true
+    help: Progress of the YouTube audio download, the title once it is ready, or why it failed.
+  - name: Audiodownloaded
+    style: File
+    label: Downloaded Audio
+    readOnly: true
+    help: The downloaded YouTube audio file that Audio Source YouTube plays (set by Download Audio).
+  - name: Monitor
+    style: Toggle
+    label: Play to Speakers
+    startSection: true
+    default: true
+    help: Play the file, YouTube or external audio through the default audio device. Never plays the microphone, to avoid feedback.
+  - name: Monitorvolume
+    style: Float
+    label: Speaker Volume
+    default: 0.8
+    max: 2.0
+    clampMin: true
+    clampMax: true
+    help: Volume of the audio played to the speakers.
+  Transport:
+  - name: Link
+    style: Menu
+    label: Link Audio to Video
+    default: auto
+    menuNames:
+    - auto
+    - linked
+    - separate
+    menuLabels:
+    - Auto (Same Clip)
+    - Always
+    - Never
+    help: Whether the audio playhead moves with the video playhead. Auto links them while Video Source and Audio Source play the same clip (one YouTube video, or one file). Always links any file or YouTube video with any file or YouTube audio (past the end of shorter audio the video plays on alone); Never keeps them independent. Live sources (camera, microphone, external input) never link.
+  - name: Linked
+    style: Toggle
+    label: Audio Linked
+    readOnly: true
+    help: On while the audio follows the video playhead, as decided by Link Audio to Video. Read only.
+  - name: Videoplay
+    style: Toggle
+    label: Play Video
+    startSection: true
+    default: true
+    help: Plays or pauses the movie file or YouTube video. While the audio is linked it plays and pauses the audio too.
+  - name: Videotime
+    style: Float
+    label: Video Position
+    clampMin: true
+    help: Playhead of the movie file or YouTube video in seconds; drag to scrub, or type a time. The slider spans the whole clip. While the audio is linked the audio jumps with it.
+  - name: Videoclock
+    style: Str
+    label: Video Time
+    readOnly: true
+    help: Video Position and the length of the clip as minutes:seconds (hours:minutes:seconds for clips over an hour). Read only.
+    value: Live input
+  - name: Videospeed
+    style: Float
+    label: Video Speed
+    default: 1
+    min: -4.0
+    max: 4.0
+    normMax: 2.0
+    help: 'Playback speed of the movie file or YouTube video: 1 = normal, negative plays backwards. While the audio is linked it sets the audio speed (and pitch) too; linked audio is silent while the video plays backwards.'
+  - name: Videoloop
+    style: Toggle
+    label: Loop Video
+    default: true
+    help: Loops the video at its end (and at its start when playing backwards); off holds the last frame. While the audio is linked it loops the audio too.
+  - name: Videorestart
+    style: Pulse
+    label: Restart Video
+    help: Jump the video back to the start. While the audio is linked the audio jumps with it.
+  - name: Audioplay
+    style: Toggle
+    label: Play Audio
+    startSection: true
+    default: true
+    help: Plays or pauses the audio file or YouTube audio. While the audio is linked it plays and pauses the video too.
+  - name: Audiotime
+    style: Float
+    label: Audio Position
+    clampMin: true
+    help: Playhead of the audio file or YouTube audio in seconds; drag to scrub, or type a time. The slider spans the whole file. While the audio is linked the video jumps with it.
+  - name: Audioclock
+    style: Str
+    label: Audio Time
+    readOnly: true
+    help: Audio Position and the length of the audio as minutes:seconds (hours:minutes:seconds for files over an hour). Read only.
+    value: Live input
+  - name: Audioloop
+    style: Toggle
+    label: Loop Audio
+    default: true
+    help: Loops the audio at its end; off stops it there. While the audio is linked it loops the video too.
+  - name: Audiorestart
+    style: Pulse
+    label: Restart Audio
+    help: Jump the audio back to the start. While the audio is linked the video jumps with it.
+  Module:
+  - name: Youtubefolder
+    style: Folder
+    label: YouTube Folder
+    default: media/youtube
+    help: Folder the YouTube downloads go to, relative to the project folder unless absolute. Each video id and stream is one file there, so a link fetched before loads instantly.
+  - name: Savemodule
+    style: Pulse
+    label: Save Module
+    startSection: true
+    help: 'Save this deck as the shared module: a clean copy (no bindings to the host, default values) goes to the External .tox Path on the Common page, with a readable .tdxn snapshot beside it when Embody is in the project. Every project that loads that .tox picks the change up the next time it opens.'
+parameters:
+  parentshortcut: SourceDeck
+  reloadbuiltin: false
+flags:
+- -allowCooking
+color: [0.2, 0.4, 0.3]
+comment: 'Shared module: video + audio sources with a transport. Master: ../00-custom-modules/source-deck/source_deck.tox'
+operators:
+- name: in_audio
+  type: inCHOP
+  parameters:
+    label: =me.name
+    connectorder: 1
+    autoexportroot: =parent()
+  position: [400, -1800]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - const_silence
+- name: in_video
+  type: inTOP
+  parameters:
+    label: =me.name
+  position: [400, -400]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - const_black
+- name: out_audio
+  type: outCHOP
+  parameters:
+    label: =me.name
+    connectorder: 1
+    autoexportroot: =parent()
+  position: [1600, -1400]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - null_audio
+- name: out_video
+  type: outTOP
+  parameters:
+    label: =me.name
+  position: [1600, 0]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - null_video
+- name: transport
+  type: executeDAT
+  parameters:
+    fromop: =parent()
+    framestart: true
+  position: [2800, 0]
+  size: [130, 90]
+  color: [0.9, 0.3, 0.4]
+  tags:
+  - tdxn_exclude:dat_content
+- name: audiodevin
+  type: audiodeviceinCHOP
+  parameters:
+    active: =parent.SourceDeck.par.Audioactive and parent.SourceDeck.par.Audiosource == 'mic'
+    autoexportroot: =parent()
+  position: [400, -1400]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+- name: info_audio
+  type: infoCHOP
+  parameters:
+    op: ='audiofilein_yt' if parent.SourceDeck.par.Audiosource == 'youtube' else 'audiofilein'
+    autoexportroot: =parent()
+  position: [2400, 0]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+- name: null_audio
+  type: nullCHOP
+  parameters:
+    autoexportroot: =parent()
+  position: [1200, -1400]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - switch_audio
+- name: null_video
+  type: nullTOP
+  position: [1200, 0]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - switch_video
+- name: videodevin
+  type: videodeviceinTOP
+  parameters:
+    active: =parent.SourceDeck.par.Videoactive and parent.SourceDeck.par.Videosource == 'camera'
+    device: V1|||\\?\usb#vid_3277&pid_0010&mi_00#7&df5034d&0&0000#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\global|||0|||0|||ASUS FHD webcam
+    signalformat: f1920x1080p-30.00hz
+  position: [400, 0]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+- name: audiofilein
+  type: audiofileinCHOP
+  parameters:
+    file: =parent.SourceDeck.par.Audiofile.eval().replace('$TT', app.samplesFolder)
+  position: [400, -1600]
+- name: const_black
+  type: constantTOP
+  parameters:
+    colorr: 0
+    colorg: 0
+    colorb: 0
+    outputresolution: custom
+    resolutionw: 160
+    resolutionh: 90
+  position: [0, -400]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+- name: moviefilein
+  type: moviefileinTOP
+  parameters:
+    file: =parent.SourceDeck.par.Videofile.eval().replace('$TT', app.samplesFolder)
+  position: [400, -200]
+- name: switch_audio
+  type: switchCHOP
+  parameters:
+    index: =parent.SourceDeck.par.Audiosource.menuIndex
+    autoexportroot: =parent()
+  position: [800, -1400]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - audiodevin
+  - audiofilein
+  - in_audio
+  - audiofilein_yt
+- name: switch_video
+  type: switchTOP
+  parameters:
+    index: =parent.SourceDeck.par.Videosource.menuIndex
+  position: [800, 0]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - videodevin
+  - moviefilein
+  - in_video
+  - moviefilein_yt
+- name: audio_monitor
+  type: audiodeviceoutCHOP
+  parameters:
+    active: =parent.SourceDeck.par.Monitor and parent.SourceDeck.par.Audiosource != 'mic'
+    volume: =parent.SourceDeck.par.Monitorvolume
+    autoexportroot: =parent()
+  position: [1600, -1600]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+  inputs:
+  - null_audio
+- name: const_silence
+  type: constantCHOP
+  parameters:
+    rate: =me.time.rate
+    autoexportroot: =parent()
+  sequences:
+    const:
+    - name: silence
+  position: [0, -1800]
+  size: [130, 90]
+  color: [0.67, 0.67, 0.67]
+- name: youtube_fetch
+  type: textDAT
+  parameters:
+    language: python
+  position: [2400, -400]
+  size: [130, 90]
+  color: [0.9, 0.3, 0.4]
+  tags:
+  - tdxn_exclude:dat_content
+- name: audiofilein_yt
+  type: audiofileinCHOP
+  parameters:
+    file: =parent.SourceDeck.par.Audiodownloaded
+  position: [400, -2000]
+- name: deck_callbacks
+  type: parameterexecuteDAT
+  parameters:
+    fromop: =parent()
+    op: ..
+    pars: Videodownload Audiodownload Videorestart Audiorestart Savemodule
+    valuechange: false
+    builtin: false
+  position: [2800, -400]
+  size: [130, 90]
+  color: [0.2656, 0.81, 0.6933]
+  tags:
+  - tdxn_exclude:dat_content
+- name: moviefilein_yt
+  type: moviefileinTOP
+  parameters:
+    file: =parent.SourceDeck.par.Videodownloaded
+  position: [400, -600]
+annotations:
+- name: annotate1
+  mode: annotate
+  title: Video Sources
+  text: Video Source (Sources page) picks the webcam (videodevin), a movie file (moviefilein), the deck's video input (in_video; black from const_black when nothing is wired) or the YouTube download (moviefilein_yt) -> switch_video -> null_video -> out_video. Both movie players run in Specify Index mode and show Video Position.
+  position: [-70, -670]
+  size: [1870, 930]
+  color: [0.35, 0.25, 0.45]
+  opacity: 0.6
+- name: annotate2
+  mode: annotate
+  title: Audio Sources
+  text: Audio Source picks the microphone (audiodevin), an audio file (audiofilein), the deck's audio input (in_audio; silence from const_silence when nothing is wired) or the YouTube download (audiofilein_yt) -> switch_audio -> null_audio -> out_audio. The file and YouTube players play sequentially and are cued by the transport. audio_monitor plays everything but the microphone to the speakers.
+  position: [-70, -2070]
+  size: [1870, 930]
+  color: [0.2, 0.35, 0.45]
+  opacity: 0.6
+- name: annotate3
+  mode: annotate
+  title: Transport and Controls
+  text: transport (Execute DAT, every frame start) runs the Transport page; info_audio reads the audio player's length and position. youtube_fetch downloads YouTube links with yt-dlp on a Thread Manager thread. deck_callbacks handles the pulses, including Save Module.
+  position: [2330, -470]
+  size: [670, 730]
+  color: [0.2, 0.4, 0.3]
+  opacity: 0.6
