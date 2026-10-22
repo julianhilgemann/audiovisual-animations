@@ -1,0 +1,44 @@
+# How a generated run drives the lines tunnel (blender/stem-tunnel/README.md).
+#
+# Each look signal on the AudioSignals empty is the weighted sum of its sources, clamped to 0-1:
+#   "hit:<track>"      the score's note-ons of a track (the MIDI), as envelopes shaped in [hit]
+#   "stem:<name>"      a stem's loudness envelope (bass, pad, lead, riser, space, ...)
+#   "mix:loud"         the master's loudness;   "mix:bright"  its brightness (spectral centroid)
+#   "curve:<name>"     a score automation curve, e.g. the riser's 0 -> 1 ramp through the build
+#   "section:<name>"   1 inside that section of the story, eased in and out over [motion] section_ease frames
+# A source the run doesn't have (a track or stem the preset lacks) counts as 0.
+# The look's own sliders (speeds, glow, flash, ...) stay on the NeonControls empty in stem_tunnel.blend.
+
+ring = { track = "kick", level = 0.3 }    # the light ring races into the tunnel on this track's hits
+
+# kick moves the picture (zoom punch, roll jolt, portal squeeze, wall pump); kick_light lights it (glow, bloom).
+# They are split so a hit can punch hard without flashing the whole frame: the spec allows at most 3 full-frame
+# flashes a second and prefers pulses to strobes (docs/sticky-av-shorts.md, Photosensitivity); `datapipe short`
+# measures it.
+
+[signals]
+kick   = { "hit:kick" = 1.0 }                          # zoom punch, roll jolt, portal squeeze, wall pump
+kick_light = { "hit:kick" = 0.2 }                     # glow and bloom on the kick
+bass   = { "stem:bass" = 1.0 }                         # walls breathe, outer shell swells, haze, roll
+energy = { "mix:loud" = 0.8, "curve:riser" = 0.4 }     # base glow, bloom, forward speed, colour cycling
+hats   = { "hit:hats" = 1.0 }                          # sparkle wave
+mids   = { "hit:clap" = 0.8, "hit:lead" = 0.6 }        # portal spin
+bright = { "mix:bright" = 0.6, "curve:riser" = 0.6 }   # palette shift
+twist  = { "section:twist" = 1.0 }                     # the violation: hue jump and camera twist
+
+[smooth]               # moving average over this many frames, after the sources are summed
+energy = 12            # the level the whole tunnel glows and travels at: steady, so only kick_light pulses
+bright = 8
+
+[hit]                  # envelope per track, in frames: rise before the hit (anticipation), decay after
+default = { windup = 0, decay = 8 }
+kick    = { windup = 3, decay = 9 }
+clap    = { windup = 0, decay = 14 }
+hats    = { windup = 0, decay = 5 }
+lead    = { windup = 0, decay = 8 }
+
+[motion]
+speed_riser = 3.0      # forward speed added by the riser, in the units of the look's speed sliders
+roll_twist  = 1.5      # extra camera roll through the twist, same units as roll_idle
+twist_hue   = 0.2      # hue jump through the twist (1 = once around the colour wheel)
+section_ease = 15      # frames to ease a section signal in and out

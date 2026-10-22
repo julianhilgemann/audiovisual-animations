@@ -6,7 +6,7 @@ Audio-reactive YouTube Shorts: a file dropped in `inbox/` is analyzed, mapped on
 
 ## Status
 
-Phase 0 is done; next is Phase 1, the Director rig (SPEC §11). The generative mode (SPEC §15) has its audio engine, phase G1, done on macOS; next there is G2, reading a run in Blender. `uv run datapipe doctor` checks the whole toolchain, and `uv run pytest` runs the tests.
+Phase 0 is done; next is Phase 1, the Director rig (SPEC §11). The generative mode (SPEC §15) runs end to end on macOS: `uv run datapipe short --preset <name> --seed <n>` composes, renders and encodes a finished Short (G1–G4 first versions; open: the overlay-mask gate, a Windows run). `uv run datapipe doctor` checks the whole toolchain, and `uv run pytest` runs the tests.
 
 The user wants this machine left intact. Python packages go into `.venv` through `pyproject.toml` and `uv`. FFmpeg comes from PyAV (`av`) inside the venv, not a system ffmpeg. Anything installed outside the repo needs the user's go-ahead first.
 
@@ -25,6 +25,8 @@ Work phase by phase. A phase is done when its "Done when" column in SPEC §11 ho
 - Set plugin parameters by display value (`"A Decay" = "1.2"`); `datapipe plugins probe <key>` lists them.
 - After a sound or gain change, render a few seeds and compare the printed `balance` line with the table in `specs/audio.md`; the limiter should take 1–4 dB.
 - Keep a `RenderEngine` alive while its processors are used: a freed engine segfaults them.
+- The Blender side of a Short is `blender/stem-tunnel/` (README there). `stem_tunnel.blend` is derived from `blender/audio-tunnel/neon_tunnel_audio.blend` by `stem_tunnel.py --make-template`; rebuild it that way rather than editing it by hand, then run `tests/test_gen_video.py` and a `--preview` Short and check the seam and flash gates.
+- Every look change can bring back flashes: the S7 gate counts full-frame flashes in mean relative luminance. Iterate at `--preview`, not 25 %: the compositor glare scales with resolution.
 
 ## Environment, macOS (Apple M1, macOS 13.5, zsh)
 

@@ -22,7 +22,7 @@ uv run datapipe gen --preset glass_mallets --seed 3   # uses them, or falls back
 uv run datapipe doctor                           # checks DawDreamer, every Faust DSP and the plugins
 ```
 
-A run takes about 3 s (Apple M1) and prints what played each track, the loudness, the seam check and the stem balance. It lands in `work/gen/<yyyymmdd>_<preset>_s<seed>/` and is copied to **`work/gen/latest/`**, the fixed path for Blender.
+`uv run datapipe short --seed 42` goes on to render and encode the finished Short in Blender ([blender/stem-tunnel](../blender/stem-tunnel/README.md)). A run takes about 3 s (Apple M1) and prints what played each track, the loudness, the seam check and the stem balance. It lands in `work/gen/<yyyymmdd>_<preset>_s<seed>/` and is copied to **`work/gen/latest/`**, the fixed path for Blender.
 
 ## Changing it
 

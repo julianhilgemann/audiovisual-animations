@@ -55,3 +55,19 @@ crf = "HIGH"
 [gen]                        # generative loops (SPEC §15, dawdreamer/)
 preset = "neon_house"        # dawdreamer/presets/<name>.toml
 out = "work/gen"             # one folder per run, plus latest/ for Blender
+
+[short]                      # a generated loop -> a YouTube Short (SPEC §15; docs/sticky-av-shorts.md S5-S7)
+project = "blender/stem-tunnel"
+scene = "stem_tunnel.blend"
+script = "stem_tunnel.py"
+resolution = [1080, 1920]    # 9:16, 60 fps, 480 frames
+percent = 100
+eevee_samples = 32
+crf = 16                     # H.264 High, x264 preset below; GOP 30, 2 B-frames, BT.709, AAC 320 kb/s
+x264_preset = "slow"
+
+[short.preview]              # same fps and timing as the final, so sync judged in a preview holds
+percent = 50
+eevee_samples = 8
+crf = 23
+x264_preset = "ultrafast"

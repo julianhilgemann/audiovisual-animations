@@ -63,7 +63,7 @@ def master(x: np.ndarray, sr: int, target_lufs: float = -14.0, ceiling_db: float
     if not np.isfinite(before):
         raise ValueError("the mix is silent")
     gain_db = target_lufs - before
-    margin = 0.15                                   # the oversampled estimate can miss a hair of the real peak
+    margin = 0.3              # the oversampled estimate misses a hair, and the AAC encode adds about 0.1 dB
     for _ in range(6):
         y, reduction = limit(x * 10 ** (gain_db / 20), sr, ceiling_db - margin)
         error = target_lufs - lufs(y, sr)

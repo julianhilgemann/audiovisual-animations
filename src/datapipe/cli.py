@@ -31,6 +31,15 @@ def main(argv: list[str] | None = None) -> int:
     gen.add_argument("--play", action="store_true", help="play loop_x3.wav when done (the loop three times)")
     gen.add_argument("--out", type=Path, help="parent folder for the run (default: [gen] out in pipeline.toml)")
 
+    short = sub.add_parser("short", help="a generated loop as a finished YouTube Short: audio, Blender render, MP4 (SPEC §15)")
+    short.add_argument("--preset", help="compose a new loop with this preset (default: [gen] preset)")
+    short.add_argument("--seed", type=int, default=1)
+    short.add_argument("--run", type=Path, help="use this existing run folder (e.g. work/gen/latest) instead of composing")
+    short.add_argument("--midi", type=Path, help="render this .mid through the preset instead of composing")
+    short.add_argument("--preview", action="store_true", help="half resolution, 8 samples, fast encode")
+    short.add_argument("--keep-frames", action="store_true", help="keep the PNG frames in the run folder")
+    short.add_argument("--no-plugins", action="store_true", help="use every slot's Faust fallback")
+
     plug = sub.add_parser("plugins", help="the free VST3 plugins in dawdreamer/plugins.toml: list, fetch, probe, edit")
     plug.add_argument("action", choices=["list", "fetch", "probe", "edit"])
     plug.add_argument("names", nargs="*", help="manifest keys (default: all)")
@@ -48,6 +57,8 @@ def main(argv: list[str] | None = None) -> int:
         return _gen(args)
     if args.command == "plugins":
         return _plugins(args)
+    if args.command == "short":
+        return _short(args)
 
     print(f"`datapipe {args.command}` is planned for phase {PLANNED[args.command][1]} (SPEC §11).", file=sys.stderr)
     return 2
@@ -79,6 +90,21 @@ def _gen(args: argparse.Namespace) -> int:
         if args.play:
             play(run_dir / "loop_x3.wav")
     return 0
+
+
+def _short(args: argparse.Namespace) -> int:
+    from .gen.video import make_short
+
+    mp4, report = make_short(args.preset, args.seed, run=args.run, preview=args.preview, keep_frames=args.keep_frames,
+                             use_plugins=not args.no_plugins, midi=args.midi)
+    g = report["gates"]
+    print(f"{report['run']}: {g['format']['video']}, {g['format']['audio']}, {g['length']['seconds']} s")
+    for name, gate in g.items():
+        detail = {k: v for k, v in gate.items() if k not in ("ok", "offsets", "colour", "video", "audio", "samples")}
+        print(f"  {'ok  ' if gate['ok'] else 'FAIL'} {name:9} {detail}")
+    print(f"  {sum(report['timings_s'].values()):.0f} s ({report['timings_s']})")
+    print(f"  -> {mp4}")
+    return 0 if report["ok"] else 1
 
 
 def _seed_list(text: str) -> list[int]:

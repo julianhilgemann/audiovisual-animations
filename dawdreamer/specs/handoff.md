@@ -66,15 +66,31 @@ One row per video frame, 480 rows, header on the first line.
 | `<track>_pitch` | tracks with more than one pitch: the lowest sounding MIDI pitch, held after release |
 | `<curve>_curve` | each automation curve, e.g. `riser_curve` 0 → 1 through the build |
 
-Envelopes (wind-up before a hit, decay after) are not in this file: they belong to the control build (S4), which reads `score.json` and the stem analysis.
+Envelopes (wind-up before a hit, decay after) are not in this file: they belong to the control build (S4), which reads `controls.json`.
+
+## `controls.json`
+
+`datapipe short` writes it into the run folder (S3, `src/datapipe/gen/controls.py`): everything a look needs, one value per video frame, independent of any look. Hop 800 samples = one frame, no centring offset; every 0–1 value is normalised on its 5th–95th percentile and followed or smoothed around the loop.
+
+| Key | What |
+|---|---|
+| `fps`, `frames`, `bpm`, `frames_per_beat` | the grid |
+| `sections`, `section`, `phase` | section starts as frames (0-based), the section index and loop phase per frame |
+| `curves.<name>` | score automation per frame, e.g. `riser` |
+| `tracks.<track>.hits` | `[frame, velocity 0-1]` per note-on (chords: the loudest note), frames 0-based on the timing contract |
+| `tracks.<track>.gate`, `.pitch` | as in `frames.csv` |
+| `stems.<stem>.loud` | the stem's loudness: RMS per frame in dB (floor 48 dB under its peak), follower 1 frame attack / 7 release |
+| `mix.loud`, `mix.bright` | the master's loudness (2 / 12 frames) and spectral centroid (log, smoothed over 8) |
+
+A look turns these into its parameters with `src/datapipe/mapping.py` (hit envelopes, followers, loop closure), as `blender/stem-tunnel` does.
 
 ## Blender
 
-Blender reads a run headless (`blender -b <scene> --python <script> -- --run work/gen/<run>`, phase G2 in SPEC §15):
+`uv run datapipe short` does it all; the Blender side is [blender/stem-tunnel](../../blender/stem-tunnel/README.md), run headless (`blender -b stem_tunnel.blend --python stem_tunnel.py -- --run work/gen/<run> --frames-dir …`):
 
-- **Sound:** a sound strip with `mix.wav` at frame 1 in the scene's sequencer (`sequence_editor.strips`, Blender 5.x API), so the render muxes it (SPEC §5.7). Scene range 1…480 at 60 fps.
-- **Hits and curves:** from `score.json` through `Score`, baked to keyframes one per frame (docs/sticky-av-shorts.md, Blender parameter interface). From Blender's Python: `sys.path.insert(0, "<repo>/src")`, then `from datapipe.gen.score import Score`; `Score.frame_of` gives each hit's frame. `frames.csv` holds the same per frame, for inspection or a quick bake.
-- **Per-instrument texture:** later the stems' analysis (S3) adds continuous curves on the same 800-sample hop.
+- **Modulators:** `controls.json`, mapped by `mapping.toml` onto the look's signals and baked one key per frame (481, so the restart is a real key), with every accumulated motion closed on the loop.
+- **Sound:** `mix.wav` as a sound strip at frame 1 in the saved `scene_baked.blend` (`sequence_editor.strips`, Blender 5.x API), so it plays in sync when opened. The frames render as PNG; the MP4's audio is muxed by the encoder, not by Blender.
+- **Other scenes** read the same files: `sys.path.insert(0, "<repo>/src")`, then `from datapipe import mapping` and `from datapipe.gen.score import Score`.
 
 ## MIDI in
 

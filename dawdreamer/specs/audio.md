@@ -85,6 +85,6 @@ Loudness of each stem relative to the sum of all stems, in LU, measured on seeds
 
 - Phone speakers lose the sub-bass: saturate the bass until its harmonics carry the line (`drive` insert, `bass.drive`).
 - Everything below 120 Hz is mono: the `master` DSP removes the side signal below `mono_hz` (default 120).
-- **−14 LUFS integrated, true peak ≤ −1 dBTP** (`[master] lufs`, `true_peak_db`). The run gains the mix to the target and a lookahead limiter holds the 4× oversampled true peak 0.15 dB under the ceiling (engine.md). Platforms turn louder masters down, so punch beats loudness.
+- **−14 LUFS integrated, true peak ≤ −1 dBTP** (`[master] lufs`, `true_peak_db`). The run gains the mix to the target and a lookahead limiter holds the 4× oversampled true peak 0.3 dB under the ceiling, room for the AAC encode (engine.md). Platforms turn louder masters down, so punch beats loudness.
 - Limiter work should stay at about 1–4 dB. More means a peaky mix: lower the kick, raise sustained parts, or saturate the bass (`limiter_max_reduction_db` in the manifest).
 - Test on the phone speaker at arm's length and on earbuds.

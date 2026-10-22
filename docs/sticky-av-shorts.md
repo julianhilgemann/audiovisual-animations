@@ -2,7 +2,7 @@
 
 Oct 22, 2026 · @Julian
 
-> **In this repo** this is the design of the generative mode ([SPEC §15](../SPEC.md#15-generative-loops)). The audio stages S0–S2 are built: `uv run datapipe gen` composes, renders and masters a loop with DawDreamer ([dawdreamer/](../dawdreamer/README.md)). The audio rules moved to [dawdreamer/specs/audio.md](../dawdreamer/specs/audio.md); the run files Blender reads are in [dawdreamer/specs/handoff.md](../dawdreamer/specs/handoff.md). S3–S7 are next.
+> **In this repo** this is the design of the generative mode ([SPEC §15](../SPEC.md#15-generative-loops)). All stages have a first version: `uv run datapipe gen` composes, renders and masters a loop with DawDreamer ([dawdreamer/](../dawdreamer/README.md)), and `uv run datapipe short` turns it into the finished Short through the Blender project [blender/stem-tunnel](../blender/stem-tunnel/README.md). The audio rules moved to [dawdreamer/specs/audio.md](../dawdreamer/specs/audio.md); the run files Blender reads are in [dawdreamer/specs/handoff.md](../dawdreamer/specs/handoff.md). Open: band energies and onsets in S3, the overlay-mask gate in S7.
 
 ## Purpose and targets
 
@@ -163,7 +163,7 @@ Two entry modes write the same `score.json`.
 - Output: `mix.wav` (48 kHz, 24-bit), `stems/*.wav` (32-bit float), plus `frames.csv`, the score on the frame grid.
 - **Bypass:** an external bounce (`mix.wav` + its `.mid`) skips generation and rendering and enters at S3 *(not built yet; its MIDI alone already renders through `--midi`)*.
 
-### S3 · Analysis
+### S3 · Analysis *(first version: `src/datapipe/gen/controls.py` → `controls.json`; loudness per stem and mix, brightness, hits, sections, curves)*
 
 - Per stem and mix, hop = 800 samples = exactly one video frame, no centring offset.
 - Features: RMS, onset strength, spectral centroid, band energies (sub < 120 Hz, low, mid, high > 4 kHz).
@@ -171,7 +171,7 @@ Two entry modes write the same `score.json`.
 - Wrap-aware: the tail is prepended before smoothing, so frame 1 has the right history.
 - Output: `features.npz`, 480 rows.
 
-### S4 · Control build (modulation matrix)
+### S4 · Control build (modulation matrix) *(first version: `blender/stem-tunnel/mapping.toml` and `src/datapipe/mapping.py`, applied inside Blender)*
 
 - Reads `score.json`, `features.npz`, `mapping.yaml` and `param_map.yaml`.
 - Score hits become envelopes (wind-up, peak, decay); features become scaled curves; the loop phase becomes periodic curves.
@@ -180,7 +180,7 @@ Two entry modes write the same `score.json`.
 - Flash limiter: luminance-driving pulses capped at 3 per second.
 - Output: `controls.json`, 480 values per logical parameter.
 
-### S5 · Blender ingest and render
+### S5 · Blender ingest and render *(built: `blender/stem-tunnel/stem_tunnel.py`, the lines tunnel; no motion blur, see its README)*
 
 ```bash
 blender -b scene.blend --addons kaleido,tunnel_tools -y \
@@ -192,7 +192,7 @@ blender -b scene.blend --addons kaleido,tunnel_tools -y \
 - Saves `scene_baked.blend` for debugging: open it, scrub, see exactly what rendered.
 - Renders `frames/0001.png … 0480.png`.
 
-### S6 · Encode
+### S6 · Encode *(built with PyAV, the same settings: `src/datapipe/gen/video.py`)*
 
 ```bash
 ffmpeg -y -framerate 60 -i frames/%04d.png -i mix.wav \
@@ -210,7 +210,7 @@ ffmpeg -y -framerate 60 -i frames/%04d.png -i mix.wav \
 
 ### S7 · QA gates
 
-A run is publishable only if every gate passes; results go to `qa.json`.
+A run is publishable only if every gate passes; results go to the Short's `.json` sidecar. Built: length, seam (frame 481 against frame 1; the audio seam in the run manifest), sync, loudness (on the decoded AAC), flashes (mean relative luminance, WCAG 2.3.1), file. Open: safe zone.
 
 | Gate | Check | Pass |
 | --- | --- | --- |

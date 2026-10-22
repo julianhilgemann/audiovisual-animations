@@ -11,6 +11,7 @@ uv sync                    # creates .venv with Python 3.12 and all libraries (n
 uv run datapipe doctor     # checks Python libs, PyAV/FFmpeg, DawDreamer, Blender, GPU
 uv run pytest              # runs the tests
 uv run datapipe gen --seed 42 --play     # compose, render and play an 8-second loop
+uv run datapipe short --seed 42          # the same loop as a finished YouTube Short in output/
 ```
 
 Requirements, on Windows or macOS: [uv](https://docs.astral.sh/uv/) (`winget install astral-sh.uv`, or `brew install uv`), and Blender 5.2 LTS. The pipeline needs nothing else; TouchDesigner is only for the standalone projects. Tool paths per OS are in `config/pipeline.toml`; `config/machine.toml` overrides them for one machine.
@@ -26,6 +27,7 @@ Requirements, on Windows or macOS: [uv](https://docs.astral.sh/uv/) (`winget ins
 | `config/mappings/` | Reactivity recipes, exported from the Blender panel or hand-edited |
 | `projects/` | Standalone TouchDesigner projects that aren't part of the pipeline (see [projects/README.md](projects/README.md)) |
 | `dawdreamer/` | Generated audio: specs, presets, Faust instruments, the free VST3 plugin list (see [dawdreamer/README.md](dawdreamer/README.md)) |
+| `blender/stem-tunnel/` | The neon lines tunnel driven by a generated loop's stems and score; renders the Short (see its [README](blender/stem-tunnel/README.md)) |
 | `docs/` | Design of the generative mode ([sticky-av-shorts.md](docs/sticky-av-shorts.md)) |
 | `reference/` | Reference renders |
 | `work/`, `cache/`, `archive/` | Pipeline internals; generated loops land in `work/gen/`, the newest in `work/gen/latest/` |

@@ -30,11 +30,11 @@
 
 1. **Loudness:** integrated BS.1770 loudness (`pyloudnorm`) of the loop played three times, so the gating blocks see it as it is heard.
 2. **Gain** to the preset's `lufs` (default −14).
-3. **True-peak limiter, circular:** per-sample true peak from 4× polyphase oversampling with wrap-around padding; the gain each sample needs is held over a 2 ms lookahead, released over 80 ms (one-pole, run twice around the loop so the seam starts in steady state), then averaged over the lookahead so it starts falling before each peak. Every peak sees its full reduction. Ceiling: `true_peak_db` − 0.15 dB margin.
+3. **True-peak limiter, circular:** per-sample true peak from 4× polyphase oversampling with wrap-around padding; the gain each sample needs is held over a 2 ms lookahead, released over 80 ms (one-pole, run twice around the loop so the seam starts in steady state), then averaged over the lookahead so it starts falling before each peak. Every peak sees its full reduction. Ceiling: `true_peak_db` − 0.3 dB margin, room for the AAC encode of the Short. The AAC overshoot depends on the material (0.1 dB on `neon_house`, 0.4 dB on `phonk_180`'s distorted 808), so `datapipe short` also measures the AAC round trip before encoding and trims the gain when needed (−0.13 dB on `phonk_180` seed 2).
 4. **Iterate** gain and limiter until the loudness is within 0.05 LU of the target (usually two or three rounds).
 5. **Report** loudness, true peak, gain, the deepest limiter reduction and the seam check into the manifest.
 
-Measured: −14.0 ± 0.05 LUFS, −1.15 dBTP, limiter 1.3–3.7 dB across the shipped presets.
+Measured: −14.0 ± 0.05 LUFS, limiter 1.3–3.7 dB across the shipped presets; true peak −1.15 dBTP with the earlier 0.15 dB margin, −1.3 dBTP now.
 
 ## Determinism
 
