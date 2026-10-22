@@ -1,4 +1,4 @@
-"""`datapipe` command line: `short` and `analyze` for the four input methods (SPEC §16), `gen`, `example`, `plugins`
+"""`datapipe` command line: `short` and `analyze` for the six input methods (SPEC §16), `gen`, `example`, `plugins`
 and `doctor`; the rest lands phase by phase (SPEC §11)."""
 
 import argparse
@@ -14,7 +14,8 @@ PLANNED = {
     "preview": ("open a run in the Blender GUI for tweaking", "P5"),
 }
 METHOD_HELP = ("gen (A): compose a loop; master (B): one finished track; stems (C): master + stems; "
-               "midi (D): master + stems + MIDI")
+               "midi (D): master + stems + MIDI; slots (E): any stems, no instrument names; "
+               "deep (F): one complex track, every feature")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -114,8 +115,10 @@ def _gen(args: argparse.Namespace) -> int:
 
 
 def _method_args(p: argparse.ArgumentParser) -> None:
-    p.add_argument("method", nargs="?", choices=["gen", "master", "stems", "midi"], help="the input method (default gen)")
-    p.add_argument("input", nargs="?", type=Path, help="master: the song's file; stems, midi: the song's folder")
+    p.add_argument("method", nargs="?", choices=["gen", "master", "stems", "midi", "slots", "deep"],
+                   help="the input method (default gen)")
+    p.add_argument("input", nargs="?", type=Path,
+                   help="master, deep: the song's file; stems, midi: the song's folder; slots: either")
     p.add_argument("--preset", help="gen: compose with this preset (default: [gen] preset)")
     p.add_argument("--seed", type=int, default=1, help="gen: the seed")
     p.add_argument("--midi", type=Path, help="gen: render this .mid through the preset instead of composing")
@@ -138,7 +141,8 @@ def _analyze(args: argparse.Namespace) -> int:
     record = run / ("run.json" if (run / "run.json").exists() else "manifest.json")
     info = json.loads(record.read_text(encoding="utf-8"))
     controls = json.loads((run / "controls.json").read_text(encoding="utf-8"))
-    print(f"{run.name}: {controls['frames']} frames ({controls['frames'] / 60:.2f} s), {controls['bpm']} BPM")
+    tempo = f"{controls['bpm']} BPM" if controls.get("bpm") else "no tempo grid"
+    print(f"{run.name}: {controls['frames']} frames ({controls['frames'] / 60:.2f} s), {tempo}")
     if "hits" in info:
         print(f"  tempo {info['tempo_source']}; sections ({info['sections_from']}): "
               + ", ".join(f"{s['name']} {s['frame'] / 60:.1f}s" for s in info["sections"]))

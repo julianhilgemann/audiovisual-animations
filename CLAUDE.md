@@ -6,7 +6,7 @@ Audio-reactive YouTube Shorts: a file dropped in `inbox/` is analyzed, mapped on
 
 ## Status
 
-Four input methods run end to end on macOS (SPEC §16, v0.8): `uv run datapipe short gen|master|stems|midi …` turns a generated loop (A, SPEC §15), a finished master (B), master and stems (C), or master, stems and MIDI (D) into a finished Short. Open: a real Ableton export for D, three real tracks for B (M2, M4), the overlay-mask gate, a Windows run. The Director rig (old P1) is now an optional second look; next after that is P4 (`watch`). `uv run datapipe doctor` checks the whole toolchain, and `uv run pytest` runs the tests.
+Six input methods run end to end on macOS (SPEC §16, v0.9): `uv run datapipe short gen|master|stems|midi|slots|deep …` turns a generated loop (A, SPEC §15), a finished master (B), master and stems (C), master, stems and MIDI (D), any stems as numbered slots without a tempo (E), or one complex track measured from every side (F, SPEC §16.7) into a finished Short. Open: a real Ableton export for D, three real tracks for B and F, real non-drum stems for E (M2, M4, M5, M6), the overlay-mask gate, a Windows run. The Director rig (old P1) is now an optional second look; next after that is P4 (`watch`). `uv run datapipe doctor` checks the whole toolchain, and `uv run pytest` runs the tests.
 
 The user wants this machine left intact. Python packages go into `.venv` through `pyproject.toml` and `uv`. FFmpeg comes from PyAV (`av`) inside the venv, not a system ffmpeg. Anything installed outside the repo needs the user's go-ahead first.
 
@@ -18,10 +18,10 @@ Work phase by phase. A phase is done when its "Done when" column in SPEC §11 ho
 
 ## Input methods (`src/datapipe/shorts.py`, SPEC §16)
 
-- Each method has its own front end (A `gen/`, B–D `song/`), landing zone (`inbox/<method>/`) and run folders (`work/<method>/`); all write the same `controls.json` (contract in `dawdreamer/specs/handoff.md`) and share one back end, `render.py` (S5–S7).
-- One Blender look is the hub: `blender/stem-tunnel/stem_tunnel.blend` with `mappings/<method>.toml`. `[looks]` and `[methods]` in `config/pipeline.toml` pick the look; a new look is a new folder with the same four mapping files.
+- Each method has its own front end (A `gen/`, B–F `song/`: E is `song/slots.py`, F `song/deep.py`), landing zone (`inbox/<method>/`) and run folders (`work/<method>/`); all write the same `controls.json` (contract in `dawdreamer/specs/handoff.md`) and share one back end, `render.py` (S5–S7).
+- One Blender look is the hub: `blender/stem-tunnel/stem_tunnel.blend` with `mappings/<method>.toml`. `[looks]` and `[methods]` in `config/pipeline.toml` pick the look; a new look is a new folder with the same six mapping files. The sync gate checks the track the mapping's `ring` follows.
 - Songs don't wrap (`wrap: false`): `mapping.py` functions take `wrap`, and nothing may flow from a song's end into its start. Motion still closes on a loop unless `loop = false`.
-- After changing detection (`song/onsets.py`, `song/analysis.py`), run `tests/test_song.py` and compare hits against a generated loop's score (`datapipe example stems` writes `score.json` next to the export).
+- After changing detection (`song/onsets.py`, `song/analysis.py`), run `tests/test_song.py` and `tests/test_slots_deep.py` and compare hits against a generated loop's score (`datapipe example stems` writes `score.json` next to the export).
 
 ## Generative audio (`dawdreamer/`, `src/datapipe/gen/`)
 

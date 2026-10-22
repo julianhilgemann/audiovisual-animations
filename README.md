@@ -1,8 +1,8 @@
 # Datapipe
 
-Audio-reactive YouTube Shorts rendered with Blender. Generate a loop, or bring your own music (a master, stems, MIDI), and get a finished 9:16 MP4 in `output/`.
+Audio-reactive YouTube Shorts rendered with Blender. Generate a loop, or bring your own music or sound (a master, stems, MIDI), and get a finished 9:16 MP4 in `output/`.
 
-> **Status:** four input methods work end to end on macOS (SPEC §16): a generated loop, a finished master, master and stems, and master, stems and MIDI. Design and roadmap: [SPEC.md](SPEC.md).
+> **Status:** six input methods work end to end on macOS (SPEC §16): a generated loop, a finished master, master and stems, master, stems and MIDI, any stems without instrument names, and one complex track measured from every side. Design and roadmap: [SPEC.md](SPEC.md).
 
 ## Setup
 
@@ -16,14 +16,18 @@ uv run datapipe short --seed 42          # the same loop as a finished YouTube S
 
 ## Your own music
 
-Four methods, side by side. The master is always what you hear; stems and MIDI only steer the picture. The video is as long as your master (warning over 60 s, refused over 180 s).
+Six methods, side by side. The master is always what you hear; stems and MIDI only steer the picture. The video is as long as your master (warning over 60 s, refused over 180 s).
 
 | Method | Put this | Run |
 |---|---|---|
 | **B** `master`: one finished track | `inbox/master/mysong.wav` (WAV, AIFF, FLAC, MP3, M4A, or a video) | `uv run datapipe short master inbox/master/mysong.wav` |
 | **C** `stems`: quick, controlled visuals | `inbox/stems/mysong/master.wav` and `inbox/stems/mysong/stems/*.wav` | `uv run datapipe short stems inbox/stems/mysong` |
 | **D** `midi`: exact timing | as C, plus `inbox/midi/mysong/midi/*.mid` (one file per track) | `uv run datapipe short midi inbox/midi/mysong` |
+| **E** `slots`: stems of anything, no beat needed | `inbox/slots/mypiece/stems/*.wav` (master optional; `slots = [...]` in `song.toml` sets the order) | `uv run datapipe short slots inbox/slots/mypiece` |
+| **F** `deep`: one complex track, every feature | `inbox/deep/mytrack.wav` | `uv run datapipe short deep inbox/deep/mytrack.wav` |
 | **A** `gen`: fully generated | nothing | `uv run datapipe short gen --preset neon_house --seed 42` |
+
+E reads every stem the same way (loudness, transients, density, crest, brightness, flatness, three bands, activity) and gives slot 1 the punch, slot 2 the body, slot 3 the sparkle and slot 4 the portals; no tempo, kick or sections are assumed. F measures loudness (BS.1770), spectral shape, onsets per band, stereo width, the harmonic and percussive parts, pitch and structural changes, and maps each one to a fixed part of the tunnel. SPEC §16.7 has the details.
 
 ```
 inbox/midi/mysong/
@@ -50,7 +54,7 @@ Requirements, on Windows or macOS: [uv](https://docs.astral.sh/uv/) (`winget ins
 
 | Folder | What goes there |
 |---|---|
-| `inbox/master/`, `inbox/stems/`, `inbox/midi/` | Your music, per method (see above; watched automatically from Phase 4) |
+| `inbox/master/`, `inbox/stems/`, `inbox/midi/`, `inbox/slots/`, `inbox/deep/` | Your music, per method (see above; watched automatically from Phase 4) |
 | `output/<method>/` | Finished Shorts: MP4, a `.json` with the checks, a thumbnail |
 | `scenes/` | Blender template scenes |
 | `presets/` | Shape and look presets, saved from the Blender side panel |

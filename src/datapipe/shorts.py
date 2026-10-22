@@ -1,10 +1,12 @@
-"""The four input methods behind two calls (SPEC §16): ``analyze`` makes a run folder, ``make`` a finished Short.
+"""The six input methods behind two calls (SPEC §16): ``analyze`` makes a run folder, ``make`` a finished Short.
 
     from datapipe import shorts
     mp4, report = shorts.make("gen", preset="neon_house", seed=42)     # A: compose, render, encode, check
     mp4, report = shorts.make("master", "inbox/master/song.wav")       # B: one finished track
     mp4, report = shorts.make("stems", "inbox/stems/mytrack")          # C: master + stems
     mp4, report = shorts.make("midi", "inbox/midi/mytrack", preview=True)   # D: master + stems + MIDI
+    mp4, report = shorts.make("slots", "inbox/slots/mypiece")          # E: any stems, no instrument names
+    mp4, report = shorts.make("deep", "inbox/deep/track.wav")          # F: one complex track, every feature
     run = shorts.analyze("stems", "inbox/stems/mytrack")              # up to controls.json and report.png
     mp4, report = shorts.make(run=run)                                 # render a run again (method from the run)
 """
@@ -16,15 +18,16 @@ from pathlib import Path
 from .config import load_config
 from .render import make_short, resolve_run
 
-METHODS = ("gen", "master", "stems", "midi")
+METHODS = ("gen", "master", "stems", "midi", "slots", "deep")
 
 
 def analyze(method: str, input: Path | None = None, *, preset: str | None = None, seed: int = 1,
             midi: Path | None = None, use_plugins: bool = True, out: Path | None = None,
             start: float | None = None, length: float | None = None, bpm: float | None = None,
             loop: bool | None = None, progress=print) -> Path:
-    """A run folder with controls.json and mix.wav for any method; ``input`` is the song's file (master) or folder
-    (stems, midi). ``gen`` composes from ``preset`` and ``seed`` (or renders ``midi``) instead."""
+    """A run folder with controls.json and mix.wav for any method; ``input`` is the song's file (master, deep) or
+    folder (stems, midi), either for slots. ``gen`` composes from ``preset`` and ``seed`` (or renders ``midi``)
+    instead."""
     if method not in METHODS:
         raise ValueError(f"unknown method {method!r}; one of {', '.join(METHODS)}")
     if method == "gen":

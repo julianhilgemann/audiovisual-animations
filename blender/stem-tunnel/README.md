@@ -1,12 +1,14 @@
 # Stem tunnel (Blender)
 
-The neon lines tunnel from [`blender/audio-tunnel`](../audio-tunnel/README.md), driven by a run's `controls.json` from any of the four input methods (SPEC §16): a generated loop (A), a finished master (B), master and stems (C), or master, stems and MIDI (D). Hits and loudness are the modulators, the master is the soundtrack, and one command renders and encodes a finished YouTube Short. It is the central hub: one scene, one mapping per method in `mappings/`.
+The neon lines tunnel from [`blender/audio-tunnel`](../audio-tunnel/README.md), driven by a run's `controls.json` from any of the six input methods (SPEC §16): a generated loop (A), a finished master (B), master and stems (C), master, stems and MIDI (D), any stems as numbered slots (E), or one complex track measured from every side (F). Hits, loudness and features are the modulators, the master is the soundtrack, and one command renders and encodes a finished YouTube Short. It is the central hub: one scene, one mapping per method in `mappings/`.
 
 ```
 uv run datapipe short gen --preset neon_house --seed 42          # A: compose, render, encode, check
 uv run datapipe short master inbox/master/song.wav --preview      # B: half size, 8 samples
 uv run datapipe short stems inbox/stems/mytrack                   # C
 uv run datapipe short midi inbox/midi/mytrack                     # D
+uv run datapipe short slots inbox/slots/mypiece                   # E: a folder of stems, or one file
+uv run datapipe short deep inbox/deep/track.wav                   # F
 uv run datapipe short --run work/midi/latest --preview            # render a run again, e.g. after editing its mapping
 ```
 
@@ -16,12 +18,12 @@ Output: `output/<method>/<run>.mp4`, a `.json` sidecar with the checks, and a `.
 
 | Stage | Where | What |
 |---|---|---|
-| Audio | A: `datapipe gen` (`dawdreamer/`); B, C, D: your files (`src/datapipe/song/ingest.py`) | score, stems, mastered mix; or your master, stems and MIDI, lined up at 48 kHz |
-| S3 controls | `src/datapipe/gen/controls.py`, `src/datapipe/song/controls.py` | per frame: each track's hits (score, MIDI or detected onsets), each stem's loudness, the mix's loudness, brightness and bands, beat and bar phase, curves, sections → `controls.json` |
+| Audio | A: `datapipe gen` (`dawdreamer/`); B to F: your files (`src/datapipe/song/ingest.py`) | score, stems, mastered mix; or your master, stems and MIDI, lined up at 48 kHz |
+| S3 controls | `src/datapipe/gen/controls.py`, `src/datapipe/song/controls.py`, `slots.py` (E), `deep.py` (F) | per frame: each track's hits (score, MIDI or detected onsets), each stem's loudness, the mix's loudness, brightness and bands, beat and bar phase, curves, sections, and E's and F's features → `controls.json` |
 | S4 mapping | `mappings/<method>.toml`, `stem_tunnel.py` (in Blender) | modulators → the look's signals on the `AudioSignals` empty; motion integrated and (by default) closed on the loop |
 | S5 render | Blender, headless, EEVEE | one PNG per frame at 1080×1920, 60 fps (480 for a loop, the song's length otherwise), plus frame n + 1 for the seam check |
 | S6 encode | `src/datapipe/render.py` (PyAV) | H.264 High, yuv420p, BT.709 matrix and tags, TV range, GOP 30, 2 B-frames, CRF 16 (x264 slow), AAC 320 kb/s 48 kHz, faststart; the audio is trimmed first if its AAC encode would overshoot −1 dBTP (it does by up to 0.4 dB on distorted bass) |
-| S7 checks | same | format, length, faststart, true peak (and −14 LUFS for a loop), kick sync, seam, flashes |
+| S7 checks | same | format, length, faststart, true peak (and −14 LUFS for a loop), sync of the ring's track (the kick, E's `slot1`, F's `low`), seam, flashes |
 
 The shared math (envelopes, followers, loop closure) is `src/datapipe/mapping.py`, the same file in the pipeline and in Blender.
 
@@ -39,7 +41,7 @@ The shared math (envelopes, followers, loop closure) is `src/datapipe/mapping.py
 | `twist` | the story's twist section | hue jump and an extra camera roll: the violation |
 | ring | the kick's hits × 0.3 | the light ring racing into the tunnel |
 
-Sources are `hit:<track>`, `stem:<name>`, `mix:loud`, `mix:bright`, `band:<name>` (sub, bass, lowmid, mid, highmid, air), `curve:<name>` and `section:<name>`; each signal is a weighted sum. A run without a track simply contributes nothing. `[motion] speed_curve` names the curve that speeds the tunnel up (the riser for a loop, `build` for a song).
+Sources are `hit:<track>`, `stem:<name>`, `mix:loud`, `mix:bright`, `band:<name>` (sub, bass, lowmid, mid, highmid, air), `curve:<name>`, `section:<name>` and `feature:<name>` (E and F, SPEC §16.7); each signal is a weighted sum. A run without a track simply contributes nothing. `[motion] speed_curve` names the curve that speeds the tunnel up (the riser for a loop, `build` for a song).
 
 The song methods use the same look signals, fed by what they have:
 
@@ -52,6 +54,18 @@ The song methods use the same look signals, fed by what they have:
 | `mids` | detected snares + the mid band | snare, clap and lead hits |
 | `bright` | brightness + the build curve | the same |
 | `twist` | the drop section: a hue shift and extra camera roll | the same |
+
+E and F have no instrument names, so their mappings give each slot or feature a fixed part of the picture (`report.png` in the run folder labels every row with what it drives, or "unused"):
+
+| Look signal | `slots.toml` (E) | `deep.toml` (F) |
+|---|---|---|
+| `kick`, `kick_light`, ring | slot 1's transients (ring 0.15, glow 0.3: the ring lit sparse transients late) | low percussive onsets + the percussive onset strength |
+| `bass` | slot 2's loudness and low band | sub and bass bands and their onsets |
+| `energy` | the master's 3 s loudness + slot 1's onset density | momentary and short-term loudness, percussive loudness, build curve |
+| `hats` | slot 3's transients and high band | high onsets, air onsets and band, flatness |
+| `mids` | slot 4's loudness + slot 2's transients | mid onsets, harmonic loudness, harmonic change, spectral flux |
+| `bright` | brightness + slot 3's flatness | brightness, rolloff, bandwidth, stereo width, harmonic share |
+| `twist` | slot 4 playing | the drop section + novelty at every change |
 
 A song doesn't wrap: no envelope runs from the last frame into the first. The look's own sliders (speeds, glow, flash, lens, colours) are custom properties on the `NeonControls` empty in `stem_tunnel.blend` (Object Properties > Custom Properties), carried over from the reference scene.
 
@@ -74,7 +88,7 @@ With the defaults the 50 % preview of `neon_house` seed 42 has no flashes; the k
 |---|---|
 | `stem_tunnel.blend` | the template: the reference lines tunnel and its look, no kaleidoscope, no UI script, drivers on the run signals, `near_fade` on the portals |
 | `stem_tunnel.py` | runs inside Blender: maps controls onto the look, bakes, wires the drivers, renders; `--make-template` rebuilds the template |
-| `mappings/<method>.toml` | which modulator drives which look signal, per input method: `gen`, `master`, `stems`, `midi` |
+| `mappings/<method>.toml` | which modulator drives which look signal, per input method: `gen`, `master`, `stems`, `midi`, `slots`, `deep` |
 
 After re-tuning the look in `blender/audio-tunnel/neon_tunnel_audio.blend`, rebuild the template from it:
 

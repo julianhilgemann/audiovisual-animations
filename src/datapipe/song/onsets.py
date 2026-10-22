@@ -52,12 +52,13 @@ def novelty(mag: np.ndarray, freqs: np.ndarray, lo: float, hi: float, lag: int =
 
 
 def pick(nov: np.ndarray, level_db: np.ndarray, delta: float = 0.1, wait_s: float = 0.045,
-         separation: float = 4.0) -> list[list]:
+         separation: float = 4.0, floor: float = 0.0) -> list[list]:
     """Peaks of a novelty curve -> ``[[frame, strength], ...]`` on the video frame grid. A peak must top its
-    ±30 ms neighbourhood and its ±100 ms mean by ``delta`` (relative to the curve's top), and come ``wait_s``
-    after the previous one. When the peak heights fall into two groups whose means differ by ``separation`` times
-    or more, the low group is crosstalk (hats in the snare band, a kick's tail) and goes. One hit per frame."""
-    if nov.max() <= 0 or level_db.max() < SILENT_DB:
+    ±30 ms neighbourhood and its ±100 ms mean by ``delta`` (relative to the curve's top), come ``wait_s``
+    after the previous one, and reach ``floor`` in the curve's own units (0: no absolute floor, every curve has
+    peaks). When the peak heights fall into two groups whose means differ by ``separation`` times or more, the low
+    group is crosstalk (hats in the snare band, a kick's tail) and goes. One hit per frame."""
+    if nov.max() <= max(floor, 0.0) or level_db.max() < SILENT_DB:
         return []
     top = np.percentile(nov[nov > 0], 99.9)
     x = np.clip(nov / top, 0.0, 1.5)
@@ -65,7 +66,8 @@ def pick(nov: np.ndarray, level_db: np.ndarray, delta: float = 0.1, wait_s: floa
     peaks = librosa.util.peak_pick(x, pre_max=round(0.03 / step), post_max=round(0.03 / step) + 1,
                                    pre_avg=round(0.1 / step), post_avg=round(0.1 / step) + 1,
                                    delta=delta, wait=round(wait_s / step))
-    peaks = np.array([p for p in peaks if level_db[min(p + 2, len(level_db) - 1)] > level_db.max() - 45], int)
+    peaks = np.array([p for p in peaks if level_db[min(p + 2, len(level_db) - 1)] > level_db.max() - 45
+                      and nov[p] >= floor], int)
     if not len(peaks):
         return []
     heights = x[peaks]
@@ -97,7 +99,7 @@ def _crosstalk_floor(heights: np.ndarray, separation: float) -> float:
     return 0.0
 
 
-def _level_db(mag: np.ndarray, freqs: np.ndarray, lo: float, hi: float) -> np.ndarray:
+def level_db(mag: np.ndarray, freqs: np.ndarray, lo: float, hi: float) -> np.ndarray:
     """Band level in dBFS-like units per detection step (for the silence gate)."""
     band = mag[:, (freqs >= lo) & (freqs < hi)]
     power = (band ** 2).sum(axis=1) / (N_FFT * np.hanning(N_FFT).sum() / 2) + 1e-12
@@ -107,18 +109,32 @@ def _level_db(mag: np.ndarray, freqs: np.ndarray, lo: float, hi: float) -> np.nd
 def hits(x: np.ndarray, lo: float = 30, hi: float = 16000) -> list[list]:
     """Onsets of a clean signal (a stem), over the whole band by default."""
     mag, freqs = spectrogram(x)
-    return pick(novelty(mag, freqs, lo, hi), _level_db(mag, freqs, lo, hi))
+    return pick(novelty(mag, freqs, lo, hi), level_db(mag, freqs, lo, hi))
+
+
+def band_hits(x: np.ndarray, bands: dict[str, tuple[float, float]], full_mix: bool = False) -> dict[str, list[list]]:
+    """Onsets per band of ``bands``; ``full_mix`` runs on the percussive part (HPSS) with the full mix's crosstalk
+    separation, so held notes trigger less."""
+    mag, freqs = spectrogram(x)
+    if full_mix:
+        mag = percussive(mag)
+    return {name: pick(novelty(mag, freqs, lo, hi), level_db(mag, freqs, lo, hi), separation=3.0 if full_mix else 4.0)
+            for name, (lo, hi) in bands.items()}
+
+
+def per_frame(nov: np.ndarray, n: int) -> np.ndarray:
+    """A detection-step curve on the video frame grid: the largest of the 4 steps nearest each frame (steps 4i-2 to
+    4i+1), the same rounding ``pick`` gives a hit, so a transient curve peaks on its hit's frame."""
+    steps = SAMPLE_RATE // FPS // DET_HOP
+    padded = np.concatenate([np.zeros(steps // 2), nov, np.zeros(n * steps)])[:n * steps]
+    return padded.reshape(n, steps).max(axis=1)
 
 
 def drum_hits(x: np.ndarray, full_mix: bool = False) -> dict[str, list[list]]:
     """Kick, snare and hats from a drum bus, or (``full_mix``) from a whole master after HPSS. In a full mix the
     low band also fires on bass notes, so each kick candidate is weighted by how kick-like it sounds (``kickness``)
     and dropped below 0.15: a pure low thump keeps its strength, a harmonic bass note fades out."""
-    mag, freqs = spectrogram(x)
-    if full_mix:
-        mag = percussive(mag)
-    out = {role: pick(novelty(mag, freqs, lo, hi), _level_db(mag, freqs, lo, hi), separation=3.0 if full_mix else 4.0)
-           for role, (lo, hi) in DRUM_BANDS.items()}
+    out = band_hits(x, DRUM_BANDS, full_mix)
     if full_mix:
         m = x.mean(axis=1) if x.ndim == 2 else x
         weighted = [[f, round(a * kickness(m, f), 4)] for f, a in out["kick"]]

@@ -1,10 +1,12 @@
-"""Per-frame audio features every method shares (SPEC §5.2, §16.3): loudness, brightness, band energies.
+"""Per-frame audio features every method shares (SPEC §5.2, §16.3): loudness, brightness, band energies; and the
+fixed-scale ones E and F add (§16.7): flatness and crest.
 
 One feature frame per video frame: the hop is 800 samples at 48 kHz, frame i starts at sample i * 800, no centring.
-``wrap`` treats the audio as a seamless loop (method A); a song (B, C, D) has a start and an end.
+``wrap`` treats the audio as a seamless loop (method A); a song (B-F) has a start and an end.
 """
 
 import numpy as np
+from scipy.ndimage import maximum_filter1d, uniform_filter1d
 
 from . import mapping
 
@@ -34,7 +36,7 @@ def loudness(x: np.ndarray, attack: float, release: float, wrap: bool = True) ->
     return mapping.normalize(mapping.follow(db, attack, release, wrap))
 
 
-def _power(x: np.ndarray, n_fft: int, wrap: bool) -> tuple[np.ndarray, np.ndarray]:
+def power_spectrum(x: np.ndarray, n_fft: int, wrap: bool) -> tuple[np.ndarray, np.ndarray]:
     """Power spectrum per frame from an ``n_fft`` window starting on the frame (wrapping or zero-padded)."""
     m = mono(x)
     n = frames_of(m)
@@ -51,22 +53,48 @@ def _power(x: np.ndarray, n_fft: int, wrap: bool) -> tuple[np.ndarray, np.ndarra
 
 def brightness(x: np.ndarray, smooth_frames: int = 8, wrap: bool = True) -> np.ndarray:
     """0-1 spectral centroid (log frequency) per frame, from a 2048-sample window starting on the frame."""
-    power, freqs = _power(x, 2048, wrap)
+    power, freqs = power_spectrum(x, 2048, wrap)
     band = (freqs >= 60) & (freqs <= 16000)
     centroid = (power[:, band] * freqs[band]).sum(axis=1) / (power[:, band].sum(axis=1) + 1e-12)
     return mapping.normalize(mapping.smooth(np.log2(centroid + 1.0), smooth_frames, wrap))
 
 
-def bands(x: np.ndarray, attack: float = 1, release: float = 6, wrap: bool = True) -> dict[str, np.ndarray]:
-    """0-1 energy per band of §5.2 (sub, bass, lowmid, mid, highmid, air): dB per frame from a 4096-sample window,
-    floored 48 dB under the band's peak, followed, normalised."""
-    power, freqs = _power(x, 4096, wrap)
+def bands(x: np.ndarray, attack: float = 1, release: float = 6, wrap: bool = True,
+          table: dict[str, tuple[float, float]] = BANDS) -> dict[str, np.ndarray]:
+    """0-1 energy per band of ``table`` (default §5.2's sub, bass, lowmid, mid, highmid, air): dB per frame from a
+    4096-sample window, floored 48 dB under the band's peak, followed, normalised."""
+    power, freqs = power_spectrum(x, 4096, wrap)
     out = {}
-    for name, (lo, hi) in BANDS.items():
+    for name, (lo, hi) in table.items():
         db = 10 * np.log10(power[:, (freqs >= lo) & (freqs < hi)].sum(axis=1) + 1e-12)
         db = np.maximum(db, db.max() - FLOOR_DB)
         out[name] = mapping.normalize(mapping.follow(db, attack, release, wrap))
     return out
+
+
+def flatness(x: np.ndarray, smooth_frames: int = 6, wrap: bool = True) -> np.ndarray:
+    """0-1 spectral flatness per frame (60 Hz-16 kHz, 2048-sample window) on a fixed scale: a pure tone is near 0,
+    white noise near 1 (its flatness through a Hann window is about 0.56, scaled by 1 / 0.5). Not normalised, so
+    noisy against tonal means the same on every signal; silence counts as tonal."""
+    power, freqs = power_spectrum(x, 2048, wrap)
+    p = power[:, (freqs >= 60) & (freqs <= 16000)] + 1e-12
+    flat = np.exp(np.log(p).mean(axis=1)) / p.mean(axis=1)
+    flat[power.sum(axis=1) < 1e-9] = 0.0
+    return np.clip(mapping.smooth(flat / 0.5, smooth_frames, wrap), 0.0, 1.0)
+
+
+def crest(x: np.ndarray, window_frames: int, wrap: bool = True) -> np.ndarray:
+    """0-1 crest factor (peak against RMS) over a centred window of ``window_frames``, on a fixed scale: a sine
+    (3 dB) is 0, 21 dB (a click in silence) is 1. How percussive the sound is; silence is 0."""
+    m = mono(x)
+    n = frames_of(m)
+    blocks = m[:n * HOP].reshape(n, HOP).astype(np.float64)
+    mode = "wrap" if wrap else "nearest"
+    peak = maximum_filter1d(np.abs(blocks).max(axis=1), window_frames, mode=mode)
+    ms = np.maximum(uniform_filter1d((blocks ** 2).mean(axis=1), window_frames, mode=mode), 0.0)
+    db = 20 * np.log10((peak + 1e-12) / np.sqrt(ms + 1e-24))
+    db[ms < 1e-10] = 3.0
+    return np.clip((db - 3.0) / 18.0, 0.0, 1.0)
 
 
 def rounded(values) -> list[float]:

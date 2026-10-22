@@ -1,6 +1,6 @@
 # Handoff: the files Blender reads
 
-**v2 · 2026-10-23.** *v2: `controls.json` is the contract of all four input methods (SPEC §16): new keys for bands, beat and bar phase, the method, `wrap` and `close`; songs (B, C, D) write it from `src/datapipe/song/controls.py`.* What one `datapipe gen` run writes, and how Blender picks it up. The pipeline is Blender-only (SPEC v0.6). This is the contract between the audio stages (S1, S2) and everything visual (S3–S7 in [SPEC §15](../../SPEC.md#15-generative-loops)). Code: `src/datapipe/gen/score.py` (standard library only, so Blender imports it as is; verified under Blender 5.2's Python 3.13) and `run.py`.
+**v3 · 2026-10-23.** *v3: methods E `slots` and F `deep` (SPEC §16.7) add `features`, and a run without a tempo grid has `bpm` null and no `beat`, `bar`, `bar_frames`, `beats` or `downbeat`. v2: `controls.json` is the contract of all input methods (SPEC §16): new keys for bands, beat and bar phase, the method, `wrap` and `close`; songs (B, C, D) write it from `src/datapipe/song/controls.py`.* What one `datapipe gen` run writes, and how Blender picks it up. The pipeline is Blender-only (SPEC v0.6). This is the contract between the audio stages (S1, S2) and everything visual (S3–S7 in [SPEC §15](../../SPEC.md#15-generative-loops)). Code: `src/datapipe/gen/score.py` (standard library only, so Blender imports it as is; verified under Blender 5.2's Python 3.13) and `run.py`.
 
 ## Run folder
 
@@ -70,23 +70,24 @@ Envelopes (wind-up before a hit, decay after) are not in this file: they belong 
 
 ## `controls.json`
 
-`datapipe short` writes it into the run folder (S3, `src/datapipe/gen/controls.py`): everything a look needs, one value per video frame, independent of any look. Hop 800 samples = one frame, no centring offset; every 0–1 value is normalised on its 5th–95th percentile and followed or smoothed around the loop. The song methods (SPEC §16: master, stems, midi) write the same keys from `src/datapipe/song/controls.py`, for their own length and without wrapping around the end; a key a run cannot fill is absent, and a look counts it as 0.
+`datapipe short` writes it into the run folder (S3, `src/datapipe/gen/controls.py`): everything a look needs, one value per video frame, independent of any look. Hop 800 samples = one frame, no centring offset; every 0–1 value is normalised on its 5th–95th percentile and followed or smoothed around the loop. The song methods (SPEC §16: master, stems, midi) write the same keys from `src/datapipe/song/controls.py`, and slots and deep from `song/slots.py` and `song/deep.py`, for their own length and without wrapping around the end; a key a run cannot fill is absent, and a look counts it as 0.
 
 | Key | What |
 |---|---|
-| `method`, `wrap`, `close` | the input method (`gen`, `master`, `stems`, `midi`); whether envelopes wrap around the end (a seamless loop: `gen` only); whether accumulated motion closes on a loop (song.toml `loop`, default true) |
-| `fps`, `frames`, `bpm`, `frames_per_beat` | the grid; `frames` is 480 for a generated loop, the song's own length otherwise |
+| `method`, `wrap`, `close` | the input method (`gen`, `master`, `stems`, `midi`, `slots`, `deep`); whether envelopes wrap around the end (a seamless loop: `gen` only); whether accumulated motion closes on a loop (song.toml `loop`, default true) |
+| `fps`, `frames`, `bpm`, `frames_per_beat` | the grid; `frames` is 480 for a generated loop, the song's own length otherwise; `bpm` and `frames_per_beat` are null when the run has no tempo grid (slots, deep without a given `bpm`) |
 | `sections`, `section`, `phase` | section starts as frames (0-based), the section index and loop phase per frame |
 | `beat`, `bar` | beat phase and bar phase per frame, 0–1 ramps (score, MIDI tempo map, or the tracked grid) |
-| `curves.<name>` | per frame: score automation (`riser`); songs: `build` (0 → 1 through each build) and `energy` (bar loudness) |
-| `tracks.<track>.hits` | `[frame, strength 0-1]` per note-on or detected onset (chords: the loudest note), frames 0-based on the timing contract |
+| `curves.<name>` | per frame: score automation (`riser`); songs: `build` (0 → 1 through each build) and `energy` (bar loudness; slots and deep: the K-weighted 3 s loudness) |
+| `tracks.<track>.hits` | `[frame, strength 0-1]` per note-on or detected onset (chords: the loudest note), frames 0-based on the timing contract; slots name their tracks `slot1`, `slot2`, …, deep `low`, `mid`, `high` |
 | `tracks.<track>.source` | `score`, `midi` or `onset` |
 | `tracks.<track>.gate`, `.pitch` | as in `frames.csv` (score and MIDI only) |
 | `stems.<stem>.loud` | the stem's loudness: RMS per frame in dB (floor 48 dB under its peak), follower 1 frame attack / 7 release |
 | `mix.loud`, `mix.bright` | the master's loudness (2 / 12 frames) and spectral centroid (log, smoothed over 8) |
 | `bands.<band>` | the master's energy in `sub`, `bass`, `lowmid`, `mid`, `highmid`, `air` (SPEC §5.2), 4096-sample window, follower 1 / 6 frames |
-| `bar_frames`, `beats`, `downbeat` | songs: bar starts as frames, beat times in seconds, the index of the first downbeat |
-| `meta` | gen: preset, seed, key, mode, violation; songs: title, files and their roles, tempo and section sources, the drop's frame, hit counts, warnings |
+| `bar_frames`, `beats`, `downbeat` | songs with a tempo grid: bar starts as frames, beat times in seconds, the index of the first downbeat |
+| `features.<name>` | slots and deep: one 0–1 curve per frame each (SPEC §16.7). Slots: `slot<N>.<feature>` for `loud`, `transient`, `density`, `crest`, `bright`, `flat`, `low`, `mid`, `high`, `active`. Deep: `loud.*`, `spectrum.*`, `onset.<band>`, `stereo.*`, `harmonic.*`, `percussive.*`, `pitch.*`, `section.novelty`. A mapping reads them as `feature:<name>` |
+| `meta` | gen: preset, seed, key, mode, violation; songs: title, files and their roles (slots: `slots`, slot → file), tempo and section sources, the drop's frame, hit counts, warnings; deep: `loudness` (integrated LUFS, loudest momentary and short-term) |
 
 A look turns these into its parameters with `src/datapipe/mapping.py` (hit envelopes, followers, loop closure), as `blender/stem-tunnel` does.
 

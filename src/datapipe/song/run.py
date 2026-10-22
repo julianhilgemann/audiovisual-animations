@@ -1,6 +1,6 @@
-"""Methods B, C and D up to the run folder (SPEC §16.1, §16.2): work/<method>/<yyyymmdd-HHMMSS>_<song>/ holds
-mix.wav (the master, 48 kHz, exactly 800 samples per frame), controls.json, report.png and run.json; the newest is
-mirrored into work/<method>/latest/.
+"""Methods B-F up to the run folder (SPEC §16.1, §16.2): work/<method>/<yyyymmdd-HHMMSS>_<song>/ holds mix.wav (the
+master, 48 kHz, exactly 800 samples per frame), controls.json, report.png and run.json; the newest is mirrored into
+work/<method>/latest/.
 """
 
 import hashlib
@@ -8,6 +8,7 @@ import json
 import platform
 import subprocess
 import time
+import tomllib
 from datetime import datetime
 from pathlib import Path
 
@@ -18,10 +19,11 @@ from .. import __version__
 from ..config import ROOT, load_config
 from ..features import SAMPLE_RATE
 from ..gen.run import _mirror
+from ..render import look_files
 from . import controls as song_controls
-from . import ingest, midi, report
+from . import deep, ingest, midi, report, slots
 
-SONG_METHODS = ("master", "stems", "midi")
+SONG_METHODS = ("master", "stems", "midi", "slots", "deep")
 
 
 def analyze(method: str, path: Path, out: Path | None = None, start: float | None = None,
@@ -41,7 +43,12 @@ def analyze(method: str, path: Path, out: Path | None = None, start: float | Non
     times["load"] = time.perf_counter() - t
 
     t = time.perf_counter()
-    controls = song_controls.build(song, notes, bpm, progress)
+    if method == "slots":
+        controls = slots.build(song, bpm, progress)
+    elif method == "deep":
+        controls = deep.build(song, bpm, progress)
+    else:
+        controls = song_controls.build(song, notes, bpm, progress)
     times["analyze"] = time.perf_counter() - t
 
     t = time.perf_counter()
@@ -50,7 +57,8 @@ def analyze(method: str, path: Path, out: Path | None = None, start: float | Non
     run_dir.mkdir(parents=True)
     sf.write(run_dir / "mix.wav", song.master, SAMPLE_RATE, subtype="FLOAT")
     (run_dir / "controls.json").write_text(json.dumps(controls, separators=(",", ":")) + "\n", encoding="utf-8")
-    report.write(controls, run_dir / "report.png")
+    with open(look_files(cfg, method)["mapping"], "rb") as fh:
+        report.write(controls, run_dir / "report.png", tomllib.load(fh))
     times["write"] = time.perf_counter() - t
     record = {
         "run": run_dir.name, "method": method, "created": datetime.now().isoformat(timespec="seconds"),

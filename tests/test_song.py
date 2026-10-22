@@ -165,6 +165,6 @@ def test_a_song_short_end_to_end_through_blender(song, tmp_path):
     g = report["gates"]
     assert report["method"] == "midi" and g["length"]["frames"] == 480 and g["length"]["ok"], g["length"]
     assert g["format"]["ok"] and g["faststart"]["ok"] and g["loudness"]["ok"], g
-    assert g["sync"]["ok"] and g["sync"]["kicks"] >= 14, g["sync"]         # the drop starts 0.74 s in
+    assert g["sync"]["ok"] and g["sync"]["hits"] >= 14, g["sync"]         # the drop starts 0.74 s in
     assert g["seam"]["ok"], g["seam"]
     assert mp4.exists() and (tmp_path / "out" / f"{run.name}_preview.png").exists()

@@ -76,7 +76,7 @@ project = "blender/stem-tunnel"
 scene = "stem_tunnel.blend"
 script = "stem_tunnel.py"
 
-# The four input methods (SPEC §16): where their inputs land, where their runs go, which look renders them.
+# The six input methods (SPEC §16): where their inputs land, where their runs go, which look renders them.
 [methods.gen]                # A: a preset and a seed, composed and rendered by DawDreamer
 look = "stem-tunnel"         # runs go to [gen] out
 
@@ -95,7 +95,17 @@ look = "stem-tunnel"
 inbox = "inbox/midi"
 work = "work/midi"
 
-[song]                       # methods B, C, D (SPEC §16.4)
+[methods.slots]              # E: any stems as numbered slots, generic features, no tempo (SPEC §16.7)
+look = "stem-tunnel"
+inbox = "inbox/slots"
+work = "work/slots"
+
+[methods.deep]               # F: one complex track, every feature hard-mapped (SPEC §16.7)
+look = "stem-tunnel"
+inbox = "inbox/deep"
+work = "work/deep"
+
+[song]                       # methods B-F (SPEC §16.4)
 min_len_s = 1
 warn_len_s = 60              # Shorts over 60 s with an active Content ID claim are blocked
 max_len_s = 180              # the Shorts maximum

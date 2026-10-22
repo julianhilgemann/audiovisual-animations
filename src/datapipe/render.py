@@ -10,6 +10,7 @@ import json
 import shutil
 import subprocess
 import time
+import tomllib
 from fractions import Fraction
 from pathlib import Path
 
@@ -78,7 +79,10 @@ def make_short(run: Path, look: str | None = None, preview: bool = False, keep_f
     times["encode"] = time.perf_counter() - t
 
     t = time.perf_counter()
-    report = check(mp4, frames, controls, (width * profile["percent"] // 100, height * profile["percent"] // 100))
+    with open(files["mapping"], "rb") as fh:
+        ring = tomllib.load(fh).get("ring", {}).get("track", "kick")
+    report = check(mp4, frames, controls, (width * profile["percent"] // 100, height * profile["percent"] // 100),
+                   sync_track=ring)
     if (run / "manifest.json").exists():          # method A: the generated audio's own seam
         seam = json.loads((run / "manifest.json").read_text(encoding="utf-8"))["seam"]
         report["gates"]["audio_seam"] = {"ok": seam["ok"], **{k: v for k, v in seam.items() if k != "ok"}}
@@ -204,8 +208,9 @@ def _read(path: Path) -> av.VideoFrame:
         return next(c.decode(video=0)).reformat(format="rgb24")
 
 
-def check(mp4: Path, frames: Path, controls: dict, size: tuple[int, int]) -> dict:
-    """S7, the gates that need no human: format, length, faststart, colour tags, audio, kick sync, seam, flashes."""
+def check(mp4: Path, frames: Path, controls: dict, size: tuple[int, int], sync_track: str = "kick") -> dict:
+    """S7, the gates that need no human: format, length, faststart, colour tags, audio, sync of ``sync_track`` (the
+    track the mapping's light ring follows: the kick, or E's slot1, F's low band), seam, flashes."""
     n, wrap = controls["frames"], controls.get("wrap", True)
     gates = {}
     with av.open(str(mp4)) as c:
@@ -227,7 +232,7 @@ def check(mp4: Path, frames: Path, controls: dict, size: tuple[int, int]) -> dic
                        "frames": len(luma), "seconds": round(seconds, 3)}
     gates["faststart"] = {"ok": _moov_first(mp4)}
     gates["loudness"] = _loudness(mp4, strict=controls.get("method", "gen") == "gen")
-    gates["sync"] = _sync(luma, controls)
+    gates["sync"] = _sync(luma, controls, sync_track)
     if controls.get("close", True):
         gates["seam"] = _seam(frames, n)
     gates["flashes"] = _flashes(luma, wrap)
@@ -257,8 +262,9 @@ def _moov_first(mp4: Path) -> bool:
 
 
 def _sync(luma: np.ndarray, controls: dict, track: str = "kick") -> dict:
-    """Kick against picture: the brightness peak nearest each hit the run used, in frames after it (±4 searched).
-    It proves the render's timing in every method; how well B and C detect hits is measured by their tests."""
+    """A track's hits against the picture: the brightness peak nearest each hit the run used, in frames after it
+    (±4 searched). It proves the render's timing in every method; how well B, C, E and F detect hits is measured by
+    their tests."""
     n, wrap = len(luma), controls.get("wrap", True)
     hits = sorted({int(f) for f, _ in controls["tracks"].get(track, {}).get("hits", [])})
     offsets = []
@@ -267,9 +273,9 @@ def _sync(luma: np.ndarray, controls: dict, track: str = "kick") -> dict:
         window = [luma[(f + k) % n] for k in ks]
         offsets.append(ks[int(np.argmax(window))])
     if not offsets:
-        return {"ok": True, "kicks": 0}
+        return {"ok": True, "track": track, "hits": 0}
     median = float(np.median(offsets))
-    return {"ok": abs(median) <= 1, "kicks": len(hits), "median_offset_frames": median,
+    return {"ok": abs(median) <= 1, "track": track, "hits": len(hits), "median_offset_frames": median,
             "within_1_frame": round(float(np.mean(np.abs(offsets) <= 1)), 2), "offsets": offsets}
 
 

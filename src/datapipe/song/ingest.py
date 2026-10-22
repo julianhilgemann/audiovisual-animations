@@ -1,8 +1,10 @@
 """Find, decode and line up a song's files (SPEC §16.2): the master, the stems and the MIDI, plus song.toml.
 
-B takes one audio file (its sidecar is <name>.toml next to it). C and D take a folder: master.* (or the only audio
-file at the top), stems/ (or the other top-level audio files), and for D midi/ (or top-level .mid files), plus an
-optional song.toml. Every audio file is decoded to 48 kHz stereo float; the master sets the length.
+B and F take one audio file (its sidecar is <name>.toml next to it). C and D take a folder: master.* (or the only
+audio file at the top), stems/ (or the other top-level audio files), and for D midi/ (or top-level .mid files), plus
+an optional song.toml. E takes either: its stems become slots (slot1, slot2, ...) instead of roles, and without a
+master the stems' sum is what you hear. Every audio file is decoded to 48 kHz stereo float; the master sets the
+length.
 """
 
 import re
@@ -20,6 +22,8 @@ from ..features import HOP, SAMPLE_RATE
 AUDIO = {".wav", ".wave", ".aif", ".aiff", ".flac", ".ogg", ".mp3", ".m4a", ".aac", ".mp4", ".mov", ".mkv", ".webm"}
 MIDI = {".mid", ".midi"}
 NATIVE = {".wav", ".wave", ".aif", ".aiff", ".flac", ".ogg"}       # soundfile reads these sample-exact
+FILE_METHODS = ("master", "slots", "deep")                          # the methods that take a single file
+SUM_PEAK = 0.891                                                    # -1 dBFS: E's summed stems are scaled under it
 
 # The roles the mappings know (A's track names, plus snare and a whole drum bus) and the words that name them.
 ROLES = {
@@ -67,43 +71,53 @@ def load(method: str, path: Path, cfg: dict, start: float | None = None, length:
     start = float(start if start is not None else settings.get("start", 0.0))
     length = length if length is not None else settings.get("length")
 
-    master = _cut(decode(master_file), start, length)
+    decoded = {p: _cut(decode(p), start, length) for p in stem_files}
+    if master_file is None:
+        master, label = _sum(list(decoded.values()), warnings), path.name
+    else:
+        master = decoded[master_file] if master_file in decoded else _cut(decode(master_file), start, length)
+        label = master_file.name
     frames = int(round(len(master) / HOP))
     seconds = frames / 60
     limits = cfg.get("song", {})
     if seconds < limits.get("min_len_s", 1):
-        raise ValueError(f"{master_file.name}: {seconds:.2f} s is too short")
+        raise ValueError(f"{label}: {seconds:.2f} s is too short")
     if seconds > limits.get("max_len_s", 180):
-        raise ValueError(f"{master_file.name}: {seconds:.1f} s is longer than the {limits.get('max_len_s', 180)} s "
+        raise ValueError(f"{label}: {seconds:.1f} s is longer than the {limits.get('max_len_s', 180)} s "
                          f"Shorts maximum; trim it with --start/--length (or start/length in song.toml)")
     if seconds > limits.get("warn_len_s", 60):
         warnings.append(f"{seconds:.1f} s: Shorts over {limits.get('warn_len_s', 60)} s with a Content ID claim are blocked")
     master = fit(master, frames * HOP)
 
-    roles, role_warnings = assign_roles([p.stem for p in stem_files], settings.get("roles", {}))
-    warnings += role_warnings
-    stems, files = {}, {"master": master_file.name}
+    if method == "slots":
+        names, name_warnings = assign_slots([p.stem for p in stem_files], settings.get("slots", []))
+    else:
+        names, name_warnings = assign_roles([p.stem for p in stem_files], settings.get("roles", {}))
+    warnings += name_warnings
+    stems, files = {}, {"master": master_file.name if master_file else "(the stems' sum)"}
     for p in stem_files:
-        name = roles[p.stem]
-        stems[name] = fit(_cut(decode(p), start, length), frames * HOP)
+        name = names[p.stem]
+        stems[name] = fit(decoded[p], frames * HOP)
         files[name] = str(p.relative_to(folder))
     song = Song(method, path, _slug(path.stem if path.is_file() else path.name), settings, master, stems,
                 midi_files, files, start, warnings=warnings)
-    if stems:
+    if stems and master_file is not None and not (len(stem_files) == 1 and stem_files[0] == master_file):
         song.alignment = check_alignment(master, stems, limits.get("align_max_lag", 400),
                                          settings.get("check_alignment", True), song.warnings)
     return song
 
 
-def _find(method: str, path: Path) -> tuple[Path, list[Path], list[Path], dict, Path]:
-    """The master, stems, MIDI files and settings for a method's input, by the folder rules of SPEC §16.2."""
+def _find(method: str, path: Path) -> tuple[Path | None, list[Path], list[Path], dict, Path]:
+    """The master (None: E's stems are summed), stems, MIDI files and settings for a method's input, by the folder
+    rules of SPEC §16.2."""
     if path.is_file():
-        if method != "master":
+        if method not in FILE_METHODS:
             raise ValueError(f"method {method!r} takes a folder (master, stems/, midi/), not a file: {path}")
         if path.suffix.lower() not in AUDIO:
             raise ValueError(f"{path.name}: not an audio or video file ({', '.join(sorted(AUDIO))})")
         sidecar = path.with_suffix(".toml")
-        return path, [], [], _settings(sidecar if sidecar.exists() else None), path.parent
+        stems = [path] if method == "slots" else []     # one file is one slot, and also what you hear
+        return path, stems, [], _settings(sidecar if sidecar.exists() else None), path.parent
 
     top = sorted(p for p in path.iterdir() if p.is_file() and not p.name.startswith("."))
     audio = [p for p in top if p.suffix.lower() in AUDIO]
@@ -115,6 +129,8 @@ def _find(method: str, path: Path) -> tuple[Path, list[Path], list[Path], dict, 
         master = named[0]
     elif len(audio) == 1:
         master = audio[0]
+    elif method == "slots":
+        master = None                               # E: the stems' sum is what you hear
     else:
         listing = ", ".join(p.name for p in audio) or "no audio files"
         raise ValueError(f"{path}: name the master master.wav (or leave it the only audio file at the top); found {listing}")
@@ -123,13 +139,19 @@ def _find(method: str, path: Path) -> tuple[Path, list[Path], list[Path], dict, 
         stems = sorted(p for p in stem_dir.iterdir() if p.suffix.lower() in AUDIO and not p.name.startswith("."))
     else:
         stems = [p for p in audio if p != master]
+    if method == "slots" and not stems:
+        if master is None:
+            raise ValueError(f"{path}: method 'slots' needs audio files (stems/, or next to each other)")
+        stems = [master]                            # one file is one slot
     midi_dir = path / "midi"
     midi = sorted(p for p in (midi_dir.iterdir() if midi_dir.is_dir() else top) if p.suffix.lower() in MIDI)
     tomls = [p for p in top if p.suffix.lower() == ".toml"]
     settings = _settings(path / "song.toml" if (path / "song.toml").exists() else (tomls[0] if len(tomls) == 1 else None))
 
-    if method == "master":
+    if method in ("master", "deep"):
         stems, midi = [], []
+    elif method == "slots":
+        midi = []
     elif method == "stems":
         if not stems:
             raise ValueError(f"{path}: method 'stems' needs stem files in stems/ (or next to the master)")
@@ -227,6 +249,28 @@ def assign_roles(names: list[str], overrides: dict) -> tuple[dict[str, str], lis
         warnings.append(f"no role for {', '.join(unmatched)}: usable in a mapping by their own names "
                         f"({', '.join(out[n] for n in unmatched)}); name roles in song.toml [roles]")
     return out, warnings
+
+
+def assign_slots(names: list[str], order: list) -> tuple[dict[str, str], list[str]]:
+    """Each stem name -> its slot (slot1, slot2, ...): the files song.toml ``slots`` lists, in that order, then the
+    rest in file-name order. Slots carry no meaning of their own; the method's mapping gives each one its part."""
+    wanted = [_slug(str(v)) for v in order]
+    listed = sorted((n for n in names if _slug(n) in wanted), key=lambda n: wanted.index(_slug(n)))
+    rest = sorted(n for n in names if _slug(n) not in wanted)
+    found = {_slug(n) for n in names}
+    warnings = [f"song.toml slots: no file named {v!r}" for v in order if _slug(str(v)) not in found]
+    return {name: f"slot{i}" for i, name in enumerate(listed + rest, 1)}, warnings
+
+
+def _sum(parts: list[np.ndarray], warnings: list[str]) -> np.ndarray:
+    """E without a master: the stems summed (the longest sets the length), scaled under -1 dBFS if they clip."""
+    longest = max(len(p) for p in parts)
+    mix = sum(fit(p, longest) for p in parts)
+    peak = float(np.abs(mix).max()) if len(mix) else 0.0
+    if peak > SUM_PEAK:
+        mix = mix * np.float32(SUM_PEAK / peak)
+        warnings.append(f"the stems' sum peaks at {20 * np.log10(peak):+.1f} dBFS: scaled to -1 dBFS")
+    return mix.astype(np.float32)
 
 
 def check_alignment(master: np.ndarray, stems: dict[str, np.ndarray], max_lag: int, enforce: bool,

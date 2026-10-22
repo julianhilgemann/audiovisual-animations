@@ -103,6 +103,19 @@ def build(song: Song, notes: Notes | None = None, bpm: float | None = None, prog
     }
 
 
+def free_grid(source: np.ndarray, n: int, bpm: float | None) -> tuple[dict, str]:
+    """The tempo keys for methods E and F, which assume no beat: none at all (``bpm`` null) unless a tempo is
+    given (song.toml ``bpm`` or --bpm); then B's grid on that tempo, its phase found on ``source``."""
+    if not bpm:
+        return {"bpm": None, "frames_per_beat": None}, "none"
+    tracked = analysis.track_beats(source, bpm)
+    tempo = tracked["bpm"]
+    g = analysis.grid(tracked["beats"], n, tracked["downbeat"], tempo)
+    return {"bpm": round(float(tempo), 3), "frames_per_beat": round(FPS * 60 / tempo, 4),
+            "downbeat": int(tracked["downbeat"]), "beats": [round(float(b), 4) for b in tracked["beats"]],
+            "beat": rounded(g["beat"]), "bar": rounded(g["bar"]), "bar_frames": [int(f) for f in g["bar_frames"]]}, "given"
+
+
 def _sections_from_bars(table: dict, bpm: float, notes: Notes | None, n: int, start: float = 0.0
                         ) -> list[tuple[str, int]]:
     """song.toml [sections]: name = the bar (1-based, from the start of the file, before any --start cut) where it

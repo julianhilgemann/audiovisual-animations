@@ -120,6 +120,8 @@ def look_signals(controls: dict, cfg: dict) -> dict[str, np.ndarray]:
             return np.asarray(controls["curves"].get(key, zeros))
         if kind == "section":
             return section(controls, key, ease)
+        if kind == "feature":
+            return np.asarray(controls.get("features", {}).get(key, zeros))
         raise ValueError(f"mapping: unknown source {name!r}")
 
     out = {name: np.clip(sum(w * source(s) for s, w in sources.items()), 0.0, 1.0)
