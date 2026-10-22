@@ -117,8 +117,6 @@ def _check_paths(cfg: dict) -> bool:
         exists = p.exists()
         _line(exists, key, str(p.relative_to(ROOT)))
         ok &= exists
-    td = resolve_path(cfg, "touchdesigner")
-    _line(None, "touchdesigner", f"{'found' if td.exists() else 'not found'} at {td} (needed for P6 only)")
     return ok
 
 

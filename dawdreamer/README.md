@@ -1,6 +1,6 @@
 # DawDreamer: generated audio
 
-Composes an 8-second loop from a preset and a seed, renders it headless with [DawDreamer](https://github.com/DBraun/DawDreamer), masters it to −14 LUFS, and writes what Blender and TouchDesigner need: the mix, one stem per track, and the score as JSON, MIDI and a 60 fps frame table. Runs on Windows and macOS from the repo's `.venv`; nothing is installed system-wide.
+Composes an 8-second loop from a preset and a seed, renders it headless with [DawDreamer](https://github.com/DBraun/DawDreamer), masters it to −14 LUFS, and writes what Blender needs: the mix, one stem per track, and the score as JSON, MIDI and a 60 fps frame table. Runs on Windows and macOS from the repo's `.venv`; nothing is installed system-wide.
 
 Design: [SPEC §15](../SPEC.md#15-generative-loops) (where this fits), [docs/sticky-av-shorts.md](../docs/sticky-av-shorts.md) (the product idea), and the specs here:
 
@@ -9,7 +9,7 @@ Design: [SPEC §15](../SPEC.md#15-generative-loops) (where this fits), [docs/sti
 | [specs/audio.md](specs/audio.md) | What a loop must sound like: grid, story, hook, seam, palette, balance, loudness |
 | [specs/engine.md](specs/engine.md) | How it is rendered: signal flow, two passes, mastering, determinism, the built-in sounds, plugins |
 | [specs/presets.md](specs/presets.md) | The preset format |
-| [specs/handoff.md](specs/handoff.md) | The files a run writes, the timing contract, how TouchDesigner and Blender read them |
+| [specs/handoff.md](specs/handoff.md) | The files a run writes, the timing contract, how Blender reads them |
 
 ## Quick start
 
@@ -22,7 +22,7 @@ uv run datapipe gen --preset glass_mallets --seed 3   # uses them, or falls back
 uv run datapipe doctor                           # checks DawDreamer, every Faust DSP and the plugins
 ```
 
-A run takes about 3 s (Apple M1) and prints what played each track, the loudness, the seam check and the stem balance. It lands in `work/gen/<yyyymmdd>_<preset>_s<seed>/` and is copied to **`work/gen/latest/`**, the fixed path for TouchDesigner and Blender.
+A run takes about 3 s (Apple M1) and prints what played each track, the loudness, the seam check and the stem balance. It lands in `work/gen/<yyyymmdd>_<preset>_s<seed>/` and is copied to **`work/gen/latest/`**, the fixed path for Blender.
 
 ## Changing it
 

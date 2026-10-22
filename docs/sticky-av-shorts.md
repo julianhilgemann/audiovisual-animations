@@ -2,7 +2,7 @@
 
 Oct 22, 2026 · @Julian
 
-> **In this repo** this is the design of the generative mode ([SPEC §15](../SPEC.md#15-generative-loops)). The audio stages S0–S2 are built: `uv run datapipe gen` composes, renders and masters a loop with DawDreamer ([dawdreamer/](../dawdreamer/README.md)). The audio rules moved to [dawdreamer/specs/audio.md](../dawdreamer/specs/audio.md); the run files Blender and TouchDesigner read are in [dawdreamer/specs/handoff.md](../dawdreamer/specs/handoff.md). S3–S7 are next.
+> **In this repo** this is the design of the generative mode ([SPEC §15](../SPEC.md#15-generative-loops)). The audio stages S0–S2 are built: `uv run datapipe gen` composes, renders and masters a loop with DawDreamer ([dawdreamer/](../dawdreamer/README.md)). The audio rules moved to [dawdreamer/specs/audio.md](../dawdreamer/specs/audio.md); the run files Blender reads are in [dawdreamer/specs/handoff.md](../dawdreamer/specs/handoff.md). S3–S7 are next.
 
 ## Purpose and targets
 
@@ -305,7 +305,7 @@ work/gen/<yyyymmdd>_<preset>_s<seed>/
   manifest.json  preset.toml  score.json  score.mid  frames.csv
   mix.wav  loop_x3.wav  stems/          # built
   features.npz  controls.json  scene_baked.blend  frames/  short.mp4  qa.json   # later
-work/gen/latest/            # the newest run, the fixed path for TouchDesigner and Blender
+work/gen/latest/            # the newest run, the fixed path for Blender
 ```
 
 Presets and configs are TOML, like the rest of the repo; YAML in the examples above reads the same.

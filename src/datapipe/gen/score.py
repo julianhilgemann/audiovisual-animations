@@ -1,7 +1,7 @@
 """The score of one loop: the timing contract, its notes, sections and curves, and their files (dawdreamer/specs/handoff.md).
 
-Standard library only, Python 3.11 syntax: Blender and TouchDesigner import this module to read score.json and
-frames.csv the same way the pipeline writes them. MIDI goes through `mido`, imported only where it is used.
+Standard library only: Blender imports this module to read score.json and frames.csv the same way the pipeline
+writes them. MIDI goes through `mido`, imported only where it is used.
 """
 
 import csv

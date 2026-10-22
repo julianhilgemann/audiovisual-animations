@@ -1,7 +1,7 @@
 # Datapipe — Audio-reactive Blender Shorts
 
-**Spec v0.5 · 2026-10-22 · Status: draft for review**
-*v0.5: A second mode, generative loops (§15): DawDreamer composes and renders an 8-second loop first and the visuals follow its score; its audio engine (phase G1) is built. Tool paths per OS, so the repo runs on Windows and macOS (§8). v0.4: The repo is on GitHub and also holds standalone TouchDesigner projects under `projects/` (§4). v0.3: Phase 0 done; FFmpeg comes from PyAV inside the venv instead of a system install. v0.2: TouchDesigner becomes the reactivity-tuning tool (§6).*
+**Spec v0.6 · 2026-10-22 · Status: draft for review**
+*v0.6: The pipeline is Blender-only, because Blender can be driven entirely from code with every file at hand. TouchDesigner stays in the repo for the standalone projects (`projects/`) but no stage depends on it: reactivity is tuned in a tab of the Blender panel (§6.1, P6), and a generated run is read by Blender alone (§15, G2). v0.5: A second mode, generative loops (§15): DawDreamer composes and renders an 8-second loop first and the visuals follow its score; its audio engine (phase G1) is built. Tool paths per OS, so the repo runs on Windows and macOS (§8). v0.4: The repo is on GitHub and also holds standalone TouchDesigner projects under `projects/` (§4). v0.3: Phase 0 done; FFmpeg comes from PyAV inside the venv instead of a system install. v0.2: TouchDesigner becomes the reactivity-tuning tool (§6).*
 
 Drop an audio or video file into a folder → the pipeline analyzes its rhythm and spectrum → a Blender scene is animated from those features plus a hand-tuned look preset → one headless render produces a finished YouTube Short (video + audio) with no further editing.
 
@@ -14,7 +14,7 @@ Drop an audio or video file into a folder → the pipeline analyzes its rhythm a
 - **Zero post-production.** One render pass writes the upload-ready MP4: picture, synced audio, fades, correct length and encoding. No editing app, no merging, no re-encode.
 - **Audio-reactive.** Transients (kick, snare, hats), frequency bands, loudness, beat/bar phase and song structure drive the animation, frame-accurately at 60 fps.
 - **Story, not just reactivity.** The song's structure (build, breakdown, drop) drives a retention arc: hook → build → tension → payoff → seamless loop back to frame 1.
-- **Tweak by taste.** Reactivity is tuned live in TouchDesigner while the song plays. Shape and look are tuned live in a Blender side panel. Each saves a small file (a mapping recipe or a preset) that the pipeline applies to every new song.
+- **Tweak by taste.** Reactivity, shape and look are tuned in a Blender side panel, against the renderer that makes the final picture. Each saves a small file (a mapping recipe or a preset) that the pipeline applies to every new song.
 - **Two length modes.** *Full* uses the audio's own length (up to a cap). *Fixed* uses a set length (e.g. 30 s) with an automatically chosen excerpt and an audio fade-out.
 - **Reproducible.** Every output can be re-rendered bit-for-bit from its job record (inputs, preset, mapping, versions).
 
@@ -38,7 +38,7 @@ Drop an audio or video file into a folder → the pipeline analyzes its rhythm a
 | Hardware | NVIDIA RTX 5060 Laptop GPU, 8 GB (Blender runs on it, not the AMD iGPU). |
 | Measured speed | **~0.98 s/frame** at 4K, render only (first frame 2.1 s for shader compile). No thermal throttling over 360 frames (56–69 °C). GPU averaged 66% load, so part of each frame is CPU-bound. H.264 4K encode on CPU took ~0.16 s/frame. |
 | Reference render | `reference/neon_tunnel_5x.mp4`: 30 s, the 6 s loop repeated 5×, 423 MB. |
-| Software | Blender **5.2.2 LTS** (bundled Python 3.13.13, numpy 2.3.4). **TouchDesigner 2025.32820** (bundled Python 3.11, numpy 2.1.2). System Python 3.14.5 (untouched), Git, Node. **Pipeline env:** uv 0.13.1 (winget, user scope) with a uv-managed Python 3.12.15 in `.venv`. FFmpeg comes from PyAV inside the venv; there is no system ffmpeg. `uv run datapipe doctor` checks the whole toolchain. |
+| Software | Blender **5.2.2 LTS** (bundled Python 3.13.13, numpy 2.3.4). **TouchDesigner 2025.32820** (standalone projects only, not the pipeline). System Python 3.14.5 (untouched), Git, Node. **Pipeline env:** uv 0.13.1 (winget, user scope) with a uv-managed Python 3.12.15 in `.venv`. FFmpeg comes from PyAV inside the venv; there is no system ffmpeg. `uv run datapipe doctor` checks the whole toolchain. |
 | Blender bridge | The Blender Lab MCP add-on listens on `localhost:9876` and runs Python sent to it. This lets Claude (or any script) tweak the open scene live. Helper: `tools/blender_bridge.py`. It also works with a headless server (`blender -b <file> --online-mode -c blender_mcp`). |
 | Repo | Git, branch `main`, pushed to the public GitHub repo `julianhilgemann/audiovisual-animations`. Agent context lives in `CLAUDE.md`. |
 | Second machine | MacBook, Apple M1, macOS 13.5: Blender 5.2.2 LTS, TouchDesigner 2023.12230, uv with Python 3.12.13. The generative audio engine (§15) was built and verified here (2026-10-22). |
@@ -72,9 +72,9 @@ Drop an audio or video file into a folder → the pipeline analyzes its rhythm a
 4. **Map.** Combine features, mapping config and preset base values into per-frame parameter tracks. Integrate speed into travel, close the loop, and enforce safety limits. Write `audio_final.wav` (trimmed, faded): exactly the audio the render will use.
 5. **Build and render.** Headless Blender opens the template, applies the preset's static parameters, bakes the tracks as keyframes, adds `audio_final.wav` to the video editor's sound track, and renders directly to MP4 with audio.
 
-Steps 1–4 run in the pipeline's Python environment. Step 5 runs inside Blender. The mapping math (step 4) is **numpy-only**, so the same module also runs inside Blender (for the bake and the live preview) and inside TouchDesigner (for live reactivity tuning).
+Steps 1–4 run in the pipeline's Python environment. Step 5 runs inside Blender. The mapping math (step 4) is **numpy-only**, so the same module also runs inside Blender, for the bake and for the reactivity tab's live re-bake.
 
-The two hand-tuned inputs come from the tweak tools (§6): `config/mappings/*.toml` from the TouchDesigner Reactivity Lab, and `presets/*.json` from the Blender side panel. Neither tool has to be open to render.
+The two hand-tuned inputs both come from the Blender side panel (§6): `config/mappings/*.toml` from its reactivity tab and `presets/*.json` from its shape and look tabs. The panel doesn't have to be open to render.
 
 ---
 
@@ -123,11 +123,8 @@ datapipe/
 ├─ blender/
 │  ├─ build_and_render.py       # headless entry point (step 5)
 │  ├─ rig.py                    # creates or migrates the Director rig in a template
-│  └─ addon_datapipe/           # shape & look side panel (see §6.2)
-├─ touchdesigner/
-│  ├─ reactivity_lab.toe        # reactivity tuning project (see §6.1)
-│  └─ scripts/                  # Script CHOP and export Python, kept as .py so git diffs stay readable
-├─ projects/                    # standalone TD projects, not part of the pipeline (see projects/README.md)
+│  └─ addon_datapipe/           # the side panel: reactivity, shape and look (see §6)
+├─ projects/                    # standalone TouchDesigner projects, not part of the pipeline (see projects/README.md)
 ├─ tools/
 │  └─ blender_bridge.py         # send Python to a running Blender (localhost:9876)
 └─ tests/
@@ -258,7 +255,7 @@ flash_min_frames = 4        # no single-frame flashes (they also compress badly)
 
 ### 5.6 Parameters: static look vs dynamic motion
 
-`config/params.toml` is the **single source of truth**. The Blender side panel and the TouchDesigner Reactivity Lab build their sliders from it, the mapping validates against it, and Blender applies it.
+`config/params.toml` is the **single source of truth**. The Blender side panel builds its sliders from it, the mapping validates against it, and Blender applies it.
 
 ```toml
 [param.sides]
@@ -338,33 +335,27 @@ Based on YouTube's upload recommendations:
 
 ## 6. Tweak tools
 
-Two different things get tuned by feel, and each is tuned where it can best be judged. Each tool writes a small file to the repo, and the pipeline applies those files to every new song. Neither tool has to be open to render.
+Two different things get tuned by feel, both in the Blender side panel, so everything is judged in the renderer that makes the final picture and every step can also run from code. Each tab writes a small file to the repo, and the pipeline applies those files to every new song. The panel doesn't have to be open to render.
 
-| What | Tool | Writes | Judged on |
+| What | Where | Writes | Judged on |
 |---|---|---|---|
-| **Reactivity:** which feature drives which parameter; gains, curves, attack/release, thresholds, limits | **TouchDesigner Reactivity Lab** (§6.1) | `config/mappings/<name>.toml` | timing and feel, with the song playing at a steady 60 fps |
-| **Shape and look:** geometry, palette, glow, lens, base values | **Blender side panel** (§6.2) | `presets/<name>.json` | the real EEVEE render |
+| **Reactivity:** which feature drives which parameter; gains, curves, attack/release, thresholds, limits | **Reactivity tab** (§6.1) | `config/mappings/<name>.toml` | timing and feel, replayed with the song |
+| **Shape and look:** geometry, palette, glow, lens, base values | **Shape and look tabs** (§6.2) | `presets/<name>.json` | the real EEVEE render |
 
-**Why split it this way.** Blender has no live audio analysis. Tuning reactivity there means changing a value, re-baking and replaying, and nobody has measured yet whether the viewport holds 60 fps with this scene plus audio. TouchDesigner is built for exactly this loop: continuous playback, with sliders and MIDI knobs that take effect instantly. Shapes, though, have to be judged in the renderer that makes the final picture, so they stay in Blender.
+**Why Blender only.** Blender can be driven entirely from code (headless batch, the bridge, the add-on), and every file it needs is in the repo or the job folder, so the pipeline has one host to automate, test and version. TouchDesigner is in the repo for the standalone projects (`projects/`), not for the pipeline. A browser tool (three.js with Web Audio) stays a last resort: its preview differs from the Blender render, so taste may not carry over.
 
-**Blender-only fallback.** If TouchDesigner turns out to be more tool than needed, the Blender panel gets a reactivity tab with the same recipe sliders: change a value, re-bake (milliseconds, same `mapping.py`), replay. Nothing else in the pipeline changes, because the contract is the mapping file, not the tool. A browser tool (three.js with Web Audio and Web MIDI) stays a last resort: its preview differs from the Blender render, so taste may not carry over.
+### 6.1 Reactivity tab
 
-### 6.1 TouchDesigner Reactivity Lab (`touchdesigner/reactivity_lab.toe`)
+**The rule that makes it work:** the tab tunes the *recipe*, not the analysis. It loads the pipeline's own `features.json` for a song and runs the pipeline's own `mapping.py`, so a recipe means the same thing in the tab and in the render.
 
-**The rule that makes it work:** TouchDesigner tunes the *recipe*, not the analysis. It loads the pipeline's own `features.json` for a song and runs the pipeline's own `mapping.py` in a Script CHOP. If it used its own audio CHOPs (Audio Spectrum, Beat, Lag…) instead, a recipe tuned there would mean something different once the pipeline applies it, and the taste wouldn't carry over to Blender.
+1. **Pick a reference song.** `datapipe analyze song.mp4` writes `features.json` and `audio_full.wav` into the job folder; **Load job** in the panel bakes it and puts the audio on the timeline.
+2. **Tune.** Every recipe value is a slider generated from the mapping schema: per rule source, gain, curve, attack, release and mode; globally the limits and the sync offset. A change re-bakes the tracks with `mapping.py` (milliseconds for a few thousand frames) into the `Director` keyframes.
+3. **Replay.** Play the timeline with sound, or scrub. If the viewport can't hold 60 fps with the scene, lower the viewport resolution or judge timing in a `draft` render. Switch songs to check that the recipe holds up on more than one track.
+4. **Export.** A button writes `config/mappings/<name>.toml`, and optionally the base values into a preset. Commit the file.
 
-1. **Pick a reference song.** `datapipe analyze song.mp4` writes `features.json`, `features_60fps.csv` (one column per feature channel) and `audio_full.wav` into the job folder.
-2. **Load it in TD.** An Audio File In CHOP plays `audio_full.wav` and a File In or Table DAT loads the CSV. The timeline runs locked at 60 fps, so audio time equals the feature row.
-3. **Map.** A Script CHOP imports `datapipe.mapping`; TD's bundled Python 3.11 and numpy 2.1 run it unchanged. It recomputes every parameter track for the whole song whenever a recipe value changes, which takes milliseconds for a few thousand frames. The output is sampled at the playhead.
-4. **Tune.** Every recipe value is a TD custom parameter, so it becomes a slider and can be mapped to MIDI through a MIDI In CHOP. Per rule that's source, gain, curve, attack, release and mode; globally, the limits and the sync offset. Switch songs to check that the recipe holds up on more than one track.
-5. **Preview.** A lightweight proxy visual in TD (rings, flash and speed meters, plus a curve trail per parameter) shows timing and envelope shape. The final look is judged in Blender.
-6. **Export.** A button writes `config/mappings/<name>.toml`, and optionally the base values into a preset. Commit the file.
+**From code.** The same steps run through the bridge (§2) or headless: set recipe values, re-bake, render a draft. Claude can tune a recipe this way ("punchier kick flash, slower release").
 
-**Optional live link to Blender.** TD can push the current parameter values into the open Blender scene through the bridge (§2) to show the real look reacting. The bridge polls at about 20 Hz and uses one TCP connection per message, so it conveys the vibe but isn't frame-accurate. Judge sync in TD or in a draft render.
-
-**Optional hero override.** For one special song, TD can record its final tracks to `work/<job-id>/tracks_override.csv`, and `build_and_render.py` then uses those instead of computing them. This is manual and per song, outside the automatic flow.
-
-**Version control.** `.toe` files are binary. Keep all Python (Script CHOP callbacks, export) as `.py` files in `touchdesigner/scripts/`, referenced from the `.toe`, so changes stay reviewable in git.
+**Optional hero override.** For one special song, edited tracks can be saved to `work/<job-id>/tracks_override.csv`, and `build_and_render.py` then uses those instead of computing them. This is manual and per song, outside the automatic flow.
 
 ### 6.2 Blender side panel (`blender/addon_datapipe/`)
 
@@ -401,7 +392,7 @@ Claude can drive the same parameters through the bridge ("thicker lines, more ma
 |---|---|
 | `run <file> [--preset P] [--mapping M] [--mode full\|fixed] [--length 30] [--start 42.0] [--profile draft\|final]` | one job, end to end |
 | `watch [--profile …]` | polls `inbox/` every 3 s and runs a job per new, stable file, one at a time (the GPU is the bottleneck) |
-| `analyze <file>` | stages 1–2 only: `features.json`, `features_60fps.csv` (for TouchDesigner) and `report.png` |
+| `analyze <file>` | stages 1–2 only: `features.json` and `report.png` |
 | `rerender <job-id> [--preset P] [--mapping M] [--profile …]` | reuses the cached analysis; for trying another look on the same song |
 | `preview <job-id>` | opens the Blender GUI with the job baked and audio loaded, for tweaking |
 
@@ -434,12 +425,12 @@ That's enough to reproduce any output exactly.
 | Component | Choice | Notes |
 |---|---|---|
 | Blender | 5.2.2 LTS (installed), pinned | Its API changed in 5.x (`sequences` → `strips`, `image_settings.media_type`), so scripts target 5.2. The Blender version is recorded in `job.json`. |
-| TouchDesigner | 2025.32820 (installed) | Reactivity Lab (§6.1). Its bundled Python 3.11 and numpy 2.1.2 run `mapping.py`. The free Non-Commercial licence restricts use, so check its terms if the channel is monetized or run by a business. |
+| TouchDesigner | 2025.32820 (installed) | Not part of the pipeline (v0.6). Used by the standalone projects in `projects/`. |
 | Pipeline Python | **3.12.15 via `uv` 0.13.1**, in `.venv` | Kept separate from the system Python 3.14 to avoid librosa/numba compatibility risk. Remove it all with: delete `.venv`, `uv python uninstall 3.12`, `uv cache clean`, `winget uninstall astral-sh.uv`. |
 | Python packages | numpy, scipy, librosa, soundfile, matplotlib; for §15: dawdreamer, mido, pyloudnorm | `tomllib` is built into the standard library for config |
 | Audio engine (§15) | **DawDreamer 0.9** | Headless audio graph: Faust (libfaust embedded, with its standard libraries), VST3 hosting, sample-exact MIDI, per-processor recording. Wheels for Python 3.12 on macOS (arm64, x86_64), Windows x64 and Linux. Plugins are fetched into `dawdreamer/plugins/` (gitignored), never installed system-wide. |
 | Platforms | Windows 11 and macOS 13+ | Tool paths per OS in `config/pipeline.toml` (`[paths.windows]`, `[paths.macos]`), overridable per machine in `config/machine.toml`. |
-| Shared mapping code | numpy-only, Python 3.11 syntax, numpy ≥ 2.1 | runs unchanged in the uv environment (3.12), Blender (3.13) and TouchDesigner (3.11) |
+| Shared mapping code | numpy-only, Python 3.12 syntax, numpy ≥ 2.3 | runs unchanged in the uv environment (3.12) and in Blender (3.13, numpy 2.3) |
 | Media | **PyAV** (`av`), which bundles the FFmpeg libraries | Decodes any container and probes outputs in tests. Pinned in `uv.lock` and lives only in the venv. Capped below 16 on macOS, whose newer wheels need macOS 14. If an ffmpeg command-line tool is ever needed, `imageio-ffmpeg` adds one inside the venv too. |
 | Version control | Git (installed) | the `datapipe/` folder becomes a repo. Renders, `work/`, `cache/` and `inbox/` are git-ignored. |
 | Optional | beat_this (downbeats), Demucs (drum stems) | Phase 7 |
@@ -484,10 +475,10 @@ That's enough to reproduce any output exactly.
 | **P3 Map, bake, render** | `mapping.py`, `window.py`, `arc.py`, loop closure, limits, `build_and_render.py`, draft and final profiles, audio in the MP4 | `datapipe run song.mp4 --length 30` produces an MP4 that passes the export and sync tests |
 | **P4 Orchestration** | `watch`, sidecars, job lifecycle, failure handling, `job.json`, `rerender` | watch test passes; re-rendering with a new preset skips analysis |
 | **P5 Shape and look panel** | `TunnelGen` Geometry Nodes rebuild, `params.toml`, `addon_datapipe` panel, presets, `preview` | moving a slider updates the viewport live; a saved preset gets used by `rerender`; the new tunnel matches the old look (signed off by eye) |
-| **P6 Reactivity Lab** | `reactivity_lab.toe`; Script CHOP running `mapping.py`; recipe parameters with MIDI; proxy preview; TOML export; `features_60fps.csv` output from `analyze` | a recipe tuned in TD and rendered by the pipeline matches the TD preview's timing (sync test, ±1 frame); an exported TOML round-trips (load, export, identical file) |
-| **P7 Optional** | live link TD → Blender, browser tool, Demucs stems, beat_this downbeats, more templates, YouTube upload | per item |
+| **P6 Reactivity tab** | reactivity tab in `addon_datapipe`: recipe sliders from the mapping schema, live re-bake through `mapping.py`, replay with audio, TOML export | a recipe tuned in the tab and rendered by the pipeline matches the tab's replay timing (sync test, ±1 frame); an exported TOML round-trips (load, export, identical file) |
+| **P7 Optional** | browser tool, Demucs stems, beat_this downbeats, more templates, YouTube upload | per item |
 
-The pipeline produces usable Shorts after **P3**, with the fixed tunnel shape and a hand-edited mapping. P5 adds shape tweaking and P6 live reactivity tuning. P5 and P6 don't depend on each other.
+The pipeline produces usable Shorts after **P3**, with the fixed tunnel shape and a hand-edited mapping. P5 adds shape tweaking and P6 reactivity tuning, both in the Blender panel. P6 builds on the panel from P5 but not on its Geometry Nodes rebuild.
 
 ---
 
@@ -504,7 +495,7 @@ The pipeline produces usable Shorts after **P3**, with the fixed tunnel shape an
 | YouTube compression artifacts on thin neon lines | look rules (§5.8); 4K upload |
 | Copyright and Content ID | default cap 60 s; prefer royalty-free sources such as the YouTube Audio Library |
 | Geometry Nodes rebuild doesn't match the current look | keep the original meshes as a fallback template; check parity by eye |
-| A recipe tuned in TouchDesigner behaves differently in the pipeline | TD runs the pipeline's own `features.json` and `mapping.py`, never its own analysis (§6.1); P6 sync test |
+| The Blender viewport can't play the scene with audio at 60 fps for live reactivity tuning | re-baking takes milliseconds; lower the viewport resolution, or judge timing in a reduced-resolution `draft` render (§6.1) |
 
 ---
 
@@ -514,13 +505,13 @@ The pipeline produces usable Shorts after **P3**, with the fixed tunnel shape an
 2. The tunnel also loops seamlessly after a travel of **π** (one portal) with no rotation, which gives finer loop closure; otherwise 6π (Phase 1).
 3. ~~librosa runs cleanly on Python 3.12 on Windows with this setup.~~ Verified 2026-10-19: librosa 1.0.0 with numba 0.68 imports and runs under `doctor`.
 4. How YouTube currently handles 4K uploads for Shorts. This doesn't block anything; the 1080p profile exists either way.
-5. A TouchDesigner Script CHOP can import `src/datapipe/mapping.py` from the repo (via `sys.path`) and recompute a whole song's tracks fast enough to feel instant while dragging a slider (P6).
+5. Blender re-bakes a whole song's tracks from `mapping.py` and keys them on the `Director` fast enough to feel instant while dragging a slider, and its viewport plays the scene with audio smoothly enough to judge timing (P6).
 
 ## 14. Open decisions
 
 | # | Question | Default if not decided |
 |---|---|---|
-| 1 | Reactivity tuning in TouchDesigner, or Blender-only (§6)? | TouchDesigner Reactivity Lab; the Blender-only fallback stays possible |
+| 1 | ~~Reactivity tuning in TouchDesigner, or Blender-only (§6)?~~ | **Decided in v0.6: Blender only.** TouchDesigner stays for the standalone projects |
 | 2 | Default length mode and length | fixed, 30 s, cap 60 s |
 | 3 | Default render profile in `watch` | `draft`; final through `rerender` |
 | 4 | Final resolution | 2160×3840 |
@@ -545,14 +536,14 @@ The song pipeline (§1–§11) starts from a finished track. The generative mode
 
 **Stages.** S0 config and seed, S1 compose or ingest MIDI (`gen/compose.py`) and S2 audio render (`gen/engine.py`, `gen/master.py`) are built. S3 analysis reuses §5.2 on the stems; S4 control build reuses `mapping.py` (§5.5); S5 reuses the Blender build (§5.7) and the Director rig (P1); S6 encode and S7 QA follow docs/sticky-av-shorts.md.
 
-**Specs.** [audio.md](dawdreamer/specs/audio.md): what a loop must sound like. [engine.md](dawdreamer/specs/engine.md): the render graph, mastering, determinism, built-in sounds, plugins. [presets.md](dawdreamer/specs/presets.md): the preset format. [handoff.md](dawdreamer/specs/handoff.md): the run files, the timing contract, how TouchDesigner and Blender read them.
+**Specs.** [audio.md](dawdreamer/specs/audio.md): what a loop must sound like. [engine.md](dawdreamer/specs/engine.md): the render graph, mastering, determinism, built-in sounds, plugins. [presets.md](dawdreamer/specs/presets.md): the preset format. [handoff.md](dawdreamer/specs/handoff.md): the run files, the timing contract, how Blender reads them.
 
 **Phases**
 
 | Phase | Scope | Done when |
 |---|---|---|
 | **G1 Audio engine** | *done 2026-10-22 on macOS:* DawDreamer, 13 Faust instruments and effects, composer (roles, story, one violation per loop), MIDI ingest, two-pass render, stems, −18 LUFS master staging, −14 LUFS and −1 dBTP mastering, seam check, plugin manifest with fetch and probe, three presets, run folder with `score.json`, `score.mid`, `frames.csv`, `latest/`, `doctor` checks | `uv run pytest` green including `tests/test_gen_*.py`; every preset renders at −14 ± 0.5 LUFS, ≤ −1 dBTP, seam ok; reruns are bit-identical. **Met on macOS (32 tests). Windows: run `uv sync`, `datapipe plugins fetch`, `datapipe doctor` and the tests.** |
-| **G2 Read a run in TD and Blender** | TouchDesigner loads `work/gen/latest/` (mix, `frames.csv`); Blender adds `mix.wav` as a sound strip and keys score hits on the Director rig (after P1) | a kick-driven flash lands within ±1 frame of the kick in TD and in a Blender draft |
+| **G2 Read a run in Blender** | a headless Blender script loads a run folder: `mix.wav` as a sound strip at frame 1, score hits from `score.json` keyed on the `Director` rig (after P1), a draft render with audio | a kick-driven flash in the draft lands within ±1 frame of the kick |
 | **G3 Stem analysis, control build** | S3 features from stems on the 800-sample hop, S4 `controls.json` with wind-up envelopes, wrap and flash limiter | controls wrap seamlessly (frame 480 → 1) and pass the flash gate |
 | **G4 Render, encode, QA** | S5–S7 at 1080×1920, one command per short | the MP4 passes the S7 gates (length, seam, sync, loudness, flashes, file) |
 

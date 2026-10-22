@@ -1,8 +1,8 @@
 """`datapipe gen`: a preset and a seed (or a MIDI file) become a run folder (dawdreamer/specs/handoff.md, Run folder).
 
 work/gen/<yyyymmdd>_<preset>_s<seed>/ holds score.json, score.mid, frames.csv, stems/*.wav, mix.wav, loop_x3.wav,
-preset.toml and manifest.json. The newest run is mirrored into work/gen/latest/, one fixed path for TouchDesigner
-and Blender to read.
+preset.toml and manifest.json. The newest run is mirrored into work/gen/latest/, one fixed path for Blender to
+read.
 """
 
 import json
@@ -117,7 +117,7 @@ def _mirror(run_dir: Path, latest: Path) -> str | None:
             failed.append(str(rel))
     (latest / "RUN.txt").write_text(run_dir.name + "\n", encoding="utf-8")
     if failed:
-        return f"latest/ is stale for {', '.join(failed)}: another program (TouchDesigner?) has them open"
+        return f"latest/ is stale for {', '.join(failed)}: another program (a player, Blender) has them open"
     return None
 
 

@@ -1,10 +1,10 @@
-# Handoff: the files Blender and TouchDesigner read
+# Handoff: the files Blender reads
 
-**v1 · 2026-10-22.** What one `datapipe gen` run writes, and how the other tools pick it up. This is the contract between the audio stages (S1, S2) and everything visual (S3–S7 in [SPEC §15](../../SPEC.md#15-generative-loops)). Code: `src/datapipe/gen/score.py` (standard library only, so Blender and TouchDesigner import it as is; verified under Blender 5.2's Python 3.13 and Python 3.11) and `run.py`.
+**v1 · 2026-10-22.** What one `datapipe gen` run writes, and how Blender picks it up. The pipeline is Blender-only (SPEC v0.6). This is the contract between the audio stages (S1, S2) and everything visual (S3–S7 in [SPEC §15](../../SPEC.md#15-generative-loops)). Code: `src/datapipe/gen/score.py` (standard library only, so Blender imports it as is; verified under Blender 5.2's Python 3.13) and `run.py`.
 
 ## Run folder
 
-`work/gen/<yyyymmdd>_<preset>_s<seed>/` (or `…_<midi name>/` for `--midi`), mirrored into **`work/gen/latest/`** after every run: one fixed path to point TouchDesigner and Blender at. `latest/RUN.txt` names the run it holds. On Windows a file another program holds open cannot be replaced; the run then warns that `latest/` is stale for that file, and the run folder itself is still complete.
+`work/gen/<yyyymmdd>_<preset>_s<seed>/` (or `…_<midi name>/` for `--midi`), mirrored into **`work/gen/latest/`** after every run: one fixed path for Blender and for listening. `latest/RUN.txt` names the run it holds. On Windows a file another program holds open (a player, an open Blender) cannot be replaced; the run then warns that `latest/` is stale for that file, and the run folder itself is still complete.
 
 | File | Format | What |
 |---|---|---|
@@ -68,21 +68,13 @@ One row per video frame, 480 rows, header on the first line.
 
 Envelopes (wind-up before a hit, decay after) are not in this file: they belong to the control build (S4), which reads `score.json` and the stem analysis.
 
-## TouchDesigner
-
-The intended recipe (not yet built in a project):
-
-1. **Audio File In CHOP** → `work/gen/latest/mix.wav`, play mode locked to the timeline; the project runs at 60 fps with a 480-frame range.
-2. **File In DAT** → `work/gen/latest/frames.csv` (CSV) → **DAT to CHOP** with the first row as names: one channel per column, 480 samples. The value for the current frame is sample `frame − 1`, e.g. `op('frames')['kick'][me.time.frame - 1]` in an expression. Untested in TouchDesigner so far: check the operator parameters with Envoy's `describe_op_type` when building it.
-3. Optional: an Audio File In per `stems/*.wav` for per-instrument analysis CHOPs.
-4. Reload after each `datapipe gen`: the paths stay the same. On Windows, TouchDesigner holding `mix.wav` open can block the copy into `latest/` (the run warns).
-
-The shared `av_rig` module in `projects/00-custom-modules/` already turns audio and MIDI into named channels; a `frames.csv` source for it is the natural next step.
-
 ## Blender
 
-- **Sound:** a sound strip with `mix.wav` at frame 1 in the scene's sequencer (`sequence_editor.strips`, Blender 5.x API), so the render muxes it (SPEC §5.7).
-- **Hits and curves:** `score.json` or `frames.csv`, baked to keyframes one per frame by the S5 ingest (docs/sticky-av-shorts.md, Blender parameter interface). From Blender's Python: `sys.path.insert(0, "<repo>/src")`, then `from datapipe.gen.score import Score`.
+Blender reads a run headless (`blender -b <scene> --python <script> -- --run work/gen/<run>`, phase G2 in SPEC §15):
+
+- **Sound:** a sound strip with `mix.wav` at frame 1 in the scene's sequencer (`sequence_editor.strips`, Blender 5.x API), so the render muxes it (SPEC §5.7). Scene range 1…480 at 60 fps.
+- **Hits and curves:** from `score.json` through `Score`, baked to keyframes one per frame (docs/sticky-av-shorts.md, Blender parameter interface). From Blender's Python: `sys.path.insert(0, "<repo>/src")`, then `from datapipe.gen.score import Score`; `Score.frame_of` gives each hit's frame. `frames.csv` holds the same per frame, for inspection or a quick bake.
+- **Per-instrument texture:** later the stems' analysis (S3) adds continuous curves on the same 800-sample hop.
 
 ## MIDI in
 

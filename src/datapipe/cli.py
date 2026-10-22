@@ -20,7 +20,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="datapipe", description="Audio-reactive YouTube Shorts rendered with Blender.")
     parser.add_argument("--version", action="version", version=f"datapipe {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("doctor", help="check the toolchain: Python libs, PyAV/FFmpeg, DawDreamer, Blender, TouchDesigner, GPU")
+    sub.add_parser("doctor", help="check the toolchain: Python libs, PyAV/FFmpeg, DawDreamer, Blender, GPU")
 
     gen = sub.add_parser("gen", help="compose and render an 8-second loop: score, MIDI, stems, mix (SPEC §15)")
     gen.add_argument("--preset", help="dawdreamer/presets/<name>.toml or a path (default: [gen] preset in pipeline.toml)")
