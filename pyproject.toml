@@ -9,8 +9,14 @@ dependencies = [
     "scipy",
     "librosa>=0.11",
     "soundfile",
-    "av",            # PyAV: bundles the FFmpeg libraries, so no system ffmpeg is needed
+    # PyAV bundles the FFmpeg libraries, so no system ffmpeg is needed.
+    # From 16 on its macOS wheels need macOS 14; capped on macOS so 13 (Ventura) machines get a wheel too.
+    "av>=15.1,<16; sys_platform == 'darwin'",
+    "av>=15.1; sys_platform != 'darwin'",
     "matplotlib",
+    "dawdreamer>=0.9",  # headless audio graph: Faust, VST3 hosts, sampler (dawdreamer/)
+    "mido",             # score.mid read and write
+    "pyloudnorm",       # BS.1770 integrated loudness
 ]
 
 [project.scripts]

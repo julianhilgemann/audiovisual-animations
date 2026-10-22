@@ -63,3 +63,9 @@ opencode.json
 briefs/
 .DS_Store
 projects/octatrack-av-setup/TDPyEnvManagerContext.yaml
+
+# One machine's tool paths (config/machine.example.toml shows the format)
+/config/machine.toml
+
+# DawDreamer: VST3 plugins fetched by `datapipe plugins fetch` (dawdreamer/plugins.toml lists them)
+/dawdreamer/plugins/

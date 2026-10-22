@@ -1,0 +1,66 @@
+# Free VST3 plugins for the DawDreamer engine (dawdreamer/specs/engine.md, Plugins).
+#
+# `uv run datapipe plugins fetch` downloads each archive for this OS, checks its sha256 and copies the
+# named .vst3 bundle into dawdreamer/plugins/<os>/<key>/ (gitignored). Nothing is installed system-wide.
+# A preset names a plugin by its key here. When the plugin is missing, the slot's `fallback` is used.
+#
+# Picked for: open source, VST3 on Windows and macOS, small, loads and renders headless in DawDreamer
+# (tested on macOS arm64 with DawDreamer 0.9.0, 2026-10-22).
+#
+# Keys per OS: url, sha256, vst3 (the bundle name to copy out of the archive).
+# `system = "<bundle>.vst3"` instead means "installed by hand", looked up in the OS's VST3 folders.
+
+[ripplerx]
+version = "1.5.19"
+kind = "instrument"
+license = "GPL-3.0"
+about = "Physically modelled mallets, bars and membranes. Glassy bells, kalimba, marimba, vibes. 28 factory programs, set by name: Program = \"Crystal\"."
+home = "https://github.com/tiagolr/ripplerx"
+macos = { url = "https://github.com/tiagolr/ripplerx/releases/download/v1.5.19/ripplerx-macos-v1.5.19.zip", sha256 = "24189919de96d6e5a4b80343ab4b664dc7ad5f7f049a06336da34559e4ddddbe", vst3 = "RipplerX.vst3" }
+windows = { url = "https://github.com/tiagolr/ripplerx/releases/download/v1.5.19/ripplerx-win-v1.5.19.zip", sha256 = "517c0e99f3ff37cf7b3941ed9afbece1423a0da69d70a9dd8076a473d630a50d", vst3 = "RipplerX.vst3" }
+
+[dexed]
+version = "1.0.1"
+kind = "instrument"
+license = "GPL-3.0"
+about = "FM synth, a DX7 clone. Keys, bells and metallic plucks; about 150 parameters plus 32 factory programs (Program = \"Slow3D Pad\")."
+home = "https://github.com/asb2m10/dexed"
+macos = { url = "https://github.com/asb2m10/dexed/releases/download/v1.0.1/Dexed-1.0.1-macOS.zip", sha256 = "4269448bc1312424cafd29aff615d891bc5905ebfc54b42ce70c56b9b10dc401", vst3 = "Dexed.vst3" }
+windows = { url = "https://github.com/asb2m10/dexed/releases/download/v1.0.1/Dexed-1.0.1-win.zip", sha256 = "1f118445f2c5c411636bb41ddf8b456db09af74cd38f9ede8a93a01020505f05", vst3 = "Dexed.vst3" }
+
+[jc303]
+version = "0.13.0"
+kind = "instrument"
+license = "GPL-3.0"
+about = "TB-303 emulation: acid and rubber basslines. Velocity over 100 accents; overlapping notes slide."
+home = "https://github.com/midilab/jc303"
+macos = { url = "https://github.com/midilab/jc303/releases/download/v0.13.0/jc303-0.13.0-macos_universal-plugins.zip", sha256 = "7cf62de758efb6977489480adb3a5dccffdc0e9e203eccf2876dffc41cca48be", vst3 = "JC303.vst3" }
+windows = { url = "https://github.com/midilab/jc303/releases/download/v0.13.0/jc303-0.13.0-windows_x64-plugins.zip", sha256 = "ab0f9fb5515fd41ee3e967efeee8503bbaa19bfb8a71d3e95ac91a8751c00f99", vst3 = "JC303.vst3" }
+
+# Dragonfly: one archive, four reverbs. Use one Dragonfly per render: on macOS two of them in one process
+# share Objective-C class names and print warnings (audio was unaffected in the test).
+[dragonfly_plate]
+version = "3.2.10"
+kind = "effect"
+license = "GPL-3.0"
+about = "Plate reverb: bright, dense, short pre-delay. Good on plucks and claps."
+home = "https://github.com/michaelwillis/dragonfly-reverb"
+macos = { url = "https://github.com/michaelwillis/dragonfly-reverb/releases/download/3.2.10/dragonfly-reverb-3.2.10-macos-universal.dmg", sha256 = "e0b854b92a4e51ce5851320fb1a9f91ab1a4309f997de070e175b3e5cab4adaf", vst3 = "DragonflyPlateReverb.vst3" }
+windows = { url = "https://github.com/michaelwillis/dragonfly-reverb/releases/download/3.2.10/dragonfly-reverb-3.2.10-win64.zip", sha256 = "ca5f35f9dcd9a33f06490d3c92f04061a1a798cb81257d5ca5851bdda0824c66", vst3 = "DragonflyPlateReverb.vst3" }
+
+[dragonfly_hall]
+version = "3.2.10"
+kind = "effect"
+license = "GPL-3.0"
+about = "Hall reverb: big, smooth, long tails for pads and the impact."
+home = "https://github.com/michaelwillis/dragonfly-reverb"
+macos = { url = "https://github.com/michaelwillis/dragonfly-reverb/releases/download/3.2.10/dragonfly-reverb-3.2.10-macos-universal.dmg", sha256 = "e0b854b92a4e51ce5851320fb1a9f91ab1a4309f997de070e175b3e5cab4adaf", vst3 = "DragonflyHallReverb.vst3" }
+windows = { url = "https://github.com/michaelwillis/dragonfly-reverb/releases/download/3.2.10/dragonfly-reverb-3.2.10-win64.zip", sha256 = "ca5f35f9dcd9a33f06490d3c92f04061a1a798cb81257d5ca5851bdda0824c66", vst3 = "DragonflyHallReverb.vst3" }
+
+# Installed by hand (freeware, no direct download): looked up in the system VST3 folders.
+[supermassive]
+kind = "effect"
+license = "freeware"
+about = "Valhalla Supermassive: huge reverbs and delays. Install it from valhalladsp.com on each machine."
+home = "https://valhalladsp.com/shop/reverb/valhalla-supermassive/"
+system = "ValhallaSupermassive.vst3"

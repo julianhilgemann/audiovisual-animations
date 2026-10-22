@@ -2,17 +2,18 @@
 
 Audio-reactive YouTube Shorts rendered with Blender. Drop a song into `inbox/` and get a finished 9:16 MP4 in `output/`.
 
-> **Status:** Phase 0 done: toolchain and skeleton. The pipeline stages come next. Design and roadmap: [SPEC.md](SPEC.md).
+> **Status:** Phase 0 done: toolchain and skeleton. The generative mode's audio engine works: `datapipe gen` composes and renders 8-second loops with DawDreamer ([dawdreamer/](dawdreamer/README.md)). Design and roadmap: [SPEC.md](SPEC.md).
 
 ## Setup
 
-```powershell
+```
 uv sync                    # creates .venv with Python 3.12 and all libraries (nothing installed system-wide)
-uv run datapipe doctor     # checks Python libs, PyAV/FFmpeg, Blender, TouchDesigner, GPU
+uv run datapipe doctor     # checks Python libs, PyAV/FFmpeg, DawDreamer, Blender, TouchDesigner, GPU
 uv run pytest              # runs the tests
+uv run datapipe gen --seed 42 --play     # compose, render and play an 8-second loop
 ```
 
-Requirements: [uv](https://docs.astral.sh/uv/) (`winget install astral-sh.uv`), Blender 5.2 LTS, and optionally TouchDesigner 2025.
+Requirements, on Windows or macOS: [uv](https://docs.astral.sh/uv/) (`winget install astral-sh.uv`, or `brew install uv`), Blender 5.2 LTS, and optionally TouchDesigner. Tool paths per OS are in `config/pipeline.toml`; `config/machine.toml` overrides them for one machine.
 
 ## Folders
 
@@ -25,8 +26,10 @@ Requirements: [uv](https://docs.astral.sh/uv/) (`winget install astral-sh.uv`), 
 | `config/mappings/` | Reactivity recipes, exported from TouchDesigner or hand-edited |
 | `touchdesigner/` | The TouchDesigner Reactivity Lab project |
 | `projects/` | Standalone TouchDesigner projects that aren't part of the pipeline (see [projects/README.md](projects/README.md)) |
+| `dawdreamer/` | Generated audio: specs, presets, Faust instruments, the free VST3 plugin list (see [dawdreamer/README.md](dawdreamer/README.md)) |
+| `docs/` | Design of the generative mode ([sticky-av-shorts.md](docs/sticky-av-shorts.md)) |
 | `reference/` | Reference renders |
-| `work/`, `cache/`, `archive/` | Pipeline internals |
+| `work/`, `cache/`, `archive/` | Pipeline internals; generated loops land in `work/gen/`, the newest in `work/gen/latest/` |
 
 ## Working with Claude
 

@@ -1,0 +1,81 @@
+# phonk_180: 180 BPM felt as 90 half-time (SPEC grid: 6 bars in 8 s). Faust only.
+# Long gliding 808 bass held with `-`, a metallic cowbell-like motif, trap hats with open accents.
+# At 180 the 8-phrase story is mapped onto the 6 bars: hook bars 1-3, twist bar 4, build bar 5, windup bar 6.
+
+[music]
+bpm = 180
+key = ["C#", "D", "E", "F"]
+mode = ["phrygian", "aeolian"]
+progression = [["i", "i", "VI", "VII", "i", "II"], ["i", "VII", "VI", "VII", "i", "iv"]]
+violation = ["motif_up", "kick_dropout", "stutter"]
+sections = { twist = 12, build = 16, windup = 20 }
+
+[track.kick]
+role = "drums"
+note = 36
+pattern = ["X.........x.....", "X.......x.x....."]
+dropout = true
+instrument = { faust = "kick", params = { tune = 52, decay = 0.3, drive = 3.5, click = 0.6 } }
+gain_db = -8.0
+
+[track.clap]
+role = "drums"
+note = 39
+pattern = "........x......."
+build = "roll"
+instrument = { faust = "clap", params = { tone = 1800, decay = 0.3 } }
+gain_db = -7.0
+sends = { space = -10.0 }
+
+[track.hats]
+role = "drums"
+note = 42
+alt_note = 46
+pattern = ["x.x.x.x.x.xxx.o.", "x.xxx.x.x.x.xxo."]
+build = "double"
+instrument = { faust = "hat", params = { closed = 0.05, tone = 9500 } }
+gain_db = -8.0
+pan = 0.2
+
+[track.bass]
+role = "bass"
+octave = 1
+pattern = ["X-----..x-----..", "X---------..x---"]
+instrument = { faust = "bass", params = { cutoff = 900, env_mod = 0.5, res = 0.1, decay = 0.5, sustain = 1.0, drive = 4.0, sub = 0.9, glide = 0.04 } }
+inserts = [{ faust = "drive", params = { drive = 2.5, tone = 3500 } }]
+gain_db = -6.0
+
+[track.lead]
+role = "motif"
+octave = 5
+length = [3, 4]
+euclid = { hits = [3, 5], steps = 16 }
+gate = 0.3
+instrument = { faust = "glass", params = { ratio = 1.48, index = 1.3, bright = 0.06, decay = 0.25, shimmer = 0.0 } }
+gain_db = -5.5
+pan = -0.15
+sends = { echo = -8.0, space = -14.0 }
+
+[track.riser]
+role = "riser"
+instrument = { faust = "riser", automate = { amount = { curve = "riser" } }, params = { low = 400, high = 7000 } }
+gain_db = -20.0
+
+[track.impact]
+role = "impact"
+note = 36
+instrument = { faust = "impact", params = { low = 32, high = 90, decay = 2.0, noise = 0.2 } }
+gain_db = -16.0
+sends = { space = -6.0 }
+
+[bus.space]
+fx = [{ faust = "space", params = { decay = 3.2, damp = 4500 } }]
+
+[bus.echo]
+fx = [{ faust = "echo", params = { beats = 0.5, feedback = 0.45, tone = 3000 } }]
+gain_db = -4.0
+
+[master]
+lufs = -14.0
+true_peak_db = -1.0
+fx = [{ faust = "master" }]

@@ -2,14 +2,21 @@
 # Relative paths resolve against the repo root.
 
 [paths]
-blender = 'C:\Program Files\Blender Foundation\Blender 5.2\blender.exe'
-touchdesigner = 'C:\Program Files\Derivative\TouchDesigner\bin\TouchDesigner.exe'
 template = "scenes/neon_tunnel.blend"
 inbox = "inbox"
 work = "work"
 cache = "cache"
 output = "output"
 archive = "archive"
+
+# Tools per OS. A gitignored config/machine.toml overrides any key for one machine (see machine.example.toml).
+[paths.windows]
+blender = 'C:\Program Files\Blender Foundation\Blender 5.2\blender.exe'
+touchdesigner = 'C:\Program Files\Derivative\TouchDesigner\bin\TouchDesigner.exe'
+
+[paths.macos]
+blender = "/Applications/Blender.app/Contents/MacOS/Blender"
+touchdesigner = "/Applications/TouchDesigner.app"
 
 [grid]
 fps = 60
@@ -46,3 +53,7 @@ crf = "MEDIUM"
 resolution = [2160, 3840]
 eevee_samples = 48
 crf = "HIGH"
+
+[gen]                        # generative loops (SPEC §15, dawdreamer/)
+preset = "neon_house"        # dawdreamer/presets/<name>.toml
+out = "work/gen"             # one folder per run, plus latest/ for TouchDesigner and Blender

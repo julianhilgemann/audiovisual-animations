@@ -1,7 +1,7 @@
 # Datapipe — Audio-reactive Blender Shorts
 
-**Spec v0.4 · 2026-10-20 · Status: draft for review**
-*v0.4: The repo is on GitHub and also holds standalone TouchDesigner projects under `projects/` (§4). v0.3: Phase 0 done; FFmpeg comes from PyAV inside the venv instead of a system install. v0.2: TouchDesigner becomes the reactivity-tuning tool (§6).*
+**Spec v0.5 · 2026-10-22 · Status: draft for review**
+*v0.5: A second mode, generative loops (§15): DawDreamer composes and renders an 8-second loop first and the visuals follow its score; its audio engine (phase G1) is built. Tool paths per OS, so the repo runs on Windows and macOS (§8). v0.4: The repo is on GitHub and also holds standalone TouchDesigner projects under `projects/` (§4). v0.3: Phase 0 done; FFmpeg comes from PyAV inside the venv instead of a system install. v0.2: TouchDesigner becomes the reactivity-tuning tool (§6).*
 
 Drop an audio or video file into a folder → the pipeline analyzes its rhythm and spectrum → a Blender scene is animated from those features plus a hand-tuned look preset → one headless render produces a finished YouTube Short (video + audio) with no further editing.
 
@@ -22,7 +22,7 @@ Drop an audio or video file into a folder → the pipeline analyzes its rhythm a
 
 - Auto-uploading to YouTube (possible later via the YouTube Data API).
 - Real-time / live VJ performance. Rendering is offline; only the *tweak preview* is real-time.
-- Generating or licensing music. Rights are the user's responsibility.
+- Licensing music. Rights to dropped-in songs are the user's responsibility. (Generating music is the separate generative mode, §15.)
 - Using the video track of a dropped MP4. Only its audio is used.
 
 ---
@@ -41,6 +41,7 @@ Drop an audio or video file into a folder → the pipeline analyzes its rhythm a
 | Software | Blender **5.2.2 LTS** (bundled Python 3.13.13, numpy 2.3.4). **TouchDesigner 2025.32820** (bundled Python 3.11, numpy 2.1.2). System Python 3.14.5 (untouched), Git, Node. **Pipeline env:** uv 0.13.1 (winget, user scope) with a uv-managed Python 3.12.15 in `.venv`. FFmpeg comes from PyAV inside the venv; there is no system ffmpeg. `uv run datapipe doctor` checks the whole toolchain. |
 | Blender bridge | The Blender Lab MCP add-on listens on `localhost:9876` and runs Python sent to it. This lets Claude (or any script) tweak the open scene live. Helper: `tools/blender_bridge.py`. It also works with a headless server (`blender -b <file> --online-mode -c blender_mcp`). |
 | Repo | Git, branch `main`, pushed to the public GitHub repo `julianhilgemann/audiovisual-animations`. Agent context lives in `CLAUDE.md`. |
+| Second machine | MacBook, Apple M1, macOS 13.5: Blender 5.2.2 LTS, TouchDesigner 2023.12230, uv with Python 3.12.13. The generative audio engine (§15) was built and verified here (2026-10-22). |
 
 ---
 
@@ -89,7 +90,8 @@ datapipe/
 ├─ .gitignore / .gitattributes
 ├─ pyproject.toml               # uv project, Python 3.12 pinned (Phase 0, still open)
 ├─ config/
-│  ├─ pipeline.toml             # global defaults: paths, fps, profiles, length rules
+│  ├─ pipeline.toml             # global defaults: paths (tools per OS), fps, profiles, length rules, [gen]
+│  ├─ machine.example.toml      # copy to machine.toml (gitignored) to override paths on one machine
 │  ├─ params.toml               # parameter schema (single source of truth, see §5.6)
 │  └─ mappings/
 │     └─ default.toml           # feature → parameter mapping (see §5.5)
@@ -113,7 +115,11 @@ datapipe/
 │  ├─ arc.py                    # song structure → story arc envelopes
 │  ├─ mapping.py                # NUMPY-ONLY, also imported by Blender
 │  ├─ jobs.py                   # job folders, sidecars, hashing, job.json
-│  └─ watch.py                  # inbox polling
+│  ├─ watch.py                  # inbox polling
+│  └─ gen/                      # generative loops (§15): compose, engine, master, score, plugins, run
+├─ dawdreamer/                  # generative audio (§15): specs, presets, Faust DSP, plugin manifest, states
+├─ docs/
+│  └─ sticky-av-shorts.md       # design of the generative mode (§15)
 ├─ blender/
 │  ├─ build_and_render.py       # headless entry point (step 5)
 │  ├─ rig.py                    # creates or migrates the Director rig in a template
@@ -430,9 +436,11 @@ That's enough to reproduce any output exactly.
 | Blender | 5.2.2 LTS (installed), pinned | Its API changed in 5.x (`sequences` → `strips`, `image_settings.media_type`), so scripts target 5.2. The Blender version is recorded in `job.json`. |
 | TouchDesigner | 2025.32820 (installed) | Reactivity Lab (§6.1). Its bundled Python 3.11 and numpy 2.1.2 run `mapping.py`. The free Non-Commercial licence restricts use, so check its terms if the channel is monetized or run by a business. |
 | Pipeline Python | **3.12.15 via `uv` 0.13.1**, in `.venv` | Kept separate from the system Python 3.14 to avoid librosa/numba compatibility risk. Remove it all with: delete `.venv`, `uv python uninstall 3.12`, `uv cache clean`, `winget uninstall astral-sh.uv`. |
-| Python packages | numpy, scipy, librosa, soundfile, matplotlib | `tomllib` is built into the standard library for config |
+| Python packages | numpy, scipy, librosa, soundfile, matplotlib; for §15: dawdreamer, mido, pyloudnorm | `tomllib` is built into the standard library for config |
+| Audio engine (§15) | **DawDreamer 0.9** | Headless audio graph: Faust (libfaust embedded, with its standard libraries), VST3 hosting, sample-exact MIDI, per-processor recording. Wheels for Python 3.12 on macOS (arm64, x86_64), Windows x64 and Linux. Plugins are fetched into `dawdreamer/plugins/` (gitignored), never installed system-wide. |
+| Platforms | Windows 11 and macOS 13+ | Tool paths per OS in `config/pipeline.toml` (`[paths.windows]`, `[paths.macos]`), overridable per machine in `config/machine.toml`. |
 | Shared mapping code | numpy-only, Python 3.11 syntax, numpy ≥ 2.1 | runs unchanged in the uv environment (3.12), Blender (3.13) and TouchDesigner (3.11) |
-| Media | **PyAV** (`av`), which bundles the FFmpeg libraries | Decodes any container and probes outputs in tests. Pinned in `uv.lock` and lives only in the venv. If an ffmpeg command-line tool is ever needed, `imageio-ffmpeg` adds one inside the venv too. |
+| Media | **PyAV** (`av`), which bundles the FFmpeg libraries | Decodes any container and probes outputs in tests. Pinned in `uv.lock` and lives only in the venv. Capped below 16 on macOS, whose newer wheels need macOS 14. If an ffmpeg command-line tool is ever needed, `imageio-ffmpeg` adds one inside the venv too. |
 | Version control | Git (installed) | the `datapipe/` folder becomes a repo. Renders, `work/`, `cache/` and `inbox/` are git-ignored. |
 | Optional | beat_this (downbeats), Demucs (drum stems) | Phase 7 |
 
@@ -519,6 +527,34 @@ The pipeline produces usable Shorts after **P3**, with the fixed tunnel shape an
 | 5 | Watch folder vs manual command only | both available |
 | 6 | Further templates beyond the neon tunnel | tunnel only in v1 |
 | 7 | Loudness normalization of the output audio | off |
+
+---
+
+## 15. Generative loops
+
+The song pipeline (§1–§11) starts from a finished track. The generative mode starts from a preset and a seed and composes the audio first: an 8-second seamless loop whose exact score drives every visual event, so sync comes from the notes, not from analysis. The product design, salience model, story, visual rules, mapping and QA are in [docs/sticky-av-shorts.md](docs/sticky-av-shorts.md); the audio is specified in [dawdreamer/](dawdreamer/README.md).
+
+| | Song pipeline | Generative loops |
+|---|---|---|
+| Input | an audio or video file in `inbox/` | a preset and a seed, or a MIDI file |
+| Length | the song, or a fixed excerpt (§5.3) | 8.0 s: 480 frames, 384,000 samples, 120/150/180/240 BPM |
+| Timing source | beat tracking and onsets | the score; analysis adds texture only |
+| Picture | 2160×3840 | 1080×1920 (docs/sticky-av-shorts.md) |
+| Run folder | `work/<job-id>/` | `work/gen/<yyyymmdd>_<preset>_s<seed>/`, newest mirrored to `work/gen/latest/` |
+| Command | `datapipe run` (P3) | `datapipe gen` (audio, built); a whole short later |
+
+**Stages.** S0 config and seed, S1 compose or ingest MIDI (`gen/compose.py`) and S2 audio render (`gen/engine.py`, `gen/master.py`) are built. S3 analysis reuses §5.2 on the stems; S4 control build reuses `mapping.py` (§5.5); S5 reuses the Blender build (§5.7) and the Director rig (P1); S6 encode and S7 QA follow docs/sticky-av-shorts.md.
+
+**Specs.** [audio.md](dawdreamer/specs/audio.md): what a loop must sound like. [engine.md](dawdreamer/specs/engine.md): the render graph, mastering, determinism, built-in sounds, plugins. [presets.md](dawdreamer/specs/presets.md): the preset format. [handoff.md](dawdreamer/specs/handoff.md): the run files, the timing contract, how TouchDesigner and Blender read them.
+
+**Phases**
+
+| Phase | Scope | Done when |
+|---|---|---|
+| **G1 Audio engine** | *done 2026-10-22 on macOS:* DawDreamer, 13 Faust instruments and effects, composer (roles, story, one violation per loop), MIDI ingest, two-pass render, stems, −18 LUFS master staging, −14 LUFS and −1 dBTP mastering, seam check, plugin manifest with fetch and probe, three presets, run folder with `score.json`, `score.mid`, `frames.csv`, `latest/`, `doctor` checks | `uv run pytest` green including `tests/test_gen_*.py`; every preset renders at −14 ± 0.5 LUFS, ≤ −1 dBTP, seam ok; reruns are bit-identical. **Met on macOS (32 tests). Windows: run `uv sync`, `datapipe plugins fetch`, `datapipe doctor` and the tests.** |
+| **G2 Read a run in TD and Blender** | TouchDesigner loads `work/gen/latest/` (mix, `frames.csv`); Blender adds `mix.wav` as a sound strip and keys score hits on the Director rig (after P1) | a kick-driven flash lands within ±1 frame of the kick in TD and in a Blender draft |
+| **G3 Stem analysis, control build** | S3 features from stems on the 800-sample hop, S4 `controls.json` with wind-up envelopes, wrap and flash limiter | controls wrap seamlessly (frame 480 → 1) and pass the flash gate |
+| **G4 Render, encode, QA** | S5–S7 at 1080×1920, one command per short | the MP4 passes the S7 gates (length, seam, sync, loudness, flashes, file) |
 
 ---
 

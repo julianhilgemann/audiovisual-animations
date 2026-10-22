@@ -1,0 +1,8 @@
+# Copy to config/machine.toml (gitignored) to override paths for this machine only.
+# Any key from config/pipeline.toml works; tables merge key by key.
+
+[paths.windows]
+# blender = 'D:\Tools\Blender 5.2\blender.exe'
+
+[paths.macos]
+# blender = "/Applications/Blender 5.2.app/Contents/MacOS/Blender"

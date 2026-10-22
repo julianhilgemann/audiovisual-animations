@@ -1,0 +1,97 @@
+# neon_house: the default loop, Faust only, so it renders the same on any machine with no plugins fetched.
+# 120 BPM house pulse: four-on-the-floor kick, a glass FM motif on a Euclidean rhythm, a saturated offbeat bass,
+# a wide pad that opens through the build, a noise riser into the drop and an impact on the downbeat.
+#
+# Format: dawdreamer/specs/presets.md. A list means "the seed picks one".
+
+[music]
+bpm = 120
+key = ["C", "D", "E", "F", "G", "A"]
+mode = ["aeolian", "dorian"]
+progression = [
+    ["i", "VI", "III", "VII"],
+    ["i", "iv", "VI", "v"],
+    ["i", "VII", "VI", "VII"],
+    ["i", "i", "VI", "VII"],
+]
+sevenths = true
+violation = ["motif_up", "kick_dropout", "stutter"]
+
+[track.kick]
+role = "drums"
+note = 36
+pattern = "X...x...x...x..."
+dropout = true
+instrument = { faust = "kick", params = { tune = 47, decay = 0.45, drive = 2.4, click = 0.35 } }
+gain_db = -8.5
+
+[track.clap]
+role = "drums"
+note = 39
+pattern = "....x.......x..."
+build = "roll"
+instrument = { faust = "clap", params = { tone = 1400, decay = 0.2 } }
+gain_db = -10.0
+sends = { space = -9.0 }
+
+[track.hats]
+role = "drums"
+note = 42
+alt_note = 46
+pattern = ["x.o.x.o.x.o.x.ox", "x.oxx.o.x.oxx.o."]
+build = "double"
+instrument = { faust = "hat" }
+gain_db = -12.0
+pan = 0.15
+
+[track.bass]
+role = "bass"
+octave = 1
+pattern = ["..x...x...x...x.", "..x...x...x..xx.", "..x..ox...x..ox."]
+instrument = { faust = "bass", params = { cutoff = 380, env_mod = 4.0, decay = 0.16, drive = 3.0 } }
+inserts = [{ faust = "drive", params = { drive = 1.8, tone = 4500 } }]
+gain_db = -5.0
+
+[track.lead]
+role = "motif"
+octave = 5
+length = [3, 4, 5]
+euclid = { hits = [5, 6], steps = 16 }
+gate = 0.4
+instrument = { faust = "glass", params = { ratio = 3.5, index = 2.0, decay = 0.7 } }
+gain_db = -12.0
+pan = -0.1
+sends = { space = -12.0, echo = -10.0 }
+
+[track.pad]
+role = "chords"
+octave = 3
+instrument = { faust = "pad", params = { cutoff = 2400, attack = 0.2 } }
+inserts = [{ faust = "filter", automate = { cutoff = { curve = "riser", from = 700, to = 9000, scale = "log" } } }]
+gain_db = -10.0
+sends = { space = -6.0 }
+
+[track.riser]
+role = "riser"
+instrument = { faust = "riser", automate = { amount = { curve = "riser" } } }
+gain_db = -22.0
+sends = { space = -6.0 }
+
+[track.impact]
+role = "impact"
+note = 36
+instrument = { faust = "impact" }
+gain_db = -16.0
+sends = { space = -4.0 }
+
+[bus.space]
+fx = [{ faust = "space", params = { decay = 2.6 } }]
+
+[bus.echo]
+fx = [{ faust = "echo", params = { beats = 0.75, feedback = 0.35 } }]
+gain_db = -3.0
+
+[master]
+lufs = -14.0
+true_peak_db = -1.0
+fx = [{ faust = "master" }]

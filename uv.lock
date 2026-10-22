@@ -1,15 +1,33 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = "==3.12.*"
+resolution-markers = [
+    "sys_platform == 'darwin'",
+    "sys_platform != 'darwin'",
+]
+
+[[package]]
+name = "av"
+version = "15.1.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "sys_platform == 'darwin'",
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e9/c3/83e6e73d1592bc54436eae0bc61704ae0cff0c3cfbde7b58af9ed67ebb49/av-15.1.0.tar.gz", hash = "sha256:39cda2dc810e11c1938f8cb5759c41d6b630550236b3365790e67a313660ec85", size = 3774192, upload-time = "2025-08-30T04:41:56.076Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d1/58/de78b276d20db6ffcd4371283df771721a833ba525a3d57e753d00a9fe79/av-15.1.0-cp312-cp312-macosx_13_0_arm64.whl", hash = "sha256:40c5df37f4c354ab8190c6fd68dab7881d112f527906f64ca73da4c252a58cee", size = 21760991, upload-time = "2025-08-30T04:40:00.801Z" },
+    { url = "https://files.pythonhosted.org/packages/56/cc/45f85775304ae60b66976360d82ba5b152ad3fd91f9267d5020a51e9a828/av-15.1.0-cp312-cp312-macosx_13_0_x86_64.whl", hash = "sha256:af455ce65ada3d361f80c90c810d9bced4db5655ab9aa513024d6c71c5c476d5", size = 26953097, upload-time = "2025-08-30T04:40:03.998Z" },
+]
 
 [[package]]
 name = "av"
 version = "19.0.1"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "sys_platform != 'darwin'",
+]
 sdist = { url = "https://files.pythonhosted.org/packages/90/bc/a2a40e503250fe5d4174471911828f31658864eb69a8a7cb960c715e17b7/av-19.0.1.tar.gz", hash = "sha256:08674930eaf1af78a3ed8f93d3ba49383323b3a867e84349d9c399e36f7497da", size = 4274648, upload-time = "2026-10-03T01:48:28.575Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ec/2f/f4d219b2c72fea88bcbaea23de5b7f864ebecd348586fd2fe69f7f657147/av-19.0.1-cp312-abi3-macosx_11_0_x86_64.whl", hash = "sha256:2bd44ef4c09bb04aa6100d4c6191ddedaffef6af757ac55d5b4dc90915859299", size = 22625494, upload-time = "2026-10-03T01:47:21.866Z" },
-    { url = "https://files.pythonhosted.org/packages/ff/75/db37bb43a12a317cc0c0b96ddabc7896f582503b377e0803d4d721969522/av-19.0.1-cp312-abi3-macosx_14_0_arm64.whl", hash = "sha256:29d85e4ee36bf8f475dad07d4f4417c07bba62535f6a7179429c357e0ca8fb0f", size = 18439188, upload-time = "2026-10-03T01:47:25.541Z" },
     { url = "https://files.pythonhosted.org/packages/10/4b/61f138fcf21e7bb50655ed21dd7fdc7a296baf72ea3c7ad8e89cb00b69c1/av-19.0.1-cp312-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:437d4c0d5a7d771f2c3af84cd28e6aac6e173851116c60b53e81dbf1eebe4eab", size = 32676941, upload-time = "2026-10-03T01:47:29.237Z" },
     { url = "https://files.pythonhosted.org/packages/c8/97/5fb45934ac64e8afc2c6869a7dcb8cb2af1ddab09a725367548856cbb59f/av-19.0.1-cp312-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:1bea5b6134209305199bce7627ac3d33964de2cf2b09c77d08e7f67cf8bd4170", size = 34983451, upload-time = "2026-10-03T01:47:32.895Z" },
     { url = "https://files.pythonhosted.org/packages/66/f2/6eee1b99ac492fa1965d6fd466ef8b644ca296b4f1dfa8c8225ab340b139/av-19.0.1-cp312-abi3-manylinux_2_31_armv7l.whl", hash = "sha256:1de938ec0134ad88f795dfe0a2dfc2d59e9ecea39a20158d37961279a3483612", size = 41660680, upload-time = "2026-10-03T01:47:36.903Z" },
@@ -146,10 +164,14 @@ name = "datapipe"
 version = "0.0.1"
 source = { editable = "." }
 dependencies = [
-    { name = "av" },
+    { name = "av", version = "15.1.0", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'darwin'" },
+    { name = "av", version = "19.0.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'darwin'" },
+    { name = "dawdreamer" },
     { name = "librosa" },
     { name = "matplotlib" },
+    { name = "mido" },
     { name = "numpy" },
+    { name = "pyloudnorm" },
     { name = "scipy" },
     { name = "soundfile" },
 ]
@@ -161,16 +183,32 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "av" },
+    { name = "av", marker = "sys_platform != 'darwin'", specifier = ">=15.1" },
+    { name = "av", marker = "sys_platform == 'darwin'", specifier = ">=15.1,<16" },
+    { name = "dawdreamer", specifier = ">=0.9" },
     { name = "librosa", specifier = ">=0.11" },
     { name = "matplotlib" },
+    { name = "mido" },
     { name = "numpy", specifier = ">=2.1" },
+    { name = "pyloudnorm" },
     { name = "scipy" },
     { name = "soundfile" },
 ]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest" }]
+
+[[package]]
+name = "dawdreamer"
+version = "0.9.0"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7e/95/93114482c9dbcab39d6e5b844bd6a96a919d5864e913c966abba0d67f0d5/dawdreamer-0.9.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:cd53384a505918f11182c81113bb782e4a34baa4d5f53c089fa3919fb1deb991", size = 39744246, upload-time = "2026-08-12T14:47:36.571Z" },
+    { url = "https://files.pythonhosted.org/packages/b4/c9/03e9d4c5cdb338a95b0fbb1caa1305dacc9269e1c0ea2b3cccbd3b489d99/dawdreamer-0.9.0-cp312-cp312-macosx_11_0_x86_64.whl", hash = "sha256:01ce44210502201dd35f62dd5f9c356f9bec068ad81ef6d9cfebf8b318a50a86", size = 44397840, upload-time = "2026-08-12T14:47:39.397Z" },
+    { url = "https://files.pythonhosted.org/packages/ef/49/db042fdf577fa216d9b0004c80605286a356b807f6bb38ca3f5dd64c1b5c/dawdreamer-0.9.0-cp312-cp312-manylinux_2_34_aarch64.whl", hash = "sha256:c54166ce08ee37ed2abb5cab718e9e3375cf8d22d4980a52c71f4eb6e2604e84", size = 40638795, upload-time = "2026-08-12T14:47:41.796Z" },
+    { url = "https://files.pythonhosted.org/packages/68/49/962eb7044e97076dc931d143fd78ef1ebb7a866c1e9efe3cdd02d18476b1/dawdreamer-0.9.0-cp312-cp312-manylinux_2_34_x86_64.whl", hash = "sha256:9daf556b0f49b65d14f0504cc3a118c85f0c034eeb51b02e5a267bf42779c6f7", size = 40197583, upload-time = "2026-08-12T14:47:44.178Z" },
+    { url = "https://files.pythonhosted.org/packages/79/d6/439c6ed32f4f4886142ea1a5fc81fb18d0b7fae7acbfe6a9ca926ba30a34/dawdreamer-0.9.0-cp312-cp312-win_amd64.whl", hash = "sha256:0076ebe3de73d0888bc6e5cc08ddb95e71d738dc587afbc7df1bf542e945f5b9", size = 23089487, upload-time = "2026-08-12T14:47:46.441Z" },
+]
 
 [[package]]
 name = "decorator"
@@ -328,6 +366,18 @@ wheels = [
 ]
 
 [[package]]
+name = "mido"
+version = "1.3.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "packaging" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/23/14/cfda3fe61ce4c0f50a9f707ae02b46cb53211732b2cd4522bf06272848f4/mido-1.3.3.tar.gz", hash = "sha256:1aecb30b7f282404f17e43768cbf74a6a31bf22b3b783bdd117a1ce9d22cb74c", size = 124288, upload-time = "2024-10-25T15:05:21.847Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fd/28/45deb15c11859d2f10702b32e71de9328a9fa494f989626916db39a9617f/mido-1.3.3-py3-none-any.whl", hash = "sha256:01033c9b10b049e4436fca2762194ca839b09a4334091dd3c34e7f4ae674fd8a", size = 54614, upload-time = "2024-10-25T15:05:20.349Z" },
+]
+
+[[package]]
 name = "msgpack"
 version = "1.2.3"
 source = { registry = "https://pypi.org/simple" }
@@ -470,6 +520,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/49/2e/ced460408999b33da6b31b0021b0f37d329e202d4169aeb164493778f25b/pygments-2.21.0.tar.gz", hash = "sha256:610ca751c9bc2492b38eb9a38a7fbc93edbbb2d7182edaf34e66ae493dee5c8c", size = 5005329, upload-time = "2026-08-17T08:02:48.824Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/71/46/17f022dd3e953bf20a04a028a21ec746d942f8d2af30fa0f124fa0e6a684/pygments-2.21.0-py3-none-any.whl", hash = "sha256:2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9", size = 1250147, upload-time = "2026-08-17T08:02:44.912Z" },
+]
+
+[[package]]
+name = "pyloudnorm"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "scipy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/23/00/f915eaa75326f4209941179c2b93ac477f2040e4aeff5bb21d16eb8058f9/pyloudnorm-0.2.0.tar.gz", hash = "sha256:8bf597658ea4e1975c275adf490f6deb5369ea409f2901f939915efa4b681b16", size = 14037, upload-time = "2026-01-04T11:43:35.265Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/aa/b6/65a49a05614b2548edbba3aab118f2ebe7441dfd778accdcdce9f6567f20/pyloudnorm-0.2.0-py3-none-any.whl", hash = "sha256:9bb69afb904f59d007a7f9ba3d75d16fb8aeef35c44d6df822a9f192d69cf13f", size = 10879, upload-time = "2026-01-04T11:43:34.534Z" },
 ]
 
 [[package]]

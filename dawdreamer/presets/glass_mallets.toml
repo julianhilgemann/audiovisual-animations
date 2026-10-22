@@ -1,0 +1,100 @@
+# glass_mallets: the plugin showcase. RipplerX mallets play the motif, JC303 the bass, a Dragonfly plate is the
+# space. Every plugin slot falls back to a Faust instrument, so it still renders before `datapipe plugins fetch`.
+# 120 BPM techno: straight kick, Euclidean hats, a rubbery 303 line, glassy pentatonic bells.
+
+[music]
+bpm = 120
+key = ["D", "E", "F#", "A", "B"]
+mode = ["aeolian", "dorian", "phrygian"]
+progression = [
+    ["i", "i", "VI", "VII"],
+    ["i", "VII", "VI", "VII"],
+    ["i", "iv", "i", "v"],
+]
+violation = ["motif_up", "kick_dropout", "stutter"]
+
+[track.kick]
+role = "drums"
+note = 36
+pattern = "X...x...x...x..."
+dropout = true
+instrument = { faust = "kick", params = { tune = 50, decay = 0.38, drive = 3.0, sweep = 5 } }
+gain_db = -4.5
+
+[track.clap]
+role = "drums"
+note = 39
+pattern = "....x.......x..."
+build = "roll"
+instrument = { faust = "clap", params = { tone = 1700, decay = 0.16 } }
+gain_db = -4.0
+sends = { space = -8.0 }
+
+[track.hats]
+role = "drums"
+note = 42
+euclid = { hits = [7, 9, 11], steps = 16 }
+build = "double"
+instrument = { faust = "hat", params = { tone = 10000, closed = 0.07 } }
+gain_db = -6.0
+pan = -0.2
+
+[track.bass]
+role = "bass"
+octave = 1
+pattern = ["x.xo..x.x.ox..x.", "x..x.ox.x..xo.x.", "xo.x..xox..x..xo"]
+gate = 0.2
+inserts = [{ faust = "drive", params = { drive = 4.0, tone = 5000 } }]
+gain_db = -6.0
+
+[track.bass.instrument]
+plugin = "jc303"
+params = { Cutoff = 0.25, Resonance = 0.55, EnvMod = 0.6, Decay = 0.4, Accent = 0.7, Drive = 0.3, "Dry/Wet" = 0.5, Volume = 1.0 }
+trim_db = -3.0
+fallback = { faust = "bass", trim_db = 0.0, params = { cutoff = 300, env_mod = 6.0, res = 0.6, decay = 0.12, drive = 3.5 } }
+
+[track.lead]
+role = "motif"
+octave = 5
+length = [3, 4, 5]
+euclid = { hits = [5], steps = 16 }
+gate = 0.5
+gain_db = -6.0
+pan = 0.1
+sends = { space = -8.0, echo = -12.0 }
+
+[track.lead.instrument]
+plugin = "ripplerx"
+# A Decay and B Decay after Program: the factory programs ring for 4-13 s, which smears the motif.
+# One program, because their levels differ more than one trim can cover: in the mix at this decay, Crystal sits
+# at -6 to -8 LU, Vibes -10 to -13, Kalimba -12 to -15. A list of programs needs per-program trims first.
+params = { Program = "Crystal", "A Decay" = "1.2", "B Decay" = "1.2" }
+trim_db = 4.0
+fallback = { faust = "glass", trim_db = -2.0, params = { ratio = 2.0, index = 1.6, decay = 0.9, shimmer = 0.2 } }
+
+[track.riser]
+role = "riser"
+instrument = { faust = "riser", automate = { amount = { curve = "riser" } }, params = { high = 11000 } }
+gain_db = -15.0
+sends = { space = -4.0 }
+
+[track.impact]
+role = "impact"
+note = 36
+instrument = { faust = "impact", params = { low = 45, decay = 1.0 } }
+gain_db = -10.0
+sends = { space = -3.0 }
+
+[[bus.space.fx]]
+plugin = "dragonfly_plate"
+params = { "Dry Level" = "0", "Wet Level" = "100", Decay = "1.4", Predelay = "12", "Low Cut" = "250" }
+fallback = { faust = "space", params = { decay = 1.8, damp = 8000 } }
+
+[bus.echo]
+fx = [{ faust = "echo", params = { beats = 0.75, feedback = 0.3, tone = 4500 } }]
+gain_db = -4.0
+
+[master]
+lufs = -14.0
+true_peak_db = -1.0
+fx = [{ faust = "master", params = { ratio = 2.5 } }]

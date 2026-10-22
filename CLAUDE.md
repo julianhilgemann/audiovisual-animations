@@ -6,7 +6,7 @@ Audio-reactive YouTube Shorts: a file dropped in `inbox/` is analyzed, mapped on
 
 ## Status
 
-Phase 0 is done; next is Phase 1, the Director rig (SPEC §11). `uv run datapipe doctor` checks the whole toolchain, and `uv run pytest` runs the tests.
+Phase 0 is done; next is Phase 1, the Director rig (SPEC §11). The generative mode (SPEC §15) has its audio engine, phase G1, done on macOS; next there is G2, reading a run in TouchDesigner and Blender. `uv run datapipe doctor` checks the whole toolchain, and `uv run pytest` runs the tests.
 
 The user wants this machine left intact. Python packages go into `.venv` through `pyproject.toml` and `uv`. FFmpeg comes from PyAV (`av`) inside the venv, not a system ffmpeg. Anything installed outside the repo needs the user's go-ahead first.
 
@@ -16,7 +16,21 @@ Work phase by phase. A phase is done when its "Done when" column in SPEC §11 ho
 
 `src/datapipe/mapping.py` runs unchanged in the uv env (Python 3.12), Blender (3.13, numpy 2.3) and TouchDesigner (3.11, numpy 2.1). Keep it numpy-only, with Python 3.11 syntax and the numpy ≥ 2.1 API. A recipe tuned in TouchDesigner means the same thing in a Blender render only because all three hosts run this one file. The venv has numpy 2.5, so a passing venv test doesn't prove the file still works on numpy 2.1. Run the mapping tests under Blender's Python as well.
 
-## Environment (Windows 11, PowerShell 5.1)
+## Generative audio (`dawdreamer/`, `src/datapipe/gen/`)
+
+`uv run datapipe gen --preset <name> --seed <n>` composes, renders with DawDreamer and masters an 8-second loop into `work/gen/<run>/`, mirrored to `work/gen/latest/`. Read `dawdreamer/README.md` and the spec for the part you touch in `dawdreamer/specs/` first.
+
+- `gen/score.py` is the contract Blender and TouchDesigner import: keep it standard-library only with Python 3.11 syntax, and check it under Blender's Python after changes.
+- Every slot that names a plugin needs a Faust `fallback`, and `neon_house` stays Faust-only, so a fresh clone renders without plugins. Plugins are fetched into `dawdreamer/plugins/` (gitignored) by `datapipe plugins fetch`; never commit them, and add new ones to `plugins.toml` with URLs and sha256 for both OSes.
+- Set plugin parameters by display value (`"A Decay" = "1.2"`); `datapipe plugins probe <key>` lists them.
+- After a sound or gain change, render a few seeds and compare the printed `balance` line with the table in `specs/audio.md`; the limiter should take 1–4 dB.
+- Keep a `RenderEngine` alive while its processors are used: a freed engine segfaults them.
+
+## Environment, macOS (Apple M1, macOS 13.5, zsh)
+
+The second machine. Tool paths come from `[paths.macos]` in `config/pipeline.toml`: Blender 5.2.2 LTS at `/Applications/Blender.app/Contents/MacOS/Blender`, TouchDesigner 2023.12230 (older than the Windows one). PyAV is capped below 16 here because its newer macOS wheels need macOS 14. Native tools run with plain `subprocess` argument lists.
+
+## Environment, Windows 11 (PowerShell 5.1)
 
 - Blender 5.2.2 LTS: `C:\Program Files\Blender Foundation\Blender 5.2\blender.exe`. Use the 5.x API: `sequence_editor.strips`, and set `image_settings.media_type = "VIDEO"` before `file_format = "FFMPEG"`.
 - TouchDesigner 2025.32820: `C:\Program Files\Derivative\TouchDesigner\`. The user edits `.toe` files in TD. Agent work there is the Python in `touchdesigner/scripts/` and the export format (SPEC §6.1).
