@@ -19,6 +19,7 @@
 *.mp3
 *.flac
 *.m4a
+*.zip
 
 # Blender and TouchDesigner backups
 *.blend1
@@ -61,3 +62,4 @@ opencode.json
 .claude/projects/
 briefs/
 .DS_Store
+projects/octatrack-av-setup/TDPyEnvManagerContext.yaml
