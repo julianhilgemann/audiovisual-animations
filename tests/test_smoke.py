@@ -14,5 +14,5 @@ def test_repo_paths_resolve():
 
 
 def test_planned_command_reports_phase(capsys):
-    assert main(["analyze", "song.mp4"]) == 2
-    assert "P2" in capsys.readouterr().err
+    assert main(["watch"]) == 2
+    assert "P4" in capsys.readouterr().err

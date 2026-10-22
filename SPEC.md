@@ -1,7 +1,7 @@
 # Datapipe — Audio-reactive Blender Shorts
 
-**Spec v0.7 · 2026-10-22 · Status: draft for review**
-*v0.7: A generated loop becomes a finished Short in one command, `datapipe short` (§15, G2–G4): controls from the stems and the score, the Blender project `blender/stem-tunnel` (the neon lines tunnel, loop-closed), a PyAV encode to the Shorts settings and the automatic S7 checks, including a full-frame flash gate. v0.6: The pipeline is Blender-only, because Blender can be driven entirely from code with every file at hand. TouchDesigner stays in the repo for the standalone projects (`projects/`) but no stage depends on it: reactivity is tuned in a tab of the Blender panel (§6.1, P6), and a generated run is read by Blender alone (§15, G2). v0.5: A second mode, generative loops (§15): DawDreamer composes and renders an 8-second loop first and the visuals follow its score; its audio engine (phase G1) is built. Tool paths per OS, so the repo runs on Windows and macOS (§8). v0.4: The repo is on GitHub and also holds standalone TouchDesigner projects under `projects/` (§4). v0.3: Phase 0 done; FFmpeg comes from PyAV inside the venv instead of a system install. v0.2: TouchDesigner becomes the reactivity-tuning tool (§6).*
+**Spec v0.8 · 2026-10-23 · Status: draft for review**
+*v0.8: Four input methods run in parallel (§16): A generative, B master only, C master and stems, D master, stems and MIDI. Each has its own front end, landing zone and run folders, and its own mapping per look; all feed one contract (`controls.json`) and one back end (render, encode, checks). In B, C and D the input sets the length. B is the song pipeline of §1–§11, now built on the generative mode's working path; M1–M4 replace P1–P3, and the Director rig becomes an optional second look. v0.7: A generated loop becomes a finished Short in one command, `datapipe short` (§15, G2–G4): controls from the stems and the score, the Blender project `blender/stem-tunnel` (the neon lines tunnel, loop-closed), a PyAV encode to the Shorts settings and the automatic S7 checks, including a full-frame flash gate. v0.6: The pipeline is Blender-only, because Blender can be driven entirely from code with every file at hand. TouchDesigner stays in the repo for the standalone projects (`projects/`) but no stage depends on it: reactivity is tuned in a tab of the Blender panel (§6.1, P6), and a generated run is read by Blender alone (§15, G2). v0.5: A second mode, generative loops (§15): DawDreamer composes and renders an 8-second loop first and the visuals follow its score; its audio engine (phase G1) is built. Tool paths per OS, so the repo runs on Windows and macOS (§8). v0.4: The repo is on GitHub and also holds standalone TouchDesigner projects under `projects/` (§4). v0.3: Phase 0 done; FFmpeg comes from PyAV inside the venv instead of a system install. v0.2: TouchDesigner becomes the reactivity-tuning tool (§6).*
 
 Drop an audio or video file into a folder → the pipeline analyzes its rhythm and spectrum → a Blender scene is animated from those features plus a hand-tuned look preset → one headless render produces a finished YouTube Short (video + audio) with no further editing.
 
@@ -15,7 +15,7 @@ Drop an audio or video file into a folder → the pipeline analyzes its rhythm a
 - **Audio-reactive.** Transients (kick, snare, hats), frequency bands, loudness, beat/bar phase and song structure drive the animation, frame-accurately at 60 fps.
 - **Story, not just reactivity.** The song's structure (build, breakdown, drop) drives a retention arc: hook → build → tension → payoff → seamless loop back to frame 1.
 - **Tweak by taste.** Reactivity, shape and look are tuned in a Blender side panel, against the renderer that makes the final picture. Each saves a small file (a mapping recipe or a preset) that the pipeline applies to every new song.
-- **Two length modes.** *Full* uses the audio's own length (up to a cap). *Fixed* uses a set length (e.g. 30 s) with an automatically chosen excerpt and an audio fade-out.
+- **Length from the input.** Methods B, C and D (§16) use the input's own length, up to a cap; the generative mode makes 8-second loops. *(Before v0.8: two length modes, full and a fixed excerpt; the excerpt stays an option for B, §16.4.)*
 - **Reproducible.** Every output can be re-rendered bit-for-bit from its job record (inputs, preset, mapping, versions).
 
 **Non-goals (v1)**
@@ -480,6 +480,8 @@ That's enough to reproduce any output exactly.
 
 The pipeline produces usable Shorts after **P3**, with the fixed tunnel shape and a hand-edited mapping. P5 adds shape tweaking and P6 reactivity tuning, both in the Blender panel. P6 builds on the panel from P5 but not on its Geometry Nodes rebuild.
 
+**v0.8:** the input methods' phases M1–M4 (§16.6) replace P1–P3. Song input renders through `controls.json` and a look such as `blender/stem-tunnel`, not through `features.json`, `tracks.json` and the Director rig. P1 (the Director rig on `scenes/neon_tunnel.blend`) becomes an optional second look. P4–P7 still apply and work on `controls.json`.
+
 ---
 
 ## 12. Risks and mitigations
@@ -518,12 +520,15 @@ The pipeline produces usable Shorts after **P3**, with the fixed tunnel shape an
 | 5 | Watch folder vs manual command only | both available |
 | 6 | Further templates beyond the neon tunnel | tunnel only in v1 |
 | 7 | Loudness normalization of the output audio | off |
+| 8 | Song input through `controls.json` and the stem-tunnel path instead of the Director rig (§16) | **Decided in v0.8: yes.** The Director rig becomes an optional look |
+| 9 | ~~Method names in commands and folders~~ | **Decided in v0.8:** `gen`, `master`, `stems`, `midi` (= A, B, C, D) |
+| 10 | ~~One Blender file per method, or one look with a mapping per method~~ | **Decided in v0.8:** one look (`stem_tunnel.blend`) as the central hub, `mappings/<method>.toml` per method (§16.1) |
 
 ---
 
 ## 15. Generative loops
 
-The song pipeline (§1–§11) starts from a finished track. The generative mode starts from a preset and a seed and composes the audio first: an 8-second seamless loop whose exact score drives every visual event, so sync comes from the notes, not from analysis. The product design, salience model, story, visual rules, mapping and QA are in [docs/sticky-av-shorts.md](docs/sticky-av-shorts.md); the audio is specified in [dawdreamer/](dawdreamer/README.md).
+This is method A of §16. The song pipeline (§1–§11) starts from a finished track. The generative mode starts from a preset and a seed and composes the audio first: an 8-second seamless loop whose exact score drives every visual event, so sync comes from the notes, not from analysis. The product design, salience model, story, visual rules, mapping and QA are in [docs/sticky-av-shorts.md](docs/sticky-av-shorts.md); the audio is specified in [dawdreamer/](dawdreamer/README.md).
 
 | | Song pipeline | Generative loops |
 |---|---|---|
@@ -535,7 +540,7 @@ The song pipeline (§1–§11) starts from a finished track. The generative mode
 | Command | `datapipe run` (P3) | `datapipe gen` (audio), `datapipe short` (the finished Short) |
 | Blender scene | `scenes/neon_tunnel.blend`, Director rig (P1) | `blender/stem-tunnel/stem_tunnel.blend`: the lines tunnel of `blender/audio-tunnel`, its own signal rig |
 
-**Stages.** All built in a first version. S0 config and seed, S1 compose or ingest MIDI (`gen/compose.py`), S2 audio render (`gen/engine.py`, `gen/master.py`); S3 controls from the stems and the score (`gen/controls.py` → `controls.json`); S4 the mapping onto a look (`blender/stem-tunnel/mapping.toml` with the shared `src/datapipe/mapping.py`, which also closes every accumulated motion on the loop); S5 the headless Blender render (`blender/stem-tunnel/stem_tunnel.py`); S6 the PyAV encode and S7 the checks (`gen/video.py`). Still open: band energies and onset strength in S3, the Shorts overlay-mask gate in S7, and the song pipeline's Director rig (P1) as a second scene for this mode. Project notes: [blender/stem-tunnel/README.md](blender/stem-tunnel/README.md).
+**Stages.** All built in a first version. S0 config and seed, S1 compose or ingest MIDI (`gen/compose.py`), S2 audio render (`gen/engine.py`, `gen/master.py`); S3 controls from the stems and the score (`gen/controls.py` → `controls.json`); S4 the mapping onto a look (`blender/stem-tunnel/mappings/gen.toml` with the shared `src/datapipe/mapping.py`, which also closes every accumulated motion on the loop); S5 the headless Blender render (`blender/stem-tunnel/stem_tunnel.py`); S6 the PyAV encode and S7 the checks (`src/datapipe/render.py`, shared by every method since v0.8). Band energies are in S3 since v0.8. Still open: onset strength in S3, the Shorts overlay-mask gate in S7, and the song pipeline's Director rig (P1) as a second scene for this mode. Project notes: [blender/stem-tunnel/README.md](blender/stem-tunnel/README.md).
 
 **Specs.** [audio.md](dawdreamer/specs/audio.md): what a loop must sound like. [engine.md](dawdreamer/specs/engine.md): the render graph, mastering, determinism, built-in sounds, plugins. [presets.md](dawdreamer/specs/presets.md): the preset format. [handoff.md](dawdreamer/specs/handoff.md): the run files, the timing contract, how Blender reads them.
 
@@ -546,7 +551,150 @@ The song pipeline (§1–§11) starts from a finished track. The generative mode
 | **G1 Audio engine** | *done 2026-10-22 on macOS:* DawDreamer, 13 Faust instruments and effects, composer (roles, story, one violation per loop), MIDI ingest, two-pass render, stems, −18 LUFS master staging, −14 LUFS and −1 dBTP mastering, seam check, plugin manifest with fetch and probe, three presets, run folder with `score.json`, `score.mid`, `frames.csv`, `latest/`, `doctor` checks | `uv run pytest` green including `tests/test_gen_*.py`; every preset renders at −14 ± 0.5 LUFS, ≤ −1 dBTP, seam ok; reruns are bit-identical. **Met on macOS (32 tests). Windows: run `uv sync`, `datapipe plugins fetch`, `datapipe doctor` and the tests.** |
 | **G2 Read a run in Blender** | *done 2026-10-22 on macOS:* `blender/stem-tunnel` loads a run headless: score hits and stem loudness keyed on the `AudioSignals` empty, the reference look's drivers re-wired to them, `mix.wav` on the timeline of the saved `scene_baked.blend` | a kick-driven pulse lands within ±1 frame of the kick. **Met: median offset 0–1 frame in the sync gate.** |
 | **G3 Stem analysis, control build** | *first version done:* S3 per-frame loudness of every stem and the mix, mix brightness, score hits, sections, curves; S4 hit envelopes with wind-up, followers, smoothing, loop closure; the flash safety comes from the look (`kick_light`, the portals' `near_fade`) and is measured in S7 rather than limited in S4 | controls wrap seamlessly (frame 480 → 1) and pass the flash gate. **Met: frame 481 renders as frame 1 (mean difference 0.00002–0.00005); no full-frame flash in `neon_house` seed 42.** |
-| **G4 Render, encode, QA** | *first version done:* `datapipe short`, S5–S7 at 1080×1920, `--preview` at half size | the MP4 passes the S7 gates (format and colour tags, length, faststart, loudness of the delivered AAC, kick sync, seam, flashes); safe-zone gate still open (needs the overlay mask). Test: `tests/test_gen_video.py`. |
+| **G4 Render, encode, QA** | *first version done:* `datapipe short` (`short gen` since v0.8, output in `output/gen/`), S5–S7 at 1080×1920, `--preview` at half size | the MP4 passes the S7 gates (format and colour tags, length, faststart, loudness of the delivered AAC, kick sync, seam, flashes); safe-zone gate still open (needs the overlay mask). Test: `tests/test_gen_video.py`. |
+
+---
+
+## 16. Input methods
+
+There are four ways in, and all four stay available side by side. They differ in what you bring and therefore in where the visuals' timing comes from. Everything after `controls.json` is shared. *Built 2026-10-23 on macOS (M1–M4, first versions).*
+
+| Method | You bring | Hits (timing) from | Length | Landing zone | Command |
+|---|---|---|---|---|---|
+| **A** `gen` | a preset and a seed (or a MIDI file) | the composed score | 8.0 s loop | none: `work/gen/` | `datapipe short gen --preset P --seed N` |
+| **B** `master` | one finished track | onset detection on the mix, split by band | the input's | `inbox/master/` | `datapipe short master <file>` |
+| **C** `stems` | master and stems | onset detection on each stem | the input's | `inbox/stems/<song>/` | `datapipe short stems <folder>` |
+| **D** `midi` | master, stems and MIDI | the MIDI | the input's | `inbox/midi/<song>/` | `datapipe short midi <folder>` |
+
+**The rule:** the master is what you hear (in A, the generated mix). Stems and MIDI only steer the picture; they are never mixed into the soundtrack.
+
+When to use which: A for a fully generated Short; B when all you have is a finished track; C for quick, controlled visuals from a DAW stem export; D when you also export the MIDI, for exact timing and per-note control. `datapipe example <master|stems|midi>` writes a generated loop into that method's inbox exactly as a DAW export would look, to copy the layout from.
+
+### 16.1 Front ends, one contract, one back end
+
+```
+A gen     preset + seed ───── compose, DawDreamer ──┐
+B master  master ──────────── analyse the mix ──────┤
+C stems   master + stems ──── analyse each stem ────┼─▶ run folder ─▶ look: Blender project ─▶ S5 render ─▶ S6 encode ─▶ S7 checks ─▶ output/<method>/
+D midi    master + stems + MIDI ── import ──────────┘   mix.wav          + mappings/<method>.toml
+                                                        controls.json
+                                                        report.png, run.json (B, C, D)
+```
+
+- **Front end:** one per method, with its own module, landing zone and run folders. A is `src/datapipe/gen/` (its run folder is unchanged, §15). B, C and D are `src/datapipe/song/`; their run folder holds `mix.wav` (the master, 48 kHz stereo float, padded or trimmed to exactly 800 samples per frame), `controls.json`, `report.png` and `run.json` (the method, every input file with size and sha256, settings, alignment, tempo, sections, hit counts, warnings, versions, timings: the job record of §7).
+- **Contract:** `controls.json` has one schema for every method (`dawdreamer/specs/handoff.md`). A method fills in what it has; a source a run lacks counts as 0. New in v0.8: `method`, `wrap` (envelopes wrap around the end: A only), `close` (accumulated motion closes on a loop), `frames` of any length, `source` per track (`score`, `midi` or `onset`), `bands` (§5.2's six bands of the mix), `beat` and `bar` phase per frame; songs add `curves.build`, `curves.energy`, `bar_frames`, `beats` and `downbeat`.
+- **Look (the central hub):** a Blender project folder that reads `controls.json`, today only `blender/stem-tunnel/`: one scene, `stem_tunnel.blend`, with **one mapping per method**, `mappings/<method>.toml`, because a look signal needs different sources depending on the input: `bass` is `stem:bass` in C and D, and `band:sub` plus `band:bass` in B. `config/pipeline.toml` lists the looks (`[looks.<name>]`: project, scene, script) and gives each method its look (`[methods.<name>] look`); `--look` overrides it. A second look is a second folder with its own scene and the same four mapping files.
+- **Back end:** `src/datapipe/render.py`, the same S5 render, S6 encode and S7 checks for every method; only the length and the loop gates differ (§16.4).
+
+### 16.2 Landing zones and folders
+
+```
+inbox/
+├─ master/                 song.wav   (any §5.1 format)       [+ song.toml as <name>.toml next to it]
+├─ stems/<song>/           master.wav, stems/*.wav            [+ song.toml]
+└─ midi/<song>/            master.wav, stems/*.wav, midi/*.mid [+ song.toml]
+work/<method>/<run>/       run folders; each method's newest is mirrored to work/<method>/latest/
+output/<method>/           MP4, .json sidecar with the checks, .png thumbnail
+```
+
+The run id is `<yyyymmdd-HHMMSS>_<song-slug>`; A keeps `<yyyymmdd>_<preset>_s<seed>`. A direct call never moves or changes its inputs; the watcher (P4) will move a finished input to `archive/<method>/` and a failed one to `inbox/<method>/failed/` with an `.error.txt` (§7).
+
+**Folders for C and D:**
+
+- **Master:** `master.*` in any §5.1 format; else the one top-level file whose name has the word master, mixdown or mix (`My Song Master.wav`); else the only audio file at the top level.
+- **Stems:** one file per track in `stems/`, named after the track (`Kick.wav`, `Bass.wav`). Without a `stems/` folder, every other top-level audio file is a stem. Export them all from the same start position with the same length (Ableton: select the range from bar 1, Export Audio/Video, All Individual Tracks).
+- **MIDI (D):** one `.mid` per track in `midi/` (or top-level `.mid` files). A file with one track of notes takes the file's name; a multitrack file keeps its track names. Time 0 of every file is the song's start, so consolidate each MIDI track over the export range first (Ableton: select from bar 1, Cmd/Ctrl+J, then Export MIDI Clip). *Not yet checked against a real Ableton export.* Tempo changes in the MIDI are honoured; markers named like sections set the sections.
+- **Alignment check:** every file is decoded to 48 kHz stereo (WAV, AIFF, FLAC, OGG sample-exact with soundfile; everything else, video included, through PyAV), and the master sets the length; stems are trimmed or padded to it. The run cross-correlates the sum of the stems with the master (first 30 s at 12 kHz). A lag of more than half a frame (400 samples, `[song] align_max_lag`) means the exports started at different positions: the run stops and names the lag in milliseconds, unless `check_alignment = false`. A correlation under 0.3 only warns.
+
+**Track names and roles.** The mappings use A's track names as roles: `kick`, `snare`, `clap`, `hats`, `bass`, `lead`, `pad`, `riser`, `impact`, and `drums` for a whole drum bus. A name says its role when it is, or contains as a word, one of the role's words (`1-Kick`, `Kick Drum`, `Bass Drum` and `BD` are kicks; `Hi-Hat`, `HH`, `Ride` and `Shaker` hats; `808` and `Sub` bass; `Drum Rack` and `Perc` drums; the full list is `ROLES` in `song/ingest.py`). A specific drum beats `drums` ("Snare Drum" is a snare). `song.toml [roles]` maps any other name. A role goes to the first file that claims it; a file that matches no role keeps its own name (slugged: `Vox Chop` → `vox_chop`), stays usable in a mapping (`hit:vox_chop`, `stem:vox_chop`) and is listed in the run's warnings.
+
+```toml
+# song.toml (optional), in the song folder (or <name>.toml next to a master-only file)
+bpm  = 124                    # B, C: fixes the tempo. D reads the MIDI's tempo
+loop = true                   # close the picture's accumulated motion (§16.4)
+start = 0.0                   # seconds cut off the front of every file (MIDI included)
+length = 30.0                 # seconds kept
+check_alignment = true
+
+[roles]                       # role = file name, for files not named after a role
+kick = "Drum Rack 1"
+bass = "Reese"
+
+[drums]                       # D: split one drum MIDI file into roles by note (General MIDI defaults shown)
+file  = "Drums"               # default: the track whose role is drums
+kick  = [35, 36]
+snare = [38, 40]
+clap  = [39]
+hats  = [42, 44, 46]
+
+[sections]                    # the bar (1-based, from the start of the file) where each section starts
+intro = 1
+build = 9
+drop = 17
+```
+
+### 16.3 What each method measures
+
+| Signal | A `gen` | B `master` | C `stems` | D `midi` |
+|---|---|---|---|---|
+| Hits | score note-ons | onsets in the mix's percussive part by band: kick 30–150 Hz (weighted by kick-likeness), snare 1–5 kHz, hats 7–16 kHz | onsets on each stem; a `drums` stem is split by band as in B | MIDI note-ons, velocity as strength; a stem without MIDI gets onsets |
+| Loudness per track | stems | none (the bands instead) | stems | stems |
+| Mix loudness, brightness, bands | mix | master | master | master |
+| Tempo, beat and bar phase | score | constant-tempo grid on the master | the same grid on the summed drum stems | the MIDI's tempo map |
+| Sections | the preset's story | bar loudness, drop | the same, on the master | `[sections]`, else MIDI markers, else as B |
+| Pitch | score | none | none | MIDI (lowest sounding note) |
+| `report.png` | no | yes | yes | yes |
+
+- **Onsets** (`song/onsets.py`): SuperFlux, the rise of log-compressed magnitude over the step 8 ms earlier, max-filtered across ±1 bin so glides and vibrato don't count, on a 1024-sample STFT every 200 samples (4 steps per frame). Peaks must top their ±30 ms and stand out of their ±100 ms mean; when the peak heights form two groups 4× apart (3× in a full mix), the low group is crosstalk and goes. A hit lands on the nearest frame with its strength (0–1) in place of a velocity, so the mappings treat detected and played hits the same.
+- **B's kick** is the hard case: in a full mix the low band also fires on bass notes. Each candidate is weighted by `kickness` (share of its energy under 300 Hz that sits below 90 Hz, and spectral flatness: a kick is a pure, swept thump, a bass note has harmonic lines) and dropped below 0.15, so bass notes punch less instead of not at all.
+- **Tempo** (`song/analysis.py`): librosa gives the rough tempo; a tempo 3/4, 2/3, 4/3 or 3/2 of it wins when its grid lands on 15 % more onset energy (half-time phonk); a comb over the kick-weighted onset curve then finds the exact beat length (0.01 BPM steps) and phase. Beat 1 is the phase with snares on 2 and 4, kicks and loudness steps on 1. **It assumes a constant tempo** (a DAW production); `bpm` fixes the tempo when the tracker is wrong.
+- **Sections:** bar loudness, loud runs of at least 4 bars are `drop`, quiet ones `intro` (first), `outro` (last), `build` (before a drop, getting louder) or `breakdown`; the drop is the loud section with the biggest step up. Fewer than 8 bars, or less than 3 dB between the 10th and 90th percentile bar, gives one `main` section. `curves.build` ramps 0 → 1 through each build, `curves.energy` is the bar loudness (§5.4).
+- **`report.png`** shows the master's loudness, brightness and build curve over the sections and the drop, its six bands as a heat map, and every track's hits (dot size by strength, blue played, red detected) over the bar grid, so you can judge B's or C's reactivity before rendering.
+
+### 16.4 Length and loop
+
+- **A:** 8.0 s; the loop is closed, and the seam gate runs.
+- **B, C, D:** the master's length, rounded to whole frames. Over 60 s the run warns (Content ID, §5.3), over 180 s it refuses, under 1 s too (`[song]` in `pipeline.toml`). No automatic excerpt and no fade: you export exactly what you want; `--start`/`--length` (or `start`/`length` in `song.toml`) trim every file, MIDI included. §5.3's automatic excerpt stays a later option for B.
+- **Picture loop:** by default the accumulated motion (travel, roll, spins, colour phase) is still closed, so a replay continues without a jump (`mapping.close_loop`, as in A). `loop = false` or `--no-loop` turns it off (`mapping.integrate`). Envelopes, followers and smoothing wrap around the seam only in A (`wrap`): in B, C and D a hit at the end does not light up frame 1.
+- **S7 gates:** format, length, faststart, flashes and the delivered true peak (≤ −1 dBTP; the AAC is trimmed by what it would overshoot) for every method. A generated loop must also sit at −14 ± 1 LUFS; a song's master keeps its level, reported but not judged. The seam gate runs when the motion closes. The sync gate checks the render against the kick hits the run used, which proves Blender's timing in every method; how well B and C detect hits is measured by the tests (§16.6).
+
+### 16.5 Calling it
+
+```
+uv run datapipe short gen --preset neon_house --seed 42     # A; `datapipe short --preset …` still works
+uv run datapipe short master inbox/master/song.wav          # B
+uv run datapipe short stems inbox/stems/mytrack             # C
+uv run datapipe short midi inbox/midi/mytrack --preview     # D
+uv run datapipe short --run work/stems/latest               # render a run again (after editing its mapping)
+uv run datapipe analyze <method> <input>                    # up to controls.json and report.png, no render
+uv run datapipe example <master|stems|midi>                 # a generated loop exported into that inbox
+uv run datapipe watch                                       # every inbox/<method>/ (P4, planned)
+```
+
+Every method takes `--look`, `--preview` and `--keep-frames`; songs take `--start`, `--length`, `--bpm` and `--no-loop`. The CLI is a thin layer over two Python calls in `datapipe.shorts`: `make(method, input, *, run=None, look=None, preview=False, …) -> (Path, dict)` returns the MP4 and its report, and `analyze(method, input, …) -> Path` returns the run folder.
+
+```
+src/datapipe/
+├─ gen/          A: compose, engine, master, score, controls, run, plugins
+├─ song/         B, C, D: ingest.py (decode, folders, roles, alignment), onsets.py, analysis.py (tempo, grid,
+│                sections), midi.py (D), controls.py (one builder that fills what the method has), report.py,
+│                run.py (the run folder), example.py (`datapipe example`)
+├─ features.py   loudness, brightness and bands per frame, for every method
+├─ mapping.py    numpy-only modulation math, shared with Blender (`wrap` for songs)
+├─ render.py     S5–S7 for every method (was gen/video.py)
+└─ shorts.py     the method registry, make() and analyze()
+```
+
+### 16.6 Phases
+
+The order was D, then C, then B: each adds detection, and the earlier method provides the ground truth. Tests: `tests/test_song.py` on a synthetic 124 BPM song (`tests/fixtures/song.py`: 4-bar intro, 8-bar drop, an off-beat bass that competes with the kick) and on a generated loop exported as a song.
+
+| Phase | Scope | Done when |
+|---|---|---|
+| **M1 Back end for any length** | *done 2026-10-23:* frame count from `controls.json` in the look and in S5–S7; `wrap` and `close`; run folders and `output/` per method; `mappings/<method>.toml`; `[looks]` and `[methods]`; `short gen`; `datapipe.shorts` | A is unchanged: `uv run pytest` green, and for `neon_house` seed 42 every field `controls.json` already had keeps its value (only new fields are added). A song run renders its own length and passes the length and format gates. **Met:** identical fields on 3 stored runs (neon_house s42, phonk_180 s2, glass_mallets s3); `mapping.py` tests pass under Blender's Python 3.13 / numpy 2.3.4. |
+| **M2 D `midi`** | folder import, alignment check, roles and the drum split, MIDI hits, stem loudness, sections from `song.toml` or markers, `--start` | The synthetic song (master, stems, MIDI) renders with kick sync within ±1 frame. One real Ableton export renders and looks right (signed off by eye). **Met on the synthetic song:** hits on the exact frames, sync median 0 frames; drum-rack split and `[sections]` tested. **Open:** a real Ableton export. |
+| **M3 C `stems`** | onsets per stem, the drum-bus split, the tempo grid, `report.png` | On the synthetic song without its MIDI, the detected kick, snare and hat hits match the MIDI within ±1 frame: at least 95 % found, at most 5 % extra. **Met:** kick and snare 100 %, hats 99 %, 0 % extra, median offset 0. On generated house, techno and phonk loops: kick 97–98 %, hats 99 %, lead 98–100 %, clap 100 % (phonk 54 %), 0 % extra. Tonal bass with glides is the weak spot (52–100 % found, 25–90 % extra). |
+| **M4 B `master`** | §5.2 on the mix: percussive split, band onsets, kickness, tempo grid, sections, drop | §10's click-track golden test (tempo ± 0.5 BPM, hits ± 1 frame) and, on the synthetic master alone, at least 90 % of kicks within ±1 frame, the drop on its bar. The reports of 3 real tracks are judged plausible. **Met on the synthetic song:** tempo 123.96 for 124, kicks 100 %, hats 99 % with 0 % extra, intro and drop found, drop within 1 frame. Generated loops: tempo exact for house and techno (119.99), phonk at its felt 90; kicks 97–98 % (phonk 58 %), with bass notes left in at lower strength (kicks average 0.75–0.87, the rest 0.29–0.55); snare band 63–100 % with many extras. **Open:** 3 real tracks. |
 
 ---
 

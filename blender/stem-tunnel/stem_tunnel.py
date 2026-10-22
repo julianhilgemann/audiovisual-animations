@@ -1,9 +1,10 @@
-"""Stem tunnel: the neon lines tunnel, driven by a generated run's stems and score, rendered headless.
+"""Stem tunnel: the neon lines tunnel, driven by a run's controls.json (any method, SPEC §16), rendered headless.
 
-The pipeline calls it (`datapipe short`); by hand:
+The pipeline calls it (`datapipe short <method>`); by hand:
 
     blender -b blender/stem-tunnel/stem_tunnel.blend --python blender/stem-tunnel/stem_tunnel.py -- \\
-        --run work/gen/<run> --frames-dir work/gen/<run>/frames [--percent 50] [--samples 8] [--seam]
+        --run work/<method>/<run> --frames-dir work/<method>/<run>/frames \\
+        --mapping blender/stem-tunnel/mappings/<method>.toml [--percent 50] [--samples 8] [--seam]
 
 Rebuild the template from the reference scene, e.g. after re-tuning the look in blender/audio-tunnel:
 
@@ -31,7 +32,8 @@ from datapipe import mapping  # noqa: E402  numpy only, shared with the pipeline
 
 CTRL, SIG, CAM = "NeonControls", "AudioSignals", "NeonCam"
 TUNNEL = ("Tunnel_Walls", "Tunnel_Portals", "Tunnel_Outer")
-FRAMES, FPS = 480, 60
+FPS = 60
+FRAMES = 480                   # a generated loop; a run's own length comes from its controls.json
 LEVELS = ("kick", "kick_light", "bass", "energy", "hats", "mids", "bright", "twist")    # 0-1 look signals
 DEG = 4 * math.pi / 360        # the roll and spin unit of the look's sliders (as in blender/audio-tunnel)
 
@@ -43,6 +45,7 @@ def main() -> None:
         return
     t0 = time.time()
     controls = json.loads((a.run / "controls.json").read_text(encoding="utf-8"))
+    n = _frames[0] = controls["frames"]
     with open(a.mapping, "rb") as fh:
         cfg = tomllib.load(fh)
     scene, ctrl = bpy.context.scene, bpy.data.objects[CTRL]
@@ -50,7 +53,7 @@ def main() -> None:
     tracks, closure = motion(levels, controls, ctrl, cfg)
     bake(loop_keys(levels) | tracks)
     wire(scene, ctrl)
-    configure(scene, a.width, a.height, a.percent, a.samples, a.frames_dir)
+    configure(scene, a.width, a.height, a.percent, a.samples, a.frames_dir, n)
     set_sound(scene, a.run / "mix.wav")
     if a.save_blend:
         bpy.ops.wm.save_as_mainfile(filepath=str(a.save_blend), compress=True, copy=True)
@@ -61,8 +64,8 @@ def main() -> None:
         bpy.ops.render.render(animation=True)
         timings["render_s"] = round(time.time() - t1, 1)
         if a.seam:
-            scene.frame_set(FRAMES + 1)
-            scene.render.filepath = str(a.frames_dir / f"seam_{FRAMES + 1:04d}.png")
+            scene.frame_set(n + 1)
+            scene.render.filepath = str(a.frames_dir / f"seam_{n + 1:04d}.png")
             bpy.ops.render.render(write_still=True)
     summary = {"closure": closure, "timings": timings,
                "signals": {k: [round(float(v.min()), 3), round(float(v.mean()), 3), round(float(v.max()), 3)]
@@ -73,14 +76,15 @@ def main() -> None:
 def parse_args() -> argparse.Namespace:
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     p = argparse.ArgumentParser(prog="stem_tunnel.py")
-    p.add_argument("--run", type=Path, help="a work/gen/<run> folder with controls.json and mix.wav")
-    p.add_argument("--frames-dir", type=Path, help="where frame_0001.png ... frame_0480.png go")
-    p.add_argument("--mapping", type=Path, default=HERE / "mapping.toml")
+    p.add_argument("--run", type=Path, help="a work/<method>/<run> folder with controls.json and mix.wav")
+    p.add_argument("--frames-dir", type=Path, help="where frame_0001.png, frame_0002.png ... go")
+    p.add_argument("--mapping", type=Path, default=HERE / "mappings" / "gen.toml",
+                   help="mappings/<method>.toml: which of the run's sources drive the look")
     p.add_argument("--width", type=int, default=1080)
     p.add_argument("--height", type=int, default=1920)
     p.add_argument("--percent", type=int, default=100)
     p.add_argument("--samples", type=int, default=32)
-    p.add_argument("--seam", action="store_true", help="also render frame 481, which must match frame 1")
+    p.add_argument("--seam", action="store_true", help="also render frame n + 1, which must match frame 1")
     p.add_argument("--save-blend", type=Path, help="save the baked scene here, to open and scrub")
     p.add_argument("--no-render", action="store_true")
     p.add_argument("--make-template", type=Path, help="turn the open reference scene into the template, save it here")
@@ -93,8 +97,8 @@ def parse_args() -> argparse.Namespace:
 # ---- modulators -> look signals ------------------------------------------------------------------------------------
 
 def look_signals(controls: dict, cfg: dict) -> dict[str, np.ndarray]:
-    """The look's 0-1 signals from the run's modulators, as mapping.toml wires them."""
-    n = controls["frames"]
+    """The look's 0-1 signals from the run's modulators, as the method's mapping wires them."""
+    n, wrap = controls["frames"], controls.get("wrap", True)
     zeros = np.zeros(n)
     hit_shapes = cfg.get("hit", {})
     ease = int(cfg.get("motion", {}).get("section_ease", 15))
@@ -104,26 +108,29 @@ def look_signals(controls: dict, cfg: dict) -> dict[str, np.ndarray]:
         if kind == "hit":
             track = controls["tracks"].get(key)
             shape = {**hit_shapes.get("default", {}), **hit_shapes.get(key, {})}
-            return mapping.hit_envelope(track["hits"], n, shape.get("windup", 0), shape.get("decay", 8)) if track else zeros
+            return (mapping.hit_envelope(track["hits"], n, shape.get("windup", 0), shape.get("decay", 8), wrap=wrap)
+                    if track else zeros)
         if kind == "stem":
             return np.asarray(controls["stems"].get(key, {}).get("loud", zeros))
         if kind == "mix":
             return np.asarray(controls["mix"][key])
+        if kind == "band":
+            return np.asarray(controls.get("bands", {}).get(key, zeros))
         if kind == "curve":
             return np.asarray(controls["curves"].get(key, zeros))
         if kind == "section":
             return section(controls, key, ease)
-        raise ValueError(f"mapping.toml: unknown source {name!r}")
+        raise ValueError(f"mapping: unknown source {name!r}")
 
     out = {name: np.clip(sum(w * source(s) for s, w in sources.items()), 0.0, 1.0)
            for name, sources in cfg["signals"].items()}
     for name, frames in cfg.get("smooth", {}).items():
-        out[name] = mapping.smooth(out[name], frames)
+        out[name] = mapping.smooth(out[name], frames, wrap)
     for name in LEVELS:
         out.setdefault(name, zeros)
     ring_cfg = cfg.get("ring", {})
     ring = controls["tracks"].get(ring_cfg.get("track", "kick"))
-    out["kick_age"], last = mapping.since_last_hit(ring["hits"] if ring else [], n)
+    out["kick_age"], last = mapping.since_last_hit(ring["hits"] if ring else [], n, wrap)
     out["kick_last"] = float(ring_cfg.get("level", 1.0)) * last
     out["hue_off"] = float(cfg.get("motion", {}).get("twist_hue", 0.0)) * out["twist"]
     return out
@@ -137,18 +144,19 @@ def section(controls: dict, name: str, ease: int) -> np.ndarray:
     for (a, nm), (b, _) in zip(starts, starts[1:]):
         if nm == name:
             gate[a:b] = 1.0
-    return mapping.smooth(gate, ease)
+    return mapping.smooth(gate, ease, controls.get("wrap", True))
 
 
 def motion(levels: dict, controls: dict, ctrl, cfg: dict) -> tuple[dict, dict]:
-    """Accumulated motion as positions (481 keys), each closed on the loop so frame 481 is frame 1's picture.
+    """Accumulated motion as positions (n + 1 keys). Unless the run says ``close: false``, each is closed on the
+    loop so frame n + 1 is frame 1's picture.
 
-    Rates follow the reference look's drivers (blender/audio-tunnel), plus the riser and the twist."""
+    Rates follow the reference look's drivers (blender/audio-tunnel), plus a build curve (the riser) and the twist."""
     c = lambda k: float(ctrl[k])  # noqa: E731
     m = cfg.get("motion", {})
     K, R = int(ctrl["_built_K"]), float(ctrl["_built_R"])
     L = 2 * math.pi * R / K                                   # one wall segment, also the portal spacing
-    riser = np.asarray(controls["curves"].get("riser", np.zeros(controls["frames"])))
+    riser = np.asarray(controls["curves"].get(m.get("speed_curve", "riser"), np.zeros(controls["frames"])))
     rates = {
         # name: (rate per frame, period). Walls repeat every 2 segments in depth; around the tunnel the walls
         # repeat every 2 segments (K even) or once round (K odd), portals and the outer shell every segment.
@@ -161,13 +169,15 @@ def motion(levels: dict, controls: dict, ctrl, cfg: dict) -> tuple[dict, dict]:
         "phase": ((c("color_idle") + c("color_energy") * levels["energy"]) / 360, 1.0),
     }
     tracks, closure = {}, {}
+    close = controls.get("close", True)
     for name, (rate, period) in rates.items():
-        tracks[name], closure[name] = mapping.close_loop(rate, period)
+        tracks[name], closure[name] = mapping.close_loop(rate, period) if close else mapping.integrate(rate)
     return tracks, closure
 
 
 def loop_keys(levels: dict) -> dict:
-    """481 keys per level signal: frame 481 repeats frame 1, so the loop's restart is a real keyframe."""
+    """n + 1 keys per level signal: frame n + 1 repeats frame 1, so the loop's restart is a real keyframe (and the
+    seam check renders frame 1's levels)."""
     return {k: np.append(v, v[0]) for k, v in levels.items()}
 
 
@@ -264,11 +274,12 @@ def _drive(owner, path: str, index: int, expr: str, sig, ctrl):
     return fc
 
 
-def configure(scene, width: int, height: int, percent: int, samples: int, frames_dir: Path | None) -> None:
-    """Render settings: 60 fps, frames 1-480, 9:16, EEVEE, 8-bit RGB PNG frames for the encoder."""
+def configure(scene, width: int, height: int, percent: int, samples: int, frames_dir: Path | None,
+              n: int = FRAMES) -> None:
+    """Render settings: 60 fps, frames 1-n, 9:16, EEVEE, 8-bit RGB PNG frames for the encoder."""
     r = scene.render
     r.fps, r.fps_base = FPS, 1.0
-    scene.frame_start, scene.frame_end = 1, FRAMES
+    scene.frame_start, scene.frame_end = 1, n
     r.resolution_x, r.resolution_y, r.resolution_percentage = width, height, percent
     scene.eevee.taa_render_samples = samples
     r.use_motion_blur = False          # the camera wraps by one wall period: blur would smear that jump
@@ -317,7 +328,7 @@ def make_template(path: Path) -> None:
     add_near_fade(ctrl)
     silent = {"frames": FRAMES, "sections": [{"name": "hook", "frame": 0}], "tracks": {}, "stems": {}, "curves": {},
               "mix": {"loud": [0.0] * FRAMES, "bright": [0.0] * FRAMES}}
-    with open(HERE / "mapping.toml", "rb") as fh:
+    with open(HERE / "mappings" / "gen.toml", "rb") as fh:
         cfg = tomllib.load(fh)
     levels = look_signals(silent, cfg)
     tracks, _ = motion(levels, silent, ctrl, cfg)
@@ -369,8 +380,11 @@ def add_near_fade(ctrl) -> None:
     nt.links.new(math("MULTIPLY", strength, math("SUBTRACT", 1.0, dim)), emission.inputs["Strength"])
 
 
+_frames = [FRAMES]                 # the run's frame count, for the progress line
+
+
 def _progress(scene, *_):
-    print(f"STEM_TUNNEL frame {scene.frame_current}/{FRAMES}", flush=True)
+    print(f"STEM_TUNNEL frame {scene.frame_current}/{_frames[0]}", flush=True)
 
 
 main()

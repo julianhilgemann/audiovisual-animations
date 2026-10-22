@@ -1,21 +1,23 @@
-"""Shared modulation math: numpy only, so the pipeline and Blender run this same file (SPEC §5.5, §15).
+"""Shared modulation math: numpy only, so the pipeline and Blender run this same file (SPEC §5.5, §15, §16).
 
-Every function treats its input as one loop of n frames: frame n-1 flows into frame 0. Envelopes wrap around the
-seam, followers start from the state the end of the loop leaves them in, and accumulated motion is closed so it
-ends a whole number of periods from where it started.
+By default every function treats its input as one loop of n frames: frame n-1 flows into frame 0. Envelopes wrap
+around the seam, followers start from the state the end of the loop leaves them in, and accumulated motion is closed
+so it ends a whole number of periods from where it started. ``wrap=False`` treats the input as a song with a start
+and an end instead (methods B, C and D): nothing flows from the end into the start.
 """
 
 import numpy as np
 
 
-def follow(x: np.ndarray, attack: float, release: float) -> np.ndarray:
-    """One-pole envelope follower with attack and release time constants in frames, run twice around the loop."""
+def follow(x: np.ndarray, attack: float, release: float, wrap: bool = True) -> np.ndarray:
+    """One-pole envelope follower with attack and release time constants in frames: run twice around the loop, or
+    once from the first value."""
     x = np.asarray(x, dtype=np.float64)
     up = np.exp(-1.0 / attack) if attack > 0 else 0.0
     down = np.exp(-1.0 / release) if release > 0 else 0.0
     y = np.empty_like(x)
-    state = float(x[-1])
-    for _lap in range(2):
+    state = float(x[-1] if wrap else x[0])
+    for _lap in range(2 if wrap else 1):
         for i, v in enumerate(x):
             c = up if v > state else down
             state = c * state + (1.0 - c) * v
@@ -23,12 +25,13 @@ def follow(x: np.ndarray, attack: float, release: float) -> np.ndarray:
     return y
 
 
-def smooth(x: np.ndarray, frames: int) -> np.ndarray:
-    """Centred moving average over ``frames``, wrapping around the loop."""
+def smooth(x: np.ndarray, frames: int, wrap: bool = True) -> np.ndarray:
+    """Centred moving average over ``frames``, wrapping around the loop or holding the end values."""
     frames = max(1, int(frames))
+    x = np.asarray(x, dtype=np.float64)
     if frames == 1:
-        return np.asarray(x, dtype=np.float64).copy()
-    padded = np.concatenate([x[-frames:], x, x[:frames]])
+        return x.copy()
+    padded = np.concatenate([x[-frames:], x, x[:frames]]) if wrap else np.pad(x, frames, mode="edge")
     kernel = np.full(frames, 1.0 / frames)
     return np.convolve(padded, kernel, mode="same")[frames:-frames]
 
@@ -41,28 +44,49 @@ def normalize(x: np.ndarray, lo: float = 5.0, hi: float = 95.0) -> np.ndarray:
     return np.clip((np.asarray(x, dtype=np.float64) - a) / (b - a), 0.0, 1.0)
 
 
-def hit_envelope(hits: list, n: int, windup: int = 0, decay: float = 8.0, windup_level: float = 0.3) -> np.ndarray:
+def hit_envelope(hits: list, n: int, windup: int = 0, decay: float = 8.0, windup_level: float = 0.3,
+                 wrap: bool = True) -> np.ndarray:
     """Envelopes for note-ons ``[(frame, amplitude), ...]``: the full amplitude on the hit frame, a rise to
     ``windup_level`` of it over ``windup`` frames before (anticipation), and an exponential decay to 5 % after
-    ``decay`` frames. Overlapping hits take the maximum; everything wraps around the loop."""
+    ``decay`` frames. Overlapping hits take the maximum; with ``wrap`` everything wraps around the loop, without it
+    a tail stops at the last frame and a wind-up at the first."""
     env = np.zeros(n)
     tau = max(float(decay), 1e-3) / 3.0
     tail = np.exp(-np.arange(n) / tau)
     for frame, amp in hits:
-        f = int(frame) % n
-        env = np.maximum(env, amp * np.roll(tail, f))
+        f = int(frame) % n if wrap else int(frame)
+        if not 0 <= f < n:
+            continue
+        if wrap:
+            env = np.maximum(env, amp * np.roll(tail, f))
+        else:
+            env[f:] = np.maximum(env[f:], amp * tail[:n - f])
         for k in range(1, int(windup) + 1):
-            i = (f - k) % n
-            env[i] = max(env[i], amp * windup_level * (1.0 - (k - 1) / windup) ** 2)
+            i = (f - k) % n if wrap else f - k
+            if 0 <= i < n:
+                env[i] = max(env[i], amp * windup_level * (1.0 - (k - 1) / windup) ** 2)
     return env
 
 
-def since_last_hit(hits: list, n: int) -> tuple[np.ndarray, np.ndarray]:
-    """Per frame: frames since the latest hit (wrapping) and that hit's amplitude; no hits gives a large age."""
+def since_last_hit(hits: list, n: int, wrap: bool = True) -> tuple[np.ndarray, np.ndarray]:
+    """Per frame: frames since the latest hit and that hit's amplitude; no hit yet (or none at all) gives a large
+    age. With ``wrap`` the head of the loop still sees the last hit before the seam."""
     age, last = np.full(n, 1e5), np.zeros(n)
     if not hits:
         return age, last
-    marks = {int(f) % n: float(a) for f, a in hits}
+    marks = {int(f) % n: float(a) for f, a in hits} if wrap else {int(f): float(a) for f, a in hits if 0 <= int(f) < n}
+    if not marks:
+        return age, last
+    if not wrap:
+        current_age, current_amp = None, 0.0
+        for i in range(n):
+            if i in marks:
+                current_age, current_amp = 0.0, marks[i]
+            elif current_age is not None:
+                current_age += 1.0
+            if current_age is not None:
+                age[i], last[i] = current_age, current_amp
+        return age, last
     start = max(marks)                       # walk from the last hit, so the head inherits the wrap
     current_age, current_amp = 0.0, marks[start]
     for step in range(1, n + 1):
@@ -97,3 +121,9 @@ def close_loop(rate: np.ndarray, period: float) -> tuple[np.ndarray, dict]:
         adjusted, how = rate + shift, "shifted"
     position = np.concatenate([[0.0], np.cumsum(adjusted)])
     return position, {"periods": turns, "raw_periods": round(total / period, 3), "how": how}
+
+
+def integrate(rate: np.ndarray) -> tuple[np.ndarray, dict]:
+    """Integrate a per-frame rate into n + 1 positions without closing anything (``loop = false``)."""
+    rate = np.asarray(rate, dtype=np.float64)
+    return np.concatenate([[0.0], np.cumsum(rate)]), {"how": "open"}

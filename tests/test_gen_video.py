@@ -1,4 +1,5 @@
-"""S3, S6, S7: controls from a run, the Shorts encode and its checks; one tiny end-to-end render through Blender."""
+"""Method A: controls from a generated run, the Shorts encode and its checks (src/datapipe/render.py, shared by every
+method), and one tiny end-to-end render through Blender."""
 
 import json
 from fractions import Fraction
@@ -12,7 +13,8 @@ from datapipe.config import load_config, resolve_path
 from datapipe.gen import controls
 from datapipe.gen.run import generate
 from datapipe.gen.score import FRAMES, SAMPLE_RATE, SAMPLES, Score
-from datapipe.gen.video import _flashes, _moov_first, check, encode, make_short
+from datapipe.render import _flashes, _moov_first, encode
+from datapipe.shorts import make
 
 
 @pytest.fixture(scope="module")
@@ -30,6 +32,9 @@ def test_controls_hold_one_value_per_frame_for_every_track_and_stem(run):
     kicks = {score.frame_of(n.beat) - 1 for n in score.tracks["kick"]}
     assert {f for f, _ in c["tracks"]["kick"]["hits"]} == kicks
     assert len(c["curves"]["riser"]) == FRAMES and c["curves"]["riser"][-1] > 0.9
+    assert c["method"] == "gen" and c["wrap"] and c["close"]
+    assert set(c["bands"]) == {"sub", "bass", "lowmid", "mid", "highmid", "air"}
+    assert len(c["beat"]) == FRAMES and c["bar"][0] == 0
 
 
 def _frames(folder, size=(64, 112)):
@@ -74,7 +79,7 @@ def test_flash_gate_counts_full_frame_flashes_per_second():
 
 @pytest.mark.skipif(not resolve_path(load_config(), "blender").exists(), reason="Blender not installed here")
 def test_short_end_to_end_through_blender(run, tmp_path):
-    mp4, report = make_short(run=run, preview=True, out_dir=tmp_path, percent=10, eevee_samples=1, progress=lambda *_: None)
+    mp4, report = make(run=run, preview=True, out_dir=tmp_path, percent=10, eevee_samples=1, progress=lambda *_: None)
     g = report["gates"]
     assert g["format"]["ok"] and g["length"]["ok"] and g["faststart"]["ok"], g
     assert g["seam"]["ok"], g["seam"]                            # frame 481 renders as frame 1

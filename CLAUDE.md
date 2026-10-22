@@ -6,7 +6,7 @@ Audio-reactive YouTube Shorts: a file dropped in `inbox/` is analyzed, mapped on
 
 ## Status
 
-Phase 0 is done; next is Phase 1, the Director rig (SPEC §11). The generative mode (SPEC §15) runs end to end on macOS: `uv run datapipe short --preset <name> --seed <n>` composes, renders and encodes a finished Short (G1–G4 first versions; open: the overlay-mask gate, a Windows run). `uv run datapipe doctor` checks the whole toolchain, and `uv run pytest` runs the tests.
+Four input methods run end to end on macOS (SPEC §16, v0.8): `uv run datapipe short gen|master|stems|midi …` turns a generated loop (A, SPEC §15), a finished master (B), master and stems (C), or master, stems and MIDI (D) into a finished Short. Open: a real Ableton export for D, three real tracks for B (M2, M4), the overlay-mask gate, a Windows run. The Director rig (old P1) is now an optional second look; next after that is P4 (`watch`). `uv run datapipe doctor` checks the whole toolchain, and `uv run pytest` runs the tests.
 
 The user wants this machine left intact. Python packages go into `.venv` through `pyproject.toml` and `uv`. FFmpeg comes from PyAV (`av`) inside the venv, not a system ffmpeg. Anything installed outside the repo needs the user's go-ahead first.
 
@@ -15,6 +15,13 @@ Work phase by phase. A phase is done when its "Done when" column in SPEC §11 ho
 ## One mapping engine, two hosts
 
 `src/datapipe/mapping.py` runs unchanged in the uv env (Python 3.12) and in Blender (3.13, numpy 2.3), where the panel's reactivity tab re-bakes with it. Keep it numpy-only, with the numpy ≥ 2.3 API. A recipe tuned in the panel means the same thing in a headless render only because both run this one file. The venv has numpy 2.5, so a passing venv test doesn't prove the file still works on numpy 2.3. Run the mapping tests under Blender's Python as well.
+
+## Input methods (`src/datapipe/shorts.py`, SPEC §16)
+
+- Each method has its own front end (A `gen/`, B–D `song/`), landing zone (`inbox/<method>/`) and run folders (`work/<method>/`); all write the same `controls.json` (contract in `dawdreamer/specs/handoff.md`) and share one back end, `render.py` (S5–S7).
+- One Blender look is the hub: `blender/stem-tunnel/stem_tunnel.blend` with `mappings/<method>.toml`. `[looks]` and `[methods]` in `config/pipeline.toml` pick the look; a new look is a new folder with the same four mapping files.
+- Songs don't wrap (`wrap: false`): `mapping.py` functions take `wrap`, and nothing may flow from a song's end into its start. Motion still closes on a loop unless `loop = false`.
+- After changing detection (`song/onsets.py`, `song/analysis.py`), run `tests/test_song.py` and compare hits against a generated loop's score (`datapipe example stems` writes `score.json` next to the export).
 
 ## Generative audio (`dawdreamer/`, `src/datapipe/gen/`)
 
@@ -25,7 +32,7 @@ Work phase by phase. A phase is done when its "Done when" column in SPEC §11 ho
 - Set plugin parameters by display value (`"A Decay" = "1.2"`); `datapipe plugins probe <key>` lists them.
 - After a sound or gain change, render a few seeds and compare the printed `balance` line with the table in `specs/audio.md`; the limiter should take 1–4 dB.
 - Keep a `RenderEngine` alive while its processors are used: a freed engine segfaults them.
-- The Blender side of a Short is `blender/stem-tunnel/` (README there). `stem_tunnel.blend` is derived from `blender/audio-tunnel/neon_tunnel_audio.blend` by `stem_tunnel.py --make-template`; rebuild it that way rather than editing it by hand, then run `tests/test_gen_video.py` and a `--preview` Short and check the seam and flash gates.
+- The Blender side of a Short is `blender/stem-tunnel/` (README there). `stem_tunnel.blend` is derived from `blender/audio-tunnel/neon_tunnel_audio.blend` by `stem_tunnel.py --make-template`; rebuild it that way rather than editing it by hand, then run `tests/test_gen_video.py` and `tests/test_song.py` and a `--preview` Short and check the seam and flash gates.
 - Every look change can bring back flashes: the S7 gate counts full-frame flashes in mean relative luminance. Iterate at `--preview`, not 25 %: the compositor glare scales with resolution.
 
 ## Environment, macOS (Apple M1, macOS 13.5, zsh)

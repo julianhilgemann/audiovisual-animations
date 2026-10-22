@@ -171,7 +171,7 @@ Two entry modes write the same `score.json`.
 - Wrap-aware: the tail is prepended before smoothing, so frame 1 has the right history.
 - Output: `features.npz`, 480 rows.
 
-### S4 · Control build (modulation matrix) *(first version: `blender/stem-tunnel/mapping.toml` and `src/datapipe/mapping.py`, applied inside Blender)*
+### S4 · Control build (modulation matrix) *(first version: `blender/stem-tunnel/mappings/gen.toml` and `src/datapipe/mapping.py`, applied inside Blender)*
 
 - Reads `score.json`, `features.npz`, `mapping.yaml` and `param_map.yaml`.
 - Score hits become envelopes (wind-up, peak, decay); features become scaled curves; the loop phase becomes periodic curves.
@@ -192,7 +192,7 @@ blender -b scene.blend --addons kaleido,tunnel_tools -y \
 - Saves `scene_baked.blend` for debugging: open it, scrub, see exactly what rendered.
 - Renders `frames/0001.png … 0480.png`.
 
-### S6 · Encode *(built with PyAV, the same settings: `src/datapipe/gen/video.py`)*
+### S6 · Encode *(built with PyAV, the same settings: `src/datapipe/render.py`)*
 
 ```bash
 ffmpeg -y -framerate 60 -i frames/%04d.png -i mix.wav \

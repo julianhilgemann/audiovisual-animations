@@ -1,8 +1,8 @@
 # Datapipe
 
-Audio-reactive YouTube Shorts rendered with Blender. Drop a song into `inbox/` and get a finished 9:16 MP4 in `output/`.
+Audio-reactive YouTube Shorts rendered with Blender. Generate a loop, or bring your own music (a master, stems, MIDI), and get a finished 9:16 MP4 in `output/`.
 
-> **Status:** Phase 0 done: toolchain and skeleton. The generative mode's audio engine works: `datapipe gen` composes and renders 8-second loops with DawDreamer ([dawdreamer/](dawdreamer/README.md)). Design and roadmap: [SPEC.md](SPEC.md).
+> **Status:** four input methods work end to end on macOS (SPEC §16): a generated loop, a finished master, master and stems, and master, stems and MIDI. Design and roadmap: [SPEC.md](SPEC.md).
 
 ## Setup
 
@@ -11,8 +11,38 @@ uv sync                    # creates .venv with Python 3.12 and all libraries (n
 uv run datapipe doctor     # checks Python libs, PyAV/FFmpeg, DawDreamer, Blender, GPU
 uv run pytest              # runs the tests
 uv run datapipe gen --seed 42 --play     # compose, render and play an 8-second loop
-uv run datapipe short --seed 42          # the same loop as a finished YouTube Short in output/
+uv run datapipe short --seed 42          # the same loop as a finished YouTube Short in output/gen/
 ```
+
+## Your own music
+
+Four methods, side by side. The master is always what you hear; stems and MIDI only steer the picture. The video is as long as your master (warning over 60 s, refused over 180 s).
+
+| Method | Put this | Run |
+|---|---|---|
+| **B** `master`: one finished track | `inbox/master/mysong.wav` (WAV, AIFF, FLAC, MP3, M4A, or a video) | `uv run datapipe short master inbox/master/mysong.wav` |
+| **C** `stems`: quick, controlled visuals | `inbox/stems/mysong/master.wav` and `inbox/stems/mysong/stems/*.wav` | `uv run datapipe short stems inbox/stems/mysong` |
+| **D** `midi`: exact timing | as C, plus `inbox/midi/mysong/midi/*.mid` (one file per track) | `uv run datapipe short midi inbox/midi/mysong` |
+| **A** `gen`: fully generated | nothing | `uv run datapipe short gen --preset neon_house --seed 42` |
+
+```
+inbox/midi/mysong/
+├─ master.wav            the mixdown: the Short's soundtrack
+├─ song.toml             optional: bpm, roles, sections, start/length, loop
+├─ stems/
+│  ├─ Kick.wav           name each file after what it is: kick, snare, clap, hats, bass, lead, pad, riser, impact,
+│  ├─ Bass.wav           or drums for a whole drum bus (names like "1-Kick", "Hi-Hat", "808 Sub", "Drum Rack" work)
+│  └─ ...
+└─ midi/
+   ├─ Kick.mid           one file per MIDI track, starting at the song's start
+   └─ Drum Rack.mid      a drum rack is split into kick, snare, clap and hats by note number (General MIDI)
+```
+
+**From Ableton:** set the loop brace over the part you want, from bar 1. *File > Export Audio/Video* with *Rendered Track: Master* gives `master.wav`; again with *All Individual Tracks* gives the stems (same range, so they line up; the run checks this and stops if they don't). For MIDI, select each MIDI track's clips over the same range, consolidate them (Cmd/Ctrl+J) so the clip starts at the range start, then right-click > *Export MIDI Clip*. Files that aren't named after a role keep their own name; map them in `song.toml` (`[roles] bass = "Reese"`).
+
+**Try the layout first:** `uv run datapipe example midi` (or `stems`, `master`) writes a generated loop into that inbox exactly as an export would look, with a commented `song.toml`.
+
+**Check before rendering:** `uv run datapipe analyze stems inbox/stems/mysong` writes the run folder with `report.png` (detected hits, tempo, sections) in a few seconds; `--preview` renders at half size in about a tenth of a second per frame. Re-render a run after editing its mapping (`blender/stem-tunnel/mappings/<method>.toml`) with `uv run datapipe short --run work/stems/latest --preview`.
 
 Requirements, on Windows or macOS: [uv](https://docs.astral.sh/uv/) (`winget install astral-sh.uv`, or `brew install uv`), and Blender 5.2 LTS. The pipeline needs nothing else; TouchDesigner is only for the standalone projects. Tool paths per OS are in `config/pipeline.toml`; `config/machine.toml` overrides them for one machine.
 
@@ -20,17 +50,17 @@ Requirements, on Windows or macOS: [uv](https://docs.astral.sh/uv/) (`winget ins
 
 | Folder | What goes there |
 |---|---|
-| `inbox/` | Audio or video files to turn into Shorts (watched automatically from Phase 4) |
-| `output/` | Finished Shorts |
+| `inbox/master/`, `inbox/stems/`, `inbox/midi/` | Your music, per method (see above; watched automatically from Phase 4) |
+| `output/<method>/` | Finished Shorts: MP4, a `.json` with the checks, a thumbnail |
 | `scenes/` | Blender template scenes |
 | `presets/` | Shape and look presets, saved from the Blender side panel |
 | `config/mappings/` | Reactivity recipes, exported from the Blender panel or hand-edited |
 | `projects/` | Standalone TouchDesigner projects that aren't part of the pipeline (see [projects/README.md](projects/README.md)) |
 | `dawdreamer/` | Generated audio: specs, presets, Faust instruments, the free VST3 plugin list (see [dawdreamer/README.md](dawdreamer/README.md)) |
-| `blender/stem-tunnel/` | The neon lines tunnel driven by a generated loop's stems and score; renders the Short (see its [README](blender/stem-tunnel/README.md)) |
+| `blender/stem-tunnel/` | The neon lines tunnel every method renders with, one mapping per method in `mappings/` (see its [README](blender/stem-tunnel/README.md)) |
 | `docs/` | Design of the generative mode ([sticky-av-shorts.md](docs/sticky-av-shorts.md)) |
 | `reference/` | Reference renders |
-| `work/`, `cache/`, `archive/` | Pipeline internals; generated loops land in `work/gen/`, the newest in `work/gen/latest/` |
+| `work/`, `cache/`, `archive/` | Pipeline internals; runs land in `work/<method>/`, the newest in `work/<method>/latest/` |
 
 ## Working with Claude
 

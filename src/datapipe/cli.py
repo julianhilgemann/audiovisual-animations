@@ -1,6 +1,8 @@
-"""`datapipe` command line. Subcommands other than `doctor`, `gen` and `plugins` land phase by phase (SPEC §11)."""
+"""`datapipe` command line: `short` and `analyze` for the four input methods (SPEC §16), `gen`, `example`, `plugins`
+and `doctor`; the rest lands phase by phase (SPEC §11)."""
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -8,12 +10,11 @@ from . import __version__
 from .config import load_config
 
 PLANNED = {
-    "run": ("one job end to end", "P3"),
-    "watch": ("process new files dropped into inbox/", "P4"),
-    "analyze": ("features.json, features_60fps.csv and report.png for a file", "P2"),
-    "rerender": ("re-render a job with another preset, mapping or profile", "P4"),
-    "preview": ("open a job in the Blender GUI for tweaking", "P5"),
+    "watch": ("process new files dropped into inbox/<method>/", "P4"),
+    "preview": ("open a run in the Blender GUI for tweaking", "P5"),
 }
+METHOD_HELP = ("gen (A): compose a loop; master (B): one finished track; stems (C): master + stems; "
+               "midi (D): master + stems + MIDI")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -31,14 +32,24 @@ def main(argv: list[str] | None = None) -> int:
     gen.add_argument("--play", action="store_true", help="play loop_x3.wav when done (the loop three times)")
     gen.add_argument("--out", type=Path, help="parent folder for the run (default: [gen] out in pipeline.toml)")
 
-    short = sub.add_parser("short", help="a generated loop as a finished YouTube Short: audio, Blender render, MP4 (SPEC §15)")
-    short.add_argument("--preset", help="compose a new loop with this preset (default: [gen] preset)")
-    short.add_argument("--seed", type=int, default=1)
-    short.add_argument("--run", type=Path, help="use this existing run folder (e.g. work/gen/latest) instead of composing")
-    short.add_argument("--midi", type=Path, help="render this .mid through the preset instead of composing")
+    short = sub.add_parser("short", help="a finished YouTube Short from any input method (SPEC §16)",
+                           description=f"Methods: {METHOD_HELP}. Without a method: gen.")
+    _method_args(short)
+    short.add_argument("--run", type=Path, help="render this run folder again (e.g. work/stems/latest)")
+    short.add_argument("--look", help="render with this look from [looks] in pipeline.toml (default: the method's)")
     short.add_argument("--preview", action="store_true", help="half resolution, 8 samples, fast encode")
     short.add_argument("--keep-frames", action="store_true", help="keep the PNG frames in the run folder")
-    short.add_argument("--no-plugins", action="store_true", help="use every slot's Faust fallback")
+
+    analyze = sub.add_parser("analyze", help="a run folder (controls.json, report.png) from any method, no render",
+                             description=f"Methods: {METHOD_HELP}.")
+    _method_args(analyze)
+
+    example = sub.add_parser("example", help="export a generated loop into inbox/<method>/ the way a DAW would")
+    example.add_argument("method", choices=["master", "stems", "midi"])
+    example.add_argument("--preset", help="dawdreamer/presets/<name>.toml (default: [gen] preset)")
+    example.add_argument("--seed", type=int, default=1)
+    example.add_argument("--repeat", type=int, default=3, help="loop repeats (default 3: 24 s at 120 BPM)")
+    example.add_argument("--no-plugins", action="store_true", help="use every slot's Faust fallback")
 
     plug = sub.add_parser("plugins", help="the free VST3 plugins in dawdreamer/plugins.toml: list, fetch, probe, edit")
     plug.add_argument("action", choices=["list", "fetch", "probe", "edit"])
@@ -57,8 +68,18 @@ def main(argv: list[str] | None = None) -> int:
         return _gen(args)
     if args.command == "plugins":
         return _plugins(args)
-    if args.command == "short":
-        return _short(args)
+    if args.command in ("short", "analyze"):
+        try:
+            return _short(args) if args.command == "short" else _analyze(args)
+        except (ValueError, FileNotFoundError) as e:      # the input's fault: say what to fix, no traceback
+            print(f"datapipe {args.command}: {e}", file=sys.stderr)
+            return 2
+    if args.command == "example":
+        from .song.example import export
+
+        where = export(args.method, args.preset, args.seed, args.repeat, use_plugins=not args.no_plugins)
+        print(f"-> {where}\n   uv run datapipe short {args.method} \"{where}\" --preview")
+        return 0
 
     print(f"`datapipe {args.command}` is planned for phase {PLANNED[args.command][1]} (SPEC §11).", file=sys.stderr)
     return 2
@@ -92,13 +113,53 @@ def _gen(args: argparse.Namespace) -> int:
     return 0
 
 
-def _short(args: argparse.Namespace) -> int:
-    from .gen.video import make_short
+def _method_args(p: argparse.ArgumentParser) -> None:
+    p.add_argument("method", nargs="?", choices=["gen", "master", "stems", "midi"], help="the input method (default gen)")
+    p.add_argument("input", nargs="?", type=Path, help="master: the song's file; stems, midi: the song's folder")
+    p.add_argument("--preset", help="gen: compose with this preset (default: [gen] preset)")
+    p.add_argument("--seed", type=int, default=1, help="gen: the seed")
+    p.add_argument("--midi", type=Path, help="gen: render this .mid through the preset instead of composing")
+    p.add_argument("--no-plugins", action="store_true", help="gen: use every slot's Faust fallback")
+    p.add_argument("--start", type=float, help="song: skip this many seconds of every file")
+    p.add_argument("--length", type=float, help="song: keep this many seconds")
+    p.add_argument("--bpm", type=float, help="song: the tempo, if the tracker gets it wrong")
+    p.add_argument("--no-loop", action="store_true", help="song: don't close the picture's motion on a loop")
 
-    mp4, report = make_short(args.preset, args.seed, run=args.run, preview=args.preview, keep_frames=args.keep_frames,
-                             use_plugins=not args.no_plugins, midi=args.midi)
+
+def _song_kwargs(args: argparse.Namespace) -> dict:
+    return {"preset": args.preset, "seed": args.seed, "midi": args.midi, "use_plugins": not args.no_plugins,
+            "start": args.start, "length": args.length, "bpm": args.bpm, "loop": False if args.no_loop else None}
+
+
+def _analyze(args: argparse.Namespace) -> int:
+    from .shorts import analyze
+
+    run = analyze(args.method or "gen", args.input, **_song_kwargs(args))
+    record = run / ("run.json" if (run / "run.json").exists() else "manifest.json")
+    info = json.loads(record.read_text(encoding="utf-8"))
+    controls = json.loads((run / "controls.json").read_text(encoding="utf-8"))
+    print(f"{run.name}: {controls['frames']} frames ({controls['frames'] / 60:.2f} s), {controls['bpm']} BPM")
+    if "hits" in info:
+        print(f"  tempo {info['tempo_source']}; sections ({info['sections_from']}): "
+              + ", ".join(f"{s['name']} {s['frame'] / 60:.1f}s" for s in info["sections"]))
+        print("  hits " + "  ".join(f"{k} {v}" for k, v in info["hits"].items()))
+        if info["alignment"].get("checked"):
+            print(f"  stems line up with the master: lag {info['alignment']['lag_ms']} ms, "
+                  f"correlation {info['alignment']['correlation']}")
+    for w in info.get("warnings", []):
+        print(f"  warning: {w}")
+    print(f"  -> {run}")
+    return 0
+
+
+def _short(args: argparse.Namespace) -> int:
+    from .shorts import make
+
+    mp4, report = make(args.method, args.input, run=args.run, look=args.look, preview=args.preview,
+                       keep_frames=args.keep_frames, **_song_kwargs(args))
     g = report["gates"]
-    print(f"{report['run']}: {g['format']['video']}, {g['format']['audio']}, {g['length']['seconds']} s")
+    print(f"{report['run']} ({report['method']}, look {report['look']}): {g['format']['video']}, "
+          f"{g['format']['audio']}, {g['length']['seconds']} s")
     for name, gate in g.items():
         detail = {k: v for k, v in gate.items() if k not in ("ok", "offsets", "colour", "video", "audio", "samples")}
         print(f"  {'ok  ' if gate['ok'] else 'FAIL'} {name:9} {detail}")

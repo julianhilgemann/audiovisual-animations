@@ -56,11 +56,8 @@ crf = "HIGH"
 preset = "neon_house"        # dawdreamer/presets/<name>.toml
 out = "work/gen"             # one folder per run, plus latest/ for Blender
 
-[short]                      # a generated loop -> a YouTube Short (SPEC §15; docs/sticky-av-shorts.md S5-S7)
-project = "blender/stem-tunnel"
-scene = "stem_tunnel.blend"
-script = "stem_tunnel.py"
-resolution = [1080, 1920]    # 9:16, 60 fps, 480 frames
+[short]                      # S5-S7 for every method (SPEC §16.1; docs/sticky-av-shorts.md S5-S7)
+resolution = [1080, 1920]    # 9:16, 60 fps; the length comes from the run (480 frames for a generated loop)
 percent = 100
 eevee_samples = 32
 crf = 16                     # H.264 High, x264 preset below; GOP 30, 2 B-frames, BT.709, AAC 320 kb/s
@@ -71,3 +68,35 @@ percent = 50
 eevee_samples = 8
 crf = 23
 x264_preset = "ultrafast"
+
+# A look is a Blender project that reads controls.json. It holds one mapping per method, mappings/<method>.toml,
+# so every method renders through the same scene with the sources it has (SPEC §16.1).
+[looks.stem-tunnel]
+project = "blender/stem-tunnel"
+scene = "stem_tunnel.blend"
+script = "stem_tunnel.py"
+
+# The four input methods (SPEC §16): where their inputs land, where their runs go, which look renders them.
+[methods.gen]                # A: a preset and a seed, composed and rendered by DawDreamer
+look = "stem-tunnel"         # runs go to [gen] out
+
+[methods.master]             # B: one finished track, analysed
+look = "stem-tunnel"
+inbox = "inbox/master"
+work = "work/master"
+
+[methods.stems]              # C: master + stems; the stems steer, the master is heard
+look = "stem-tunnel"
+inbox = "inbox/stems"
+work = "work/stems"
+
+[methods.midi]               # D: master + stems + MIDI; the MIDI times the hits
+look = "stem-tunnel"
+inbox = "inbox/midi"
+work = "work/midi"
+
+[song]                       # methods B, C, D (SPEC §16.4)
+min_len_s = 1
+warn_len_s = 60              # Shorts over 60 s with an active Content ID claim are blocked
+max_len_s = 180              # the Shorts maximum
+align_max_lag = 400          # samples (half a frame): stems further off the master stop the run

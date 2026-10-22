@@ -1,11 +1,13 @@
-# How a generated run drives the lines tunnel (blender/stem-tunnel/README.md).
+# Method A (gen): how a generated run drives the lines tunnel (blender/stem-tunnel/README.md). One file per method
+# in this folder (gen, master, stems, midi), all for the same scene; config/pipeline.toml [methods] picks the look.
 #
 # Each look signal on the AudioSignals empty is the weighted sum of its sources, clamped to 0-1:
-#   "hit:<track>"      the score's note-ons of a track (the MIDI), as envelopes shaped in [hit]
+#   "hit:<track>"      a track's hits (score or MIDI note-ons, or detected onsets), as envelopes shaped in [hit]
 #   "stem:<name>"      a stem's loudness envelope (bass, pad, lead, riser, space, ...)
 #   "mix:loud"         the master's loudness;   "mix:bright"  its brightness (spectral centroid)
-#   "curve:<name>"     a score automation curve, e.g. the riser's 0 -> 1 ramp through the build
-#   "section:<name>"   1 inside that section of the story, eased in and out over [motion] section_ease frames
+#   "band:<name>"      the master's energy in a band: sub, bass, lowmid, mid, highmid, air
+#   "curve:<name>"     a curve: the score's riser here; build (0 -> 1 through a build) and energy for a song
+#   "section:<name>"   1 inside that section, eased in and out over [motion] section_ease frames
 # A source the run doesn't have (a track or stem the preset lacks) counts as 0.
 # The look's own sliders (speeds, glow, flash, ...) stay on the NeonControls empty in stem_tunnel.blend.
 
@@ -38,7 +40,8 @@ hats    = { windup = 0, decay = 5 }
 lead    = { windup = 0, decay = 8 }
 
 [motion]
-speed_riser = 3.0      # forward speed added by the riser, in the units of the look's speed sliders
+speed_curve = "riser"  # the curve that speeds the tunnel up
+speed_riser = 3.0      # forward speed added by that curve, in the units of the look's speed sliders
 roll_twist  = 1.5      # extra camera roll through the twist, same units as roll_idle
 twist_hue   = 0.2      # hue jump through the twist (1 = once around the colour wheel)
 section_ease = 15      # frames to ease a section signal in and out

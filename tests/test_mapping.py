@@ -55,3 +55,17 @@ def test_normalize_maps_percentiles_and_survives_flat_input():
     y = mapping.normalize(x, 5, 95)
     assert y.min() == 0 and y.max() == 1
     assert np.all(mapping.normalize(np.ones(N)) == 0)
+
+
+def test_without_wrap_nothing_flows_from_the_end_into_the_start():
+    x = np.zeros(N)
+    x[-5:] = 1.0
+    assert mapping.follow(x, attack=1, release=20, wrap=False)[0] == 0
+    assert mapping.smooth(x, 12, wrap=False)[0] == 0
+    env = mapping.hit_envelope([(2, 1.0), (478, 1.0)], N, windup=4, decay=9, wrap=False)
+    assert env[0] > 0 and env[1] > env[0]                       # the early hit's wind-up is cut at frame 0
+    assert env[479] > 0 and env[:2].max() < 0.31                 # the late hit's tail stops at the end
+    age, last = mapping.since_last_hit([(30, 0.8)], N, wrap=False)
+    assert age[0] >= 1e4 and last[0] == 0 and age[30] == 0 and age[40] == 10
+    pos, info = mapping.integrate(np.ones(N))
+    assert len(pos) == N + 1 and pos[-1] == N and info["how"] == "open"
