@@ -4,6 +4,8 @@ Audio-reactive YouTube Shorts rendered with Blender. Generate a loop, or bring y
 
 > **Status:** six input methods work end to end on macOS (SPEC §16): a generated loop, a finished master, master and stems, master, stems and MIDI, any stems without instrument names, and one complex track measured from every side. Design and roadmap: [SPEC.md](SPEC.md).
 
+**New here, or not a coder?** [How to use Datapipe](docs/how-to-use.md) walks you through setup, making a Short with each method, and fine-tuning the picture in Blender, step by step.
+
 ## How it works
 
 Every input method has its own front end, and all of them write the same run folder: `mix.wav` and `controls.json`. From there one back end does the rest. Headless Blender bakes the controls into the neon tunnel and renders the frames, then `render.py` encodes the MP4 and checks it.
@@ -72,7 +74,7 @@ Requirements, on Windows or macOS: [uv](https://docs.astral.sh/uv/) (`winget ins
 | `config/mappings/` | Reactivity recipes for the Director rig look (optional, not built yet) |
 | `dawdreamer/` | Generated audio: specs, presets, Faust instruments, the free VST3 plugin list (see [dawdreamer/README.md](dawdreamer/README.md)) |
 | `blender/stem-tunnel/` | The neon lines tunnel every method renders with: one mapping per method in `mappings/`, shapes and looks in `styles/`, the tuner (see its [README](blender/stem-tunnel/README.md)) |
-| `docs/` | Design of the generative mode ([sticky-av-shorts.md](docs/sticky-av-shorts.md)); the architecture diagrams in `diagrams/`: JSON specs, PNG and SVG renders, an editable `datapipe.drawio`, and `build.py` to render them again |
+| `docs/` | The step-by-step guide ([how-to-use.md](docs/how-to-use.md)); design of the generative mode ([sticky-av-shorts.md](docs/sticky-av-shorts.md)); the architecture diagrams in `diagrams/`: JSON specs, PNG and SVG renders, an editable `datapipe.drawio`, and `build.py` to render them again |
 | `reference/` | Reference renders |
 | `work/`, `cache/`, `archive/` | Pipeline internals; runs land in `work/<method>/`, the newest in `work/<method>/latest/` |
 
