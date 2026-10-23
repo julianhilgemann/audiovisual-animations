@@ -1,0 +1,25 @@
+# Style "flower_tube": an eight-lobed tube that swells twice per pattern period, chevrons pointing down the
+# tunnel, a triple-ring portal every second row and no outer shell.
+
+[shape]  # rebuilds the tunnel's geometry
+# Cross-section
+profile       = "flower"  # Profile (circle, polygon, star, flower)
+sides         = 8         # Sides
+profile_depth = 0.6       # Point depth
+# Cells
+symmetry = 8  # Cells around
+# Patterns
+walls         = "chevrons"  # Walls (maze, grid, diamonds, chevrons, hexes, circuit, stripes, rails, zigzag, truchet, dots, none)
+portals       = "triple"    # Portals (crenel, rings, spokes, teeth, triple, frame, none)
+portal_every  = 2           # Portal every
+outer_pattern = "none"      # Outer shell (ladder, rails, helix, grid, dots, none)
+# Deform
+wave       = 0.15  # Bulge
+wave_count = 2     # Bulges
+
+[look]  # live: the sliders on NeonControls
+# Kick
+kick_glow  = 3.0  # Glow burst
+kick_bloom = 1.5  # Bloom burst
+# Glow and colour
+hue_base = 0.8  # Hue

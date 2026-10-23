@@ -1,0 +1,20 @@
+# Style "truchet_maze": a rounded-square tunnel of random quarter-circle tiles (change the seed for another
+# maze), ring portals and dotted shell.
+
+[shape]  # rebuilds the tunnel's geometry
+# Cross-section
+profile       = "polygon"  # Profile (circle, polygon, star, flower)
+sides         = 4          # Sides
+corner_round  = 0.6        # Corner rounding
+profile_angle = 45.0       # Turn (deg)
+# Cells
+symmetry = 8  # Cells around
+# Patterns
+walls         = "truchet"  # Walls (maze, grid, diamonds, chevrons, hexes, circuit, stripes, rails, zigzag, truchet, dots, none)
+portals       = "rings"    # Portals (crenel, rings, spokes, teeth, triple, frame, none)
+outer_pattern = "dots"     # Outer shell (ladder, rails, helix, grid, dots, none)
+seed          = 7          # Seed
+
+[look]  # live: the sliders on NeonControls
+# Glow and colour
+hue_base = 0.15  # Hue

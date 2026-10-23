@@ -1,0 +1,21 @@
+# Style "hex_prism": a hexagonal tube lined with honeycomb, one cell per face, plain double-ring portals and a
+# grid shell, turned towards cyan.
+
+[shape]  # rebuilds the tunnel's geometry
+# Cross-section
+profile = "polygon"  # Profile (circle, polygon, star, flower)
+sides   = 6          # Sides
+# Cells
+symmetry   = 6    # Cells around
+cell_depth = 1.5  # Cell length
+# Patterns
+walls         = "hexes"  # Walls (maze, grid, diamonds, chevrons, hexes, circuit, stripes, rails, zigzag, truchet, dots, none)
+portals       = "rings"  # Portals (crenel, rings, spokes, teeth, triple, frame, none)
+outer_pattern = "grid"   # Outer shell (ladder, rails, helix, grid, dots, none)
+
+[look]  # live: the sliders on NeonControls
+# Kick
+kick_flash = 1.5  # Flash ring
+# Glow and colour
+hue_base  = 0.45  # Hue
+hue_depth = 0.5   # Rainbow along depth

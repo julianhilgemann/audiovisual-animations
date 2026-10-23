@@ -70,11 +70,14 @@ crf = 23
 x264_preset = "ultrafast"
 
 # A look is a Blender project that reads controls.json. It holds one mapping per method, mappings/<method>.toml,
-# so every method renders through the same scene with the sources it has (SPEC §16.1).
+# so every method renders through the same scene with the sources it has (SPEC §16.1), and styles/<name>.toml for
+# its shape and sliders. A method may name its own style ([methods.<name>] style = "..."); `--style` overrides
+# both, and a run tuned with `datapipe tune` renders with its own tuning folder (SPEC §6).
 [looks.stem-tunnel]
 project = "blender/stem-tunnel"
 scene = "stem_tunnel.blend"
 script = "stem_tunnel.py"
+style = "default"
 
 # The six input methods (SPEC §16): where their inputs land, where their runs go, which look renders them.
 [methods.gen]                # A: a preset and a seed, composed and rendered by DawDreamer

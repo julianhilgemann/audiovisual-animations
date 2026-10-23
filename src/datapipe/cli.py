@@ -1,5 +1,5 @@
-"""`datapipe` command line: `short` and `analyze` for the six input methods (SPEC §16), `gen`, `example`, `plugins`
-and `doctor`; the rest lands phase by phase (SPEC §11)."""
+"""`datapipe` command line: `short`, `analyze` and `tune` for the six input methods (SPEC §16, §6), `gen`, `example`,
+`plugins` and `doctor`; the rest lands phase by phase (SPEC §11)."""
 
 import argparse
 import json
@@ -11,7 +11,6 @@ from .config import load_config
 
 PLANNED = {
     "watch": ("process new files dropped into inbox/<method>/", "P4"),
-    "preview": ("open a run in the Blender GUI for tweaking", "P5"),
 }
 METHOD_HELP = ("gen (A): compose a loop; master (B): one finished track; stems (C): master + stems; "
                "midi (D): master + stems + MIDI; slots (E): any stems, no instrument names; "
@@ -36,14 +35,23 @@ def main(argv: list[str] | None = None) -> int:
     short = sub.add_parser("short", help="a finished YouTube Short from any input method (SPEC §16)",
                            description=f"Methods: {METHOD_HELP}. Without a method: gen.")
     _method_args(short)
-    short.add_argument("--run", type=Path, help="render this run folder again (e.g. work/stems/latest)")
-    short.add_argument("--look", help="render with this look from [looks] in pipeline.toml (default: the method's)")
+    short.add_argument("--run", type=Path, help="render this run folder again (e.g. work/stems/latest), with its tuning")
+    _look_args(short)
     short.add_argument("--preview", action="store_true", help="half resolution, 8 samples, fast encode")
     short.add_argument("--keep-frames", action="store_true", help="keep the PNG frames in the run folder")
 
     analyze = sub.add_parser("analyze", help="a run folder (controls.json, report.png) from any method, no render",
                              description=f"Methods: {METHOD_HELP}.")
     _method_args(analyze)
+
+    tune = sub.add_parser("tune", help="open a run in Blender to tune its mapping, sliders and shape by hand (SPEC §6)",
+                          description=f"Methods: {METHOD_HELP}. With an input, analyse it first; with neither an "
+                                      "input nor --run, open the method's latest run. In Blender: the Datapipe tab "
+                                      "of the sidebar (N); Save to run, then `datapipe short --run <run>` (or the "
+                                      "panel's Render buttons) renders with what you tuned.")
+    _method_args(tune)
+    tune.add_argument("--run", type=Path, help="tune this run folder (e.g. work/stems/latest)")
+    _look_args(tune)
 
     example = sub.add_parser("example", help="export a generated loop into inbox/<method>/ the way a DAW would")
     example.add_argument("method", choices=["master", "stems", "midi"])
@@ -69,9 +77,9 @@ def main(argv: list[str] | None = None) -> int:
         return _gen(args)
     if args.command == "plugins":
         return _plugins(args)
-    if args.command in ("short", "analyze"):
+    if args.command in ("short", "analyze", "tune"):
         try:
-            return _short(args) if args.command == "short" else _analyze(args)
+            return {"short": _short, "analyze": _analyze, "tune": _tune}[args.command](args)
         except (ValueError, FileNotFoundError) as e:      # the input's fault: say what to fix, no traceback
             print(f"datapipe {args.command}: {e}", file=sys.stderr)
             return 2
@@ -129,6 +137,14 @@ def _method_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--no-loop", action="store_true", help="song: don't close the picture's motion on a loop")
 
 
+def _look_args(p: argparse.ArgumentParser) -> None:
+    p.add_argument("--look", help="render with this look from [looks] in pipeline.toml (default: the method's)")
+    p.add_argument("--style", help="the look's shape and sliders: a name in its styles/ (e.g. hex_prism) or a .toml "
+                                   "(default: the run's tuning, else [methods]/[looks] style)")
+    p.add_argument("--mapping", help="which sources drive the look: a name in its mappings/ or a .toml "
+                                     "(default: the run's tuning, else mappings/<method>.toml)")
+
+
 def _song_kwargs(args: argparse.Namespace) -> dict:
     return {"preset": args.preset, "seed": args.seed, "midi": args.midi, "use_plugins": not args.no_plugins,
             "start": args.start, "length": args.length, "bpm": args.bpm, "loop": False if args.no_loop else None}
@@ -160,16 +176,33 @@ def _short(args: argparse.Namespace) -> int:
     from .shorts import make
 
     mp4, report = make(args.method, args.input, run=args.run, look=args.look, preview=args.preview,
-                       keep_frames=args.keep_frames, **_song_kwargs(args))
+                       keep_frames=args.keep_frames, style=args.style, mapping=args.mapping, **_song_kwargs(args))
     g = report["gates"]
     print(f"{report['run']} ({report['method']}, look {report['look']}): {g['format']['video']}, "
           f"{g['format']['audio']}, {g['length']['seconds']} s")
+    tuning = report["tuning"]
+    print(f"  tuning: mapping {tuning['mapping']} ({tuning['mapping_from']}), style {tuning['style'] or 'look.toml'} "
+          f"({tuning['style_from']})" + (f", keyframes {tuning['automation']}" if tuning["automation"] else ""))
     for name, gate in g.items():
         detail = {k: v for k, v in gate.items() if k not in ("ok", "offsets", "colour", "video", "audio", "samples")}
         print(f"  {'ok  ' if gate['ok'] else 'FAIL'} {name:9} {detail}")
     print(f"  {sum(report['timings_s'].values()):.0f} s ({report['timings_s']})")
     print(f"  -> {mp4}")
     return 0 if report["ok"] else 1
+
+
+def _tune(args: argparse.Namespace) -> int:
+    from .shorts import tune
+
+    opened = tune(args.method, args.input, run=args.run, look=args.look, style=args.style, mapping=args.mapping,
+                  **_song_kwargs(args))
+    t = opened["tuning"]
+    print(f"Tuning {opened['run'].name} in Blender (pid {opened['pid']}): the Datapipe tab in the sidebar (N).")
+    print(f"  mapping {t['mapping']} ({t['mapping_from']}), style {t['style'] or 'look.toml'} ({t['style_from']})")
+    print(f"  Save to run writes {opened['save_to']}")
+    print(f"  then: uv run datapipe short --run \"{opened['run']}\" [--preview]   (or the panel's Render buttons)")
+    print(f"  Blender's log: {opened['log']}")
+    return 0
 
 
 def _seed_list(text: str) -> list[int]:

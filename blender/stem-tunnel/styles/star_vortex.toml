@@ -1,0 +1,20 @@
+# Style "star_vortex": a five-pointed star that turns as you fly (half a cell per row), diamond lattice walls,
+# toothed portals and a helix shell, with a stronger rainbow along the depth.
+
+[shape]  # rebuilds the tunnel's geometry
+# Cross-section
+profile       = "star"  # Profile (circle, polygon, star, flower)
+sides         = 5       # Sides
+profile_depth = 0.45    # Point depth
+# Cells
+symmetry = 5  # Cells around
+# Patterns
+walls         = "diamonds"  # Walls (maze, grid, diamonds, chevrons, hexes, circuit, stripes, rails, zigzag, truchet, dots, none)
+portals       = "teeth"     # Portals (crenel, rings, spokes, teeth, triple, frame, none)
+outer_pattern = "helix"     # Outer shell (ladder, rails, helix, grid, dots, none)
+# Deform
+twist = 0.5  # Twist
+
+[look]  # live: the sliders on NeonControls
+# Glow and colour
+hue_depth = 2.0  # Rainbow along depth

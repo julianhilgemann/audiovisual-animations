@@ -2,13 +2,16 @@
 
 controls.json -> the method's look (a Blender project and its mappings/<method>.toml) renders one PNG per frame
 headless (S5) -> PyAV encodes them with mix.wav to H.264/AAC MP4 at the Shorts settings (S6) -> the file is checked
-(S7) -> output/<method>/<run>.mp4 with a sidecar .json and a thumbnail.
+(S7) -> output/<method>/<run>.mp4 with a sidecar .json and a thumbnail. What the look renders with (its mapping,
+style and keyframes) can be tuned by hand first: ``open_tuner`` opens the run in the Blender GUI (SPEC §6), whose
+"Save to run" writes the run's tuning folder, and ``look_files`` picks those files up.
 """
 
 import io
 import json
 import shutil
 import subprocess
+import sys
 import time
 import tomllib
 from fractions import Fraction
@@ -35,28 +38,68 @@ def resolve_run(run: Path) -> Path:
     return run
 
 
-def look_files(cfg: dict, method: str, look: str | None = None) -> dict:
-    """The Blender project a method renders with: ``[methods.<method>] look`` unless ``look`` names another."""
+def look_files(cfg: dict, method: str, look: str | None = None, run: Path | None = None, style: str | None = None,
+               mapping: str | None = None) -> dict:
+    """The Blender project a method renders with (``[methods.<method>] look`` unless ``look`` names another) and the
+    files that tune it, each the first that exists (SPEC §6):
+
+    - mapping: ``mapping`` (a name in the look's mappings/ or a path), the run's tuning (<run>/tuning/<look>/
+      mapping.toml, written by `datapipe tune`), the look's mappings/<method>.toml;
+    - style: ``style`` (a name in styles/ or a path), the run's tuning style.toml, ``[methods.<method>] style``,
+      ``[looks.<look>] style``, else the look's defaults (look.toml);
+    - automation: the run's tuning automation.json (keyframed sliders), if any."""
     name = look or cfg["methods"][method]["look"]
     entry = cfg["looks"][name]
     project = ROOT / entry["project"]
-    mapping = project / "mappings" / f"{method}.toml"
-    if not mapping.exists():
-        raise FileNotFoundError(f"look {name!r} has no mapping for method {method!r}: {mapping}")
-    return {"name": name, "scene": project / entry["scene"], "script": project / entry["script"], "mapping": mapping}
+    tuned = run / "tuning" / name if run else None
+    picked, origin = {}, {}
+    for kind, given, folder, default in (
+            ("mapping", mapping, "mappings", f"{method}.toml"),
+            ("style", style or None, "styles", None)):
+        if given:
+            path = Path(given) if Path(given).suffix == ".toml" else project / folder / f"{given}.toml"
+            if not path.exists():
+                known = ", ".join(sorted(p.stem for p in (project / folder).glob("*.toml")))
+                raise FileNotFoundError(f"look {name!r} has no {kind} {given!r} ({path}); known: {known}")
+            picked[kind], origin[kind] = path, "given"
+        elif tuned and (tuned / f"{kind}.toml").exists():
+            picked[kind], origin[kind] = tuned / f"{kind}.toml", "run"
+        else:
+            if kind == "style":
+                default = cfg["methods"][method].get("style") or entry.get("style")
+                default = f"{default}.toml" if default else None
+            path = project / folder / default if default else None
+            if path is not None and not path.exists():
+                raise FileNotFoundError(f"look {name!r} has no {kind} for method {method!r}: {path}")
+            picked[kind], origin[kind] = path, "look"
+    auto = tuned / "automation.json" if tuned and (tuned / "automation.json").exists() else None
+    return {"name": name, "scene": project / entry["scene"], "script": project / entry["script"],
+            "mapping": picked["mapping"], "style": picked["style"], "automation": auto,
+            "tuning_dir": tuned, "origin": origin}
+
+
+def tuning_report(files: dict) -> dict:
+    """Which mapping, style and keyframes a render used, and where they came from (for the sidecar)."""
+    def rel(p):
+        return None if p is None else str(p.relative_to(ROOT)) if p.is_relative_to(ROOT) else str(p)
+    return {"mapping": rel(files["mapping"]), "mapping_from": files["origin"]["mapping"],
+            "style": rel(files["style"]), "style_from": files["origin"]["style"],
+            "automation": rel(files["automation"])}
 
 
 def make_short(run: Path, look: str | None = None, preview: bool = False, keep_frames: bool = False,
-               progress=print, out_dir: Path | None = None, **overrides) -> tuple[Path, dict]:
+               progress=print, out_dir: Path | None = None, style: str | None = None, mapping: str | None = None,
+               **overrides) -> tuple[Path, dict]:
     """Render, encode and check a run that already has controls.json and mix.wav; returns the MP4 and its report.
-    ``overrides`` replace profile settings (percent, eevee_samples, crf, x264_preset) for this call."""
+    ``style`` and ``mapping`` override what the run's tuning or the look would use (``look_files``); ``overrides``
+    replace profile settings (percent, eevee_samples, crf, x264_preset) for this call."""
     cfg = load_config()
     short = cfg["short"]
     profile = {**short, **(short["preview"] if preview else {}), **overrides}
     run = resolve_run(run)
     controls = json.loads((run / "controls.json").read_text(encoding="utf-8"))
     method, n = controls.get("method", "gen"), controls["frames"]
-    files = look_files(cfg, method, look)
+    files = look_files(cfg, method, look, run=run, style=style, mapping=mapping)
     times = {}
 
     t = time.perf_counter()
@@ -69,6 +112,11 @@ def make_short(run: Path, look: str | None = None, preview: bool = False, keep_f
            "--width", str(width), "--height", str(height),
            "--percent", str(profile["percent"]), "--samples", str(profile["eevee_samples"]),
            "--save-blend", str(run / "scene_baked.blend")] + (["--seam"] if controls.get("close", True) else [])
+    cmd += ["--style", str(files["style"])] if files["style"] else []
+    cmd += ["--automation", str(files["automation"])] if files["automation"] else []
+    tuning = tuning_report(files)
+    progress(f"  mapping {tuning['mapping']} ({tuning['mapping_from']}), style {tuning['style'] or 'look.toml'} "
+             f"({tuning['style_from']})" + (f", keyframes {tuning['automation']}" if tuning["automation"] else ""))
     blender = _blender(cmd, run / "render.log", n, progress)
     times["render"] = time.perf_counter() - t
 
@@ -94,7 +142,8 @@ def make_short(run: Path, look: str | None = None, preview: bool = False, keep_f
     out_dir.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(frames / f"frame_{thumbnail_frame(controls):04d}.png", out_dir / f"{name}.png")
     shutil.copyfile(mp4, out_dir / f"{name}.mp4")
-    report.update({"run": run.name, "method": method, "look": files["name"], "preview": preview, "blender": blender,
+    report.update({"run": run.name, "method": method, "look": files["name"], "tuning": tuning, "preview": preview,
+                   "blender": blender,
                    "settings": {k: profile[k] for k in ("percent", "eevee_samples", "crf", "x264_preset")},
                    "timings_s": {k: round(v, 1) for k, v in times.items()}})
     sidecar = json.dumps(report, indent=1) + "\n"
@@ -103,6 +152,34 @@ def make_short(run: Path, look: str | None = None, preview: bool = False, keep_f
     if not keep_frames:
         shutil.rmtree(frames)
     return out_dir / f"{name}.mp4", report
+
+
+def open_tuner(run: Path, look: str | None = None, style: str | None = None, mapping: str | None = None,
+               wait_s: float = 90.0) -> dict:
+    """Open a run in the Blender GUI with the tuner panel (the look's script with ``--tune``), on the same mapping,
+    style and keyframes a render would use; returns once the panel is up (Blender keeps running)."""
+    cfg = load_config()
+    run = resolve_run(run)
+    controls = json.loads((run / "controls.json").read_text(encoding="utf-8"))
+    method = controls.get("method", "gen")
+    files = look_files(cfg, method, look, run=run, style=style, mapping=mapping)
+    log = run / "tune.log"
+    cmd = [str(resolve_path(cfg, "blender")), str(files["scene"]), "--python", str(files["script"]), "--", "--tune",
+           "--run", str(run), "--mapping", str(files["mapping"]), "--method", method,
+           "--save-to", str(files["tuning_dir"]), "--pipeline-python", sys.executable]
+    cmd += ["--style", str(files["style"])] if files["style"] else []
+    cmd += ["--automation", str(files["automation"])] if files["automation"] else []
+    with open(log, "w", encoding="utf-8") as fh:
+        proc = subprocess.Popen(cmd, stdout=fh, stderr=subprocess.STDOUT, start_new_session=True)
+    started = time.perf_counter()
+    while time.perf_counter() - started < wait_s:
+        text = log.read_text(encoding="utf-8", errors="replace")
+        if "DATAPIPE_TUNER ready" in text:
+            return {"run": run, "pid": proc.pid, "log": log, "tuning": tuning_report(files), "save_to": files["tuning_dir"]}
+        if proc.poll() is not None or "Traceback" in text:
+            raise RuntimeError(f"the tuner did not start (Blender exit {proc.poll()}); see {log}")
+        time.sleep(0.3)
+    raise RuntimeError(f"the tuner did not report ready within {wait_s:.0f} s; see {log}")
 
 
 def thumbnail_frame(controls: dict) -> int:

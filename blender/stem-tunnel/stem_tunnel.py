@@ -4,7 +4,11 @@ The pipeline calls it (`datapipe short <method>`); by hand:
 
     blender -b blender/stem-tunnel/stem_tunnel.blend --python blender/stem-tunnel/stem_tunnel.py -- \\
         --run work/<method>/<run> --frames-dir work/<method>/<run>/frames \\
-        --mapping blender/stem-tunnel/mappings/<method>.toml [--percent 50] [--samples 8] [--seam]
+        --mapping blender/stem-tunnel/mappings/<method>.toml [--style blender/stem-tunnel/styles/<name>.toml] \\
+        [--automation <run>/tuning/stem-tunnel/automation.json] [--percent 50] [--samples 8] [--seam]
+
+`datapipe tune` opens the same scene in the Blender GUI with the tuner panel (tuner.py, `--tune`), which bakes with
+these same functions, so what you tune is what renders.
 
 Rebuild the template from the reference scene, e.g. after re-tuning the look in blender/audio-tunnel:
 
@@ -12,30 +16,40 @@ Rebuild the template from the reference scene, e.g. after re-tuning the look in 
         --make-template blender/stem-tunnel/stem_tunnel.blend
 
 Every reaction is a driver on the AudioSignals empty (the run's modulators, baked one key per frame) and the
-NeonControls empty (the look's sliders). All drivers are simple expressions, so no Python auto-run is needed.
+NeonControls empty (the look's sliders, look.toml). All drivers are simple expressions, so no Python auto-run is
+needed. The geometry comes from shapes.py and the style's [shape].
 """
 
 import argparse
+import hashlib
 import json
 import math
 import sys
 import time
-import tomllib
 from pathlib import Path
 
 import bpy
 import numpy as np
+from bpy_extras import anim_utils
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[1] / "src"))
-from datapipe import mapping  # noqa: E402  numpy only, shared with the pipeline
+sys.path.insert(0, str(HERE))
+from datapipe import mapping, recipe  # noqa: E402  numpy and the standard library only, shared with the pipeline
+import shapes  # noqa: E402
 
 CTRL, SIG, CAM = "NeonControls", "AudioSignals", "NeonCam"
-TUNNEL = ("Tunnel_Walls", "Tunnel_Portals", "Tunnel_Outer")
+TUNNEL = shapes.LAYERS
+LAYER_KEYS = {"Tunnel_Walls": "walls", "Tunnel_Portals": "portals", "Tunnel_Outer": "outer"}
 FPS = 60
 FRAMES = 480                   # a generated loop; a run's own length comes from its controls.json
 LEVELS = ("kick", "kick_light", "bass", "energy", "hats", "mids", "bright", "twist")    # 0-1 look signals
 DEG = 4 * math.pi / 360        # the roll and spin unit of the look's sliders (as in blender/audio-tunnel)
+SCHEMA = recipe.load(HERE / "look.toml")
+MOTION = tuple(k for k, spec in SCHEMA["look"].items() if spec.get("motion"))
+SHADER = ("hue_base", "hue_depth", "hue_across", "saturation", "line_edges", "line_core", "line_sharp", "fill_glow",
+          "wave_amount", "view_far")                                  # look values the material reads directly
+EMIT, HUE_D, RING_W, RING_GAIN = 10.0, 14.0, 3.0, 22.0                # the reference look's constants
 
 
 def main() -> None:
@@ -43,22 +57,33 @@ def main() -> None:
     if a.make_template:
         make_template(a.make_template)
         return
+    if a.tune:
+        import tuner
+
+        tuner.start(a)
+        return
     t0 = time.time()
+    scene, ctrl = bpy.context.scene, bpy.data.objects[CTRL]
     controls = json.loads((a.run / "controls.json").read_text(encoding="utf-8"))
     n = _frames[0] = controls["frames"]
-    with open(a.mapping, "rb") as fh:
-        cfg = tomllib.load(fh)
-    scene, ctrl = bpy.context.scene, bpy.data.objects[CTRL]
-    levels = look_signals(controls, cfg)
-    tracks, closure = motion(levels, controls, ctrl, cfg)
-    bake(loop_keys(levels) | tracks)
+    cfg = recipe.load(a.mapping)
+    style = recipe.resolve_style(recipe.load(a.style) if a.style else {}, SCHEMA)
+    built = apply_style(style)
+    if a.automation:
+        set_automation(ctrl, json.loads(a.automation.read_text(encoding="utf-8")))
+    levels, closure = bake_run(controls, cfg, ctrl)
     wire(scene, ctrl)
     configure(scene, a.width, a.height, a.percent, a.samples, a.frames_dir, n)
     set_sound(scene, a.run / "mix.wav")
     if a.save_blend:
         bpy.ops.wm.save_as_mainfile(filepath=str(a.save_blend), compress=True, copy=True)
     timings = {"bake_s": round(time.time() - t0, 2)}
-    if not a.no_render:
+    if a.frames:
+        for f in a.frames:
+            scene.frame_set(f)
+            scene.render.filepath = str(a.frames_dir / f"frame_{f:04d}.png")
+            bpy.ops.render.render(write_still=True)
+    elif not a.no_render:
         t1 = time.time()
         bpy.app.handlers.render_post.append(_progress)
         bpy.ops.render.render(animation=True)
@@ -67,7 +92,7 @@ def main() -> None:
             scene.frame_set(n + 1)
             scene.render.filepath = str(a.frames_dir / f"seam_{n + 1:04d}.png")
             bpy.ops.render.render(write_still=True)
-    summary = {"closure": closure, "timings": timings,
+    summary = {"closure": closure, "timings": timings, "shape": shape_info(ctrl, built), "baked": baked_digest(),
                "signals": {k: [round(float(v.min()), 3), round(float(v.mean()), 3), round(float(v.max()), 3)]
                            for k, v in levels.items() if k in LEVELS}}
     print("STEM_TUNNEL_RESULT " + json.dumps(summary), flush=True)
@@ -80,16 +105,24 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--frames-dir", type=Path, help="where frame_0001.png, frame_0002.png ... go")
     p.add_argument("--mapping", type=Path, default=HERE / "mappings" / "gen.toml",
                    help="mappings/<method>.toml: which of the run's sources drive the look")
+    p.add_argument("--style", type=Path, help="styles/<name>.toml: the shape and the sliders (default: look.toml's)")
+    p.add_argument("--automation", type=Path, help="keyframed sliders saved by the tuner (automation.json)")
     p.add_argument("--width", type=int, default=1080)
     p.add_argument("--height", type=int, default=1920)
     p.add_argument("--percent", type=int, default=100)
     p.add_argument("--samples", type=int, default=32)
     p.add_argument("--seam", action="store_true", help="also render frame n + 1, which must match frame 1")
+    p.add_argument("--frames", type=lambda s: [int(f) for f in s.split(",")],
+                   help="render only these frames (e.g. 1,481) as frame_<n>.png")
     p.add_argument("--save-blend", type=Path, help="save the baked scene here, to open and scrub")
     p.add_argument("--no-render", action="store_true")
+    p.add_argument("--tune", action="store_true", help="open the tuner panel instead of rendering (GUI)")
+    p.add_argument("--method", help="tune: the run's method, for saving its default mapping")
+    p.add_argument("--save-to", type=Path, help="tune: where 'Save to run' writes (the run's tuning folder)")
+    p.add_argument("--pipeline-python", help="tune: the pipeline's Python, for the panel's render buttons")
     p.add_argument("--make-template", type=Path, help="turn the open reference scene into the template, save it here")
     a = p.parse_args(argv)
-    if not a.make_template and not (a.run and a.frames_dir):
+    if not a.make_template and not a.tune and not (a.run and a.frames_dir):
         p.error("--run and --frames-dir are required to render")
     return a
 
@@ -124,7 +157,7 @@ def look_signals(controls: dict, cfg: dict) -> dict[str, np.ndarray]:
             return np.asarray(controls.get("features", {}).get(key, zeros))
         raise ValueError(f"mapping: unknown source {name!r}")
 
-    out = {name: np.clip(sum(w * source(s) for s, w in sources.items()), 0.0, 1.0)
+    out = {name: np.clip(sum((w * source(s) for s, w in sources.items()), zeros), 0.0, 1.0)
            for name, sources in cfg["signals"].items()}
     for name, frames in cfg.get("smooth", {}).items():
         out[name] = mapping.smooth(out[name], frames, wrap)
@@ -136,6 +169,18 @@ def look_signals(controls: dict, cfg: dict) -> dict[str, np.ndarray]:
     out["kick_last"] = float(ring_cfg.get("level", 1.0)) * last
     out["hue_off"] = float(cfg.get("motion", {}).get("twist_hue", 0.0)) * out["twist"]
     return out
+
+
+def available_sources(controls: dict) -> list[str]:
+    """Every source a mapping can read from this run, as `kind:name`."""
+    names = [f"hit:{t}" for t in controls.get("tracks", {})]
+    names += [f"stem:{s}" for s in controls.get("stems", {})]
+    names += [f"mix:{m}" for m in controls.get("mix", {})]
+    names += [f"band:{b}" for b in controls.get("bands", {})]
+    names += [f"curve:{c}" for c in controls.get("curves", {})]
+    names += [f"section:{s}" for s in dict.fromkeys(s["name"] for s in controls.get("sections", []))]
+    names += [f"feature:{f}" for f in controls.get("features", {})]
+    return names
 
 
 def section(controls: dict, name: str, ease: int) -> np.ndarray:
@@ -151,28 +196,29 @@ def section(controls: dict, name: str, ease: int) -> np.ndarray:
 
 def motion(levels: dict, controls: dict, ctrl, cfg: dict) -> tuple[dict, dict]:
     """Accumulated motion as positions (n + 1 keys). Unless the run says ``close: false``, each is closed on the
-    loop so frame n + 1 is frame 1's picture.
+    loop so frame n + 1 is frame 1's picture, on the periods of the built shape (shapes.periods).
 
-    Rates follow the reference look's drivers (blender/audio-tunnel), plus a build curve (the riser) and the twist."""
-    c = lambda k: float(ctrl[k])  # noqa: E731
+    Rates follow the reference look's drivers (blender/audio-tunnel), plus a build curve (the riser) and the twist.
+    A keyframed slider counts frame by frame."""
+    n = controls["frames"]
+    c = lambda k: look_value(ctrl, k, n)  # noqa: E731
     m = cfg.get("motion", {})
-    K, R = int(ctrl["_built_K"]), float(ctrl["_built_R"])
-    L = 2 * math.pi * R / K                                   # one wall segment, also the portal spacing
-    riser = np.asarray(controls["curves"].get(m.get("speed_curve", "riser"), np.zeros(controls["frames"])))
+    row = float(ctrl["_period_row"])                             # speed counts rows, whatever their length
+    riser = np.asarray(controls["curves"].get(m.get("speed_curve", "riser"), np.zeros(n)))
     rates = {
-        # name: (rate per frame, period). Walls repeat every 2 segments in depth; around the tunnel the walls
-        # repeat every 2 segments (K even) or once round (K odd), portals and the outer shell every segment.
-        "travel": (12 * L / 360 * c("speed") * (c("speed_idle") + c("speed_energy") * levels["energy"]
-                   + c("speed_kick") * levels["kick"] + float(m.get("speed_riser", 0)) * riser), 2 * L),
+        "travel": (12 * row / 360 * c("speed") * (c("speed_idle") + c("speed_energy") * levels["energy"]
+                   + c("speed_kick") * levels["kick"] + float(m.get("speed_riser", 0)) * riser), "_period_travel"),
         "roll": (DEG * (c("roll_idle") + c("roll_bass") * levels["bass"] + float(m.get("roll_twist", 0)) * levels["twist"]),
-                 2 * math.pi if K % 2 else 4 * math.pi / K),
-        "outer": (DEG * (c("outer_spin_idle") + c("outer_spin_hats") * levels["hats"]), 2 * math.pi / K),
-        "portal": (0.03 * c("portal_spin_mids") * levels["mids"], 2 * math.pi / K),
-        "phase": ((c("color_idle") + c("color_energy") * levels["energy"]) / 360, 1.0),
+                 "_period_roll"),
+        "outer": (DEG * (c("outer_spin_idle") + c("outer_spin_hats") * levels["hats"]), "_period_outer"),
+        "portal": (0.03 * c("portal_spin_mids") * levels["mids"], "_period_portal"),
+        "phase": ((c("color_idle") + c("color_energy") * levels["energy"]) / 360, None),
     }
     tracks, closure = {}, {}
     close = controls.get("close", True)
     for name, (rate, period) in rates.items():
+        rate = np.broadcast_to(rate, (n,))
+        period = float(ctrl[period]) if period else 1.0
         tracks[name], closure[name] = mapping.close_loop(rate, period) if close else mapping.integrate(rate)
     return tracks, closure
 
@@ -183,15 +229,132 @@ def loop_keys(levels: dict) -> dict:
     return {k: np.append(v, v[0]) for k, v in levels.items()}
 
 
+def bake_run(controls: dict, cfg: dict, ctrl) -> tuple[dict, dict]:
+    """Signals and motion from the run and the mapping, keyed on AudioSignals; returns the signals and the closure."""
+    levels = look_signals(controls, cfg)
+    tracks, closure = motion(levels, controls, ctrl, cfg)
+    bake(loop_keys(levels) | tracks)
+    return levels, closure
+
+
+# ---- the look's sliders, keyframes and shape ---------------------------------------------------------------------
+
+def channelbag(owner):
+    ad = owner.animation_data
+    return anim_utils.animdata_get_channelbag_for_assigned_slot(ad) if ad and ad.action else None
+
+
+def fcurve(owner, name: str):
+    bag = channelbag(owner)
+    return bag.fcurves.find(f'["{name}"]') if bag else None
+
+
+def look_value(ctrl, name: str, n: int):
+    """A slider's value, or its value on every frame 1..n when it is keyframed."""
+    fc = fcurve(ctrl, name)
+    if fc is None or not len(fc.keyframe_points):
+        return float(ctrl[name])
+    return np.array([fc.evaluate(f) for f in range(1, n + 1)])
+
+
+def automation(ctrl) -> dict:
+    """The keyframed sliders, as automation.json holds them: every key with its handles and interpolation."""
+    out = {}
+    bag = channelbag(ctrl)
+    for fc in (bag.fcurves if bag else []):
+        name = fc.data_path[2:-2] if fc.data_path.startswith('["') else None
+        if name not in SCHEMA["look"] or not len(fc.keyframe_points):
+            continue
+        out[name] = {"extrapolation": fc.extrapolation, "keys": [
+            {"co": list(k.co), "interpolation": k.interpolation, "easing": k.easing,
+             "left": list(k.handle_left), "right": list(k.handle_right),
+             "left_type": k.handle_left_type, "right_type": k.handle_right_type} for k in fc.keyframe_points]}
+    return {"version": 1, "params": out}
+
+
+def set_automation(ctrl, data: dict) -> None:
+    """Key the sliders as ``automation()`` saved them (replacing any keys they had)."""
+    for name, curve in data.get("params", {}).items():
+        if name not in SCHEMA["look"]:
+            raise ValueError(f"automation: unknown slider {name!r}")
+        ctrl.animation_data_create()
+        if ctrl.animation_data.action is None:
+            ctrl.animation_data.action = bpy.data.actions.new("NeonControls")
+        old = fcurve(ctrl, name)
+        if old is not None:
+            channelbag(ctrl).fcurves.remove(old)
+        fc = ctrl.animation_data.action.fcurve_ensure_for_datablock(ctrl, f'["{name}"]')
+        fc.extrapolation = curve.get("extrapolation", "CONSTANT")
+        for key in curve["keys"]:
+            k = fc.keyframe_points.insert(key["co"][0], key["co"][1], options={"FAST"})
+            k.interpolation, k.easing = key["interpolation"], key["easing"]
+            k.handle_left_type, k.handle_right_type = key["left_type"], key["right_type"]
+            k.handle_left, k.handle_right = key["left"], key["right"]
+        fc.update()
+
+
+def apply_style(style: dict) -> dict | None:
+    """Set the sliders from a resolved style and build its shape if the scene has another; returns what a rebuild
+    built (None when the shape was already there)."""
+    ctrl = bpy.data.objects[CTRL]
+    for key, value in style["look"].items():
+        ctrl[key] = float(value)
+    return ensure_shape(style["shape"], ctrl)
+
+
+def ensure_shape(shape: dict, ctrl, force: bool = False) -> dict | None:
+    """Rebuild the tunnel meshes (shapes.py) unless they already have this shape; record its periods on NeonControls."""
+    signature = json.dumps(shape, sort_keys=True)
+    if not force and ctrl.get("_built_shape") == signature:
+        return None
+    t = time.time()
+    collection = bpy.data.objects[CTRL].users_collection[0]
+    info = shapes.build(shape, bpy.data.materials["NeonLine"], collection)
+    for key, value in info["periods"].items():
+        ctrl[f"_period_{key}"] = float(value)
+    ctrl["_inradius"], ctrl["_built_shape"] = float(info["inradius"]), signature
+    for name in TUNNEL:
+        ob = bpy.data.objects[name]
+        ob.pass_index = 1 if name == "Tunnel_Portals" else 0           # the near fade dims pass index 1
+        for prop in ("layer_glow", "layer_hue"):
+            if prop not in ob:
+                ob[prop] = 0.0
+    info["build_s"] = round(time.time() - t, 2)
+    return info
+
+
+def baked_digest() -> str:
+    """A fingerprint of everything baked: every key on AudioSignals and NeonControls, and the built shape. The tuner
+    and the headless render print it, so a test can see they keyed the scene the same."""
+    h = hashlib.sha256(str(bpy.data.objects[CTRL].get("_built_shape")).encode())
+    for owner in (bpy.data.objects[SIG], bpy.data.objects[CTRL]):
+        bag = channelbag(owner)
+        for fc in sorted(bag.fcurves if bag else [], key=lambda fc: fc.data_path):
+            co = np.empty(2 * len(fc.keyframe_points), np.float32)
+            fc.keyframe_points.foreach_get("co", co)
+            h.update(fc.data_path.encode() + co.tobytes())
+    return h.hexdigest()[:16]
+
+
+def shape_info(ctrl, built: dict | None) -> dict:
+    out = {k[len("_period_"):]: round(float(ctrl[k]), 6) for k in ctrl.keys() if k.startswith("_period_")}
+    if built:
+        out.update(rebuilt=True, verts=built["verts"], build_s=built["build_s"])
+    return out
+
+
 # ---- scene ---------------------------------------------------------------------------------------------------------
 
 def bake(values: dict) -> None:
-    """One linear key per frame on the AudioSignals empty, replacing whatever was there."""
+    """One linear key per frame on the AudioSignals empty, replacing whatever was there. Properties that stay are
+    kept, so the drivers reading them stay valid while the tuner re-bakes."""
     sig = bpy.data.objects[SIG]
     for k in list(sig.keys()):
-        del sig[k]
+        if k not in values:
+            del sig[k]
     for k in values:
-        sig[k] = 0.0
+        if k not in sig:
+            sig[k] = 0.0
     sig.animation_data_create()
     old = sig.animation_data.action
     act = bpy.data.actions.new("AudioSignals_run")
@@ -215,15 +378,16 @@ def bake(values: dict) -> None:
 
 
 def wire(scene, ctrl) -> None:
-    """(Re)create every driver of the look on the run's signals; all must be simple expressions."""
+    """(Re)create every driver of the look on the run's signals and the sliders; all must be simple expressions."""
     O = bpy.data.objects
     cam, walls, portals, outer = O[CAM], O["Tunnel_Walls"], O["Tunnel_Portals"], O["Tunnel_Outer"]
-    K, R = int(ctrl["_built_K"]), float(ctrl["_built_R"])
-    per = 2 * (2 * math.pi * R / K)
+    per = float(ctrl["_period_travel"])
     nodes = bpy.data.materials["NeonLine"].node_tree.nodes
     glare = sorted((nd for nd in scene.compositing_node_group.nodes if nd.bl_idname == "CompositorNodeGlare"),
                    key=lambda nd: nd.name)
     specs = [
+        (cam, "location", 0, "cam_orbit*_inradius*cos(roll)"),
+        (cam, "location", 1, "cam_orbit*_inradius*sin(roll)"),
         (cam, "location", 2, f"-fmod(travel, {per:.8f})"),
         (cam, "rotation_euler", 2, "roll + kick_jolt*kick"),
         (cam.data, "lens", -1, "max(lens - kick_zoom*kick, 2)"),
@@ -241,6 +405,10 @@ def wire(scene, ctrl) -> None:
         (nodes["NearFade"].inputs["From Min"], "default_value", -1, "0.25*near_fade"),
         (nodes["NearFade"].inputs["From Max"], "default_value", -1, "near_fade + 0.001"),
     ]
+    specs += [(nodes[f"LK_{k}"].outputs[0], "default_value", -1, k) for k in SHADER]
+    for ob in (walls, portals, outer):
+        layer = LAYER_KEYS[ob.name]
+        specs += [(ob, '["layer_glow"]', -1, f"{layer}_glow"), (ob, '["layer_hue"]', -1, f"{layer}_hue")]
     for i in (0, 1):
         specs += [(walls, "scale", i, "1 + kick_pump*kick + bass_wall*bass"),
                   (portals, "scale", i, "1 - kick_squeeze*kick"),
@@ -268,7 +436,7 @@ def _drive(owner, path: str, index: int, expr: str, sig, ctrl):
     for name in sorted(words):
         target = sig if name in sig.keys() else ctrl if name in ctrl.keys() else None
         if target is None:
-            continue                       # functions and constants: fmod, max, exp
+            continue                       # functions and constants: fmod, max, exp, cos
         v = d.variables.new()
         v.name, v.type = name, "SINGLE_PROP"
         v.targets[0].id_type, v.targets[0].id, v.targets[0].data_path = "OBJECT", target, f'["{name}"]'
@@ -307,9 +475,12 @@ def set_sound(scene, wav: Path | None) -> None:
             bpy.data.sounds.remove(sound)
 
 
+# ---- the template --------------------------------------------------------------------------------------------------
+
 def make_template(path: Path) -> None:
-    """From the reference scene: keep the lines look and its sliders, drop the kaleidoscope, the old audio wiring
-    and the UI script, wire the drivers to neutral signals and save."""
+    """From the reference scene: keep the lines look and its sliders (at styles/default.toml's values), drop the
+    kaleidoscope, the old audio wiring and the UI script, rebuild the material and the meshes with this look's code,
+    wire the drivers to neutral signals and save."""
     scene, ctrl = bpy.context.scene, bpy.data.objects[CTRL]
     for text in list(bpy.data.texts):
         bpy.data.texts.remove(text)
@@ -322,19 +493,18 @@ def make_template(path: Path) -> None:
         bpy.data.materials.remove(bpy.data.materials["Kaleido"])
     for name in TUNNEL:
         bpy.data.objects[name].hide_render = bpy.data.objects[name].hide_viewport = False
-    for key in ("audio_file", "audio_start", "audio_length", "_track_seconds", "kick_sensitivity", "kick_length",
-                "_looks") + tuple(k for k in ctrl.keys() if k.startswith("k_")):
-        if key in ctrl:
-            del ctrl[key]
-    ctrl["look_mode"] = 0
-    add_near_fade(ctrl)
+    for key in [k for k in ctrl.keys() if k not in SCHEMA["look"]]:
+        del ctrl[key]                                                    # music, kaleido and old shape settings
+    style = recipe.resolve_style(recipe.load(HERE / "styles" / "default.toml"), SCHEMA)
+    for key, spec in SCHEMA["look"].items():
+        ctrl[key] = float(style["look"][key])
+        ctrl.id_properties_ui(key).update(min=spec["min"], max=spec["max"], soft_min=spec["min"], soft_max=spec["max"],
+                                          default=spec["default"], precision=3, description=spec["help"])
+    build_material()
+    ensure_shape(style["shape"], ctrl, force=True)
     silent = {"frames": FRAMES, "sections": [{"name": "hook", "frame": 0}], "tracks": {}, "stems": {}, "curves": {},
               "mix": {"loud": [0.0] * FRAMES, "bright": [0.0] * FRAMES}}
-    with open(HERE / "mappings" / "gen.toml", "rb") as fh:
-        cfg = tomllib.load(fh)
-    levels = look_signals(silent, cfg)
-    tracks, _ = motion(levels, silent, ctrl, cfg)
-    bake(loop_keys(levels) | tracks)
+    bake_run(silent, recipe.load(HERE / "mappings" / "gen.toml"), ctrl)
     wire(scene, ctrl)
     configure(scene, 1080, 1920, 100, 32, None)
     set_sound(scene, None)
@@ -344,42 +514,100 @@ def make_template(path: Path) -> None:
     print(f"STEM_TUNNEL_RESULT template saved to {path}", flush=True)
 
 
-def add_near_fade(ctrl) -> None:
-    """Portals fade out as they come within `near_fade` of the camera plane (view Z depth), so a portal dissolves as
-    the camera flies through it instead of sweeping bright across the whole frame: those passes were the loop's
-    flashes (a 0.13-0.17 rise in mean luminance each). Only the portals (pass index 1) fade; walls and the outer
-    shell keep the reference look."""
-    if "near_fade" not in ctrl:
-        ctrl["near_fade"] = 55.0
-    ctrl.id_properties_ui("near_fade").update(
-        min=0.0, max=120.0, soft_min=0.0, soft_max=80.0, default=55.0, precision=1,
-        description="Portals fade out within this distance of the camera plane (0 = off), so flying through them doesn't flash")
-    bpy.data.objects["Tunnel_Portals"].pass_index = 1
-    nt = bpy.data.materials["NeonLine"].node_tree
-    if "NearFade" in nt.nodes:
-        return
-    emission = next(nd for nd in nt.nodes if nd.bl_idname == "ShaderNodeEmission")
-    camera = next(nd for nd in nt.nodes if nd.bl_idname == "ShaderNodeCameraData")
-    info = nt.nodes.new("ShaderNodeObjectInfo")
-    fade = nt.nodes.new("ShaderNodeMapRange")
-    fade.name = fade.label = "NearFade"
-    fade.interpolation_type, fade.clamp = "SMOOTHSTEP", True
-    fade.inputs["To Min"].default_value, fade.inputs["To Max"].default_value = 0.0, 1.0
-    nt.links.new(camera.outputs["View Z Depth"], fade.inputs["Value"])
+def build_material() -> None:
+    """The NeonLine emission material of the reference look (blender/audio-tunnel/neon_audio.py build_material):
+    two thin edge lines and a glowing core across every ribbon, coloured by depth, faded with distance, a sparkle
+    wave and the light ring. Its constants are Value nodes driven by the sliders (LK_<name>, look.toml), each layer
+    adds its own glow and hue (object properties layer_glow, layer_hue), and the portals (pass index 1) fade out
+    near the camera plane (NearFade): portals sweeping past the camera were the reference loop's flashes, a 0.13-0.17
+    rise in mean luminance each."""
+    mat = bpy.data.materials.get("NeonLine") or bpy.data.materials.new("NeonLine")
+    nt = mat.node_tree
+    if nt.animation_data:
+        nt.animation_data_clear()
+    N, links = nt.nodes, nt.links
+    N.clear()
 
-    def math(op, a, b):
-        nd = nt.nodes.new("ShaderNodeMath")
+    def M(op, a, b=None):
+        nd = N.new("ShaderNodeMath")
         nd.operation = op
         for socket, v in zip(nd.inputs, (a, b)):
-            if isinstance(v, float):
+            if v is None:
+                continue
+            if isinstance(v, (int, float)):
                 socket.default_value = v
             else:
-                nt.links.new(v, socket)
+                links.new(v, socket)
         return nd.outputs[0]
 
-    dim = math("MULTIPLY", info.outputs["Object Index"], math("SUBTRACT", 1.0, fade.outputs["Result"]))
-    strength = emission.inputs["Strength"].links[0].from_socket
-    nt.links.new(math("MULTIPLY", strength, math("SUBTRACT", 1.0, dim)), emission.inputs["Strength"])
+    def value(name, label, default=0.0):
+        nd = N.new("ShaderNodeValue")
+        nd.name, nd.label = name, label
+        nd.outputs[0].default_value = default
+        return nd.outputs[0]
+
+    def attribute(name):
+        nd = N.new("ShaderNodeAttribute")
+        nd.attribute_type, nd.attribute_name = "OBJECT", name
+        return nd.outputs["Fac"]
+
+    out, emi = N.new("ShaderNodeOutputMaterial"), N.new("ShaderNodeEmission")
+    uvn, infn = N.new("ShaderNodeUVMap"), N.new("ShaderNodeUVMap")
+    uvn.uv_map, infn.uv_map = "UVMap", "Info"
+    sep, sepi = N.new("ShaderNodeSeparateXYZ"), N.new("ShaderNodeSeparateXYZ")
+    links.new(uvn.outputs["UV"], sep.inputs[0])
+    links.new(infn.outputs["UV"], sepi.inputs[0])
+    camd, objinfo = N.new("ShaderNodeCameraData"), N.new("ShaderNodeObjectInfo")
+    t, gain = value("LoopTime", "Colour phase"), value("AU_Gain", "Audio: brightness", 1.0)
+    hats, hue_audio = value("AU_Hats", "Audio: sparkle"), value("AU_Hue", "Audio: hue offset")
+    ring_pos, ring_amp = value("AU_RingPos", "Audio: ring distance", 1000.0), value("AU_RingAmp", "Audio: ring strength")
+    bass = value("AU_Bass", "Audio: haze")
+    lk = {k: value(f"LK_{k}", SCHEMA["look"][k]["label"], SCHEMA["look"][k]["default"]) for k in SHADER}
+    layer_glow, layer_hue = attribute("layer_glow"), attribute("layer_hue")
+    v, depth = sep.outputs["Y"], camd.outputs["View Distance"]
+
+    def line(c, w):
+        return M("POWER", M("MAXIMUM", M("SUBTRACT", 1.0, M("DIVIDE", M("ABSOLUTE", M("SUBTRACT", v, c)), w)), 0.0),
+                 lk["line_sharp"])
+
+    e1, e2, core = line(0.1, 0.09), line(0.9, 0.09), line(0.5, 0.14)
+    lines = M("ADD", M("MULTIPLY", M("ADD", e1, e2), lk["line_edges"]), M("MULTIPLY", core, lk["line_core"]))
+    mask = M("ADD", lines, M("MULTIPLY", lk["fill_glow"], M("ADD", 1.0, bass)))
+    hue = M("ADD", M("ADD", t, M("MULTIPLY", M("DIVIDE", depth, HUE_D), lk["hue_depth"])),
+            M("MULTIPLY", M("MULTIPLY", v, 0.18), lk["hue_across"]))
+    hue = M("FRACT", M("ADD", M("ADD", M("ADD", hue, sepi.outputs["X"]), hue_audio), M("ADD", lk["hue_base"], layer_hue)))
+    dd = M("DIVIDE", M("SUBTRACT", depth, ring_pos), RING_W)
+    ring = M("MULTIPLY", ring_amp, M("EXPONENT", M("MULTIPLY", M("MULTIPLY", dd, dd), -1.0)))
+    sat = M("MULTIPLY", M("SUBTRACT", 1.0, M("MULTIPLY", core, 0.55)),
+            M("SUBTRACT", 1.0, M("MULTIPLY", M("MINIMUM", ring, 1.0), 0.75)))
+    comb = N.new("ShaderNodeCombineColor")
+    comb.mode = "HSV"
+    links.new(hue, comb.inputs[0])
+    links.new(M("MULTIPLY", sat, lk["saturation"]), comb.inputs[1])
+    comb.inputs[2].default_value = 1.0
+    fade = N.new("ShaderNodeMapRange")
+    fade.interpolation_type, fade.clamp = "SMOOTHSTEP", True
+    links.new(depth, fade.inputs["Value"])
+    links.new(M("MULTIPLY", lk["view_far"], 0.5), fade.inputs["From Min"])
+    links.new(lk["view_far"], fade.inputs["From Max"])
+    fade.inputs["To Min"].default_value, fade.inputs["To Max"].default_value = 1.0, 0.0
+    fo = fade.outputs["Result"]
+    wave = M("SINE", M("MULTIPLY", M("SUBTRACT", M("DIVIDE", depth, 12.0), M("MULTIPLY", t, 6.0)), 2 * math.pi))
+    spark = M("MULTIPLY", hats, M("POWER", M("MAXIMUM", wave, 0.0), 8.0))
+    pulse = M("ADD", M("ADD", M("SUBTRACT", 1.0, lk["wave_amount"]), M("MULTIPLY", wave, lk["wave_amount"])), spark)
+    strength = M("MULTIPLY", M("MULTIPLY", M("MULTIPLY", M("MULTIPLY", M("MULTIPLY", mask, EMIT), fo),
+                                                       sepi.outputs["Y"]), pulse), gain)
+    flash = M("MULTIPLY", M("MULTIPLY", M("MULTIPLY", M("MULTIPLY", lines, ring), RING_GAIN), fo), sepi.outputs["Y"])
+    near = N.new("ShaderNodeMapRange")
+    near.name = near.label = "NearFade"
+    near.interpolation_type, near.clamp = "SMOOTHSTEP", True
+    near.inputs["To Min"].default_value, near.inputs["To Max"].default_value = 0.0, 1.0
+    links.new(camd.outputs["View Z Depth"], near.inputs["Value"])
+    dim = M("MULTIPLY", objinfo.outputs["Object Index"], M("SUBTRACT", 1.0, near.outputs["Result"]))
+    strength = M("MULTIPLY", M("MULTIPLY", M("ADD", strength, flash), M("SUBTRACT", 1.0, dim)), layer_glow)
+    links.new(comb.outputs[0], emi.inputs["Color"])
+    links.new(strength, emi.inputs["Strength"])
+    links.new(emi.outputs[0], out.inputs["Surface"])
 
 
 _frames = [FRAMES]                 # the run's frame count, for the progress line
@@ -389,4 +617,6 @@ def _progress(scene, *_):
     print(f"STEM_TUNNEL frame {scene.frame_current}/{_frames[0]}", flush=True)
 
 
-main()
+if __name__ == "__main__":
+    sys.modules.setdefault("stem_tunnel", sys.modules[__name__])       # tuner.py imports this module, not a copy
+    main()

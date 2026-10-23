@@ -1,0 +1,22 @@
+# Style "square_circuit": a square corridor of circuit traces, sides level, two cells per face, spoked portals,
+# rails on the shell, green and a brighter core line.
+
+[shape]  # rebuilds the tunnel's geometry
+# Cross-section
+profile       = "polygon"  # Profile (circle, polygon, star, flower)
+sides         = 4          # Sides
+profile_angle = 45.0       # Turn (deg)
+# Cells
+symmetry = 8  # Cells around
+# Patterns
+walls         = "circuit"  # Walls (maze, grid, diamonds, chevrons, hexes, circuit, stripes, rails, zigzag, truchet, dots, none)
+portals       = "spokes"   # Portals (crenel, rings, spokes, teeth, triple, frame, none)
+outer_pattern = "rails"    # Outer shell (ladder, rails, helix, grid, dots, none)
+
+[look]  # live: the sliders on NeonControls
+# Kick
+kick_glow  = 3.0  # Glow burst
+kick_bloom = 1.5  # Bloom burst
+# Glow and colour
+hue_base  = 0.3  # Hue
+line_core = 1.6  # Core line

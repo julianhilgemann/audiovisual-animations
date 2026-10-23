@@ -48,6 +48,8 @@ inbox/midi/mysong/
 
 **Check before rendering:** `uv run datapipe analyze stems inbox/stems/mysong` writes the run folder with `report.png` (detected hits, tempo, sections) in a few seconds; `--preview` renders at half size in about a tenth of a second per frame. Re-render a run after editing its mapping (`blender/stem-tunnel/mappings/<method>.toml`) with `uv run datapipe short --run work/stems/latest --preview`.
 
+**Tune by hand:** `uv run datapipe tune stems` opens the latest stems run in Blender with a *Datapipe* tab in the sidebar (N): which sounds drive what and how strongly, every slider of the look (keyframable for one song), and the tunnel's shape, all live while the song plays. *Save to run*, then `uv run datapipe short --run work/stems/latest` (or the panel's *Render* buttons) renders exactly that. A shape and look you want for every song becomes a style: `--style hex_prism` (also `square_circuit`, `star_vortex`, `flower_tube`, `speed_rails`, `truchet_maze`, or your own from the panel). See [blender/stem-tunnel/README.md](blender/stem-tunnel/README.md#tune-by-hand).
+
 Requirements, on Windows or macOS: [uv](https://docs.astral.sh/uv/) (`winget install astral-sh.uv`, or `brew install uv`), and Blender 5.2 LTS. The pipeline needs nothing else; TouchDesigner is only for the standalone projects. Tool paths per OS are in `config/pipeline.toml`; `config/machine.toml` overrides them for one machine.
 
 ## Folders
@@ -57,11 +59,10 @@ Requirements, on Windows or macOS: [uv](https://docs.astral.sh/uv/) (`winget ins
 | `inbox/master/`, `inbox/stems/`, `inbox/midi/`, `inbox/slots/`, `inbox/deep/` | Your music, per method (see above; watched automatically from Phase 4) |
 | `output/<method>/` | Finished Shorts: MP4, a `.json` with the checks, a thumbnail |
 | `scenes/` | Blender template scenes |
-| `presets/` | Shape and look presets, saved from the Blender side panel |
-| `config/mappings/` | Reactivity recipes, exported from the Blender panel or hand-edited |
+| `config/mappings/` | Reactivity recipes for the Director rig look (optional, not built yet) |
 | `projects/` | Standalone TouchDesigner projects that aren't part of the pipeline (see [projects/README.md](projects/README.md)) |
 | `dawdreamer/` | Generated audio: specs, presets, Faust instruments, the free VST3 plugin list (see [dawdreamer/README.md](dawdreamer/README.md)) |
-| `blender/stem-tunnel/` | The neon lines tunnel every method renders with, one mapping per method in `mappings/` (see its [README](blender/stem-tunnel/README.md)) |
+| `blender/stem-tunnel/` | The neon lines tunnel every method renders with: one mapping per method in `mappings/`, shapes and looks in `styles/`, the tuner (see its [README](blender/stem-tunnel/README.md)) |
 | `docs/` | Design of the generative mode ([sticky-av-shorts.md](docs/sticky-av-shorts.md)) |
 | `reference/` | Reference renders |
 | `work/`, `cache/`, `archive/` | Pipeline internals; runs land in `work/<method>/`, the newest in `work/<method>/latest/` |

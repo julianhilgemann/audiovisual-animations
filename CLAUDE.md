@@ -6,7 +6,7 @@ Audio-reactive YouTube Shorts: a file dropped in `inbox/` is analyzed, mapped on
 
 ## Status
 
-Six input methods run end to end on macOS (SPEC §16, v0.9): `uv run datapipe short gen|master|stems|midi|slots|deep …` turns a generated loop (A, SPEC §15), a finished master (B), master and stems (C), master, stems and MIDI (D), any stems as numbered slots without a tempo (E), or one complex track measured from every side (F, SPEC §16.7) into a finished Short. Open: a real Ableton export for D, three real tracks for B and F, real non-drum stems for E (M2, M4, M5, M6), the overlay-mask gate, a Windows run. The Director rig (old P1) is now an optional second look; next after that is P4 (`watch`). `uv run datapipe doctor` checks the whole toolchain, and `uv run pytest` runs the tests.
+Six input methods run end to end on macOS (SPEC §16, v0.9): `uv run datapipe short gen|master|stems|midi|slots|deep …` turns a generated loop (A, SPEC §15), a finished master (B), master and stems (C), master, stems and MIDI (D), any stems as numbered slots without a tempo (E), or one complex track measured from every side (F, SPEC §16.7) into a finished Short. Any of their runs can be tuned by hand in Blender and rendered as tuned (`datapipe tune`, SPEC §6, v0.10: P5 and P6 on the stem tunnel), and the tunnel's shape is a style (`--style`). Open: a real Ableton export for D, three real tracks for B and F, real non-drum stems for E (M2, M4, M5, M6), the overlay-mask gate, a Windows run, the tuner's GUI on Windows. The Director rig (old P1) is now an optional second look; next after that is P4 (`watch`). `uv run datapipe doctor` checks the whole toolchain, and `uv run pytest` runs the tests.
 
 The user wants this machine left intact. Python packages go into `.venv` through `pyproject.toml` and `uv`. FFmpeg comes from PyAV (`av`) inside the venv, not a system ffmpeg. Anything installed outside the repo needs the user's go-ahead first.
 
@@ -22,6 +22,13 @@ Work phase by phase. A phase is done when its "Done when" column in SPEC §11 ho
 - One Blender look is the hub: `blender/stem-tunnel/stem_tunnel.blend` with `mappings/<method>.toml`. `[looks]` and `[methods]` in `config/pipeline.toml` pick the look; a new look is a new folder with the same six mapping files. The sync gate checks the track the mapping's `ring` follows.
 - Songs don't wrap (`wrap: false`): `mapping.py` functions take `wrap`, and nothing may flow from a song's end into its start. Motion still closes on a loop unless `loop = false`.
 - After changing detection (`song/onsets.py`, `song/analysis.py`), run `tests/test_song.py` and `tests/test_slots_deep.py` and compare hits against a generated loop's score (`datapipe example stems` writes `score.json` next to the export).
+
+## Tuning and shapes (`blender/stem-tunnel/`, SPEC §6)
+
+- `uv run datapipe tune <method> [input | --run R]` opens the run in the Blender GUI with the Datapipe panel (`tuner.py`). Save to run writes `<run>/tuning/stem-tunnel/` (mapping, style, `automation.json`), and a render takes, per file, `--mapping`/`--style`, then the run's tuning, then the look's (`render.look_files`). The tuner must keep baking through `stem_tunnel.py`'s own functions, never a copy: `tests/test_tune.py` compares the panel's baked keys with the render's.
+- `look.toml` is the single list of the look's controls (signals, 47 sliders, 19 shape controls). A new slider goes there first, then into `stem_tunnel.py` (a driver in `wire`, or `SHADER` for the material, or `motion` with `motion = true`), then rebuild the template.
+- Mapping and style files are written in one canonical form by `src/datapipe/recipe.py` (stdlib only: Blender imports it). The round-trip test requires the committed files to be in it: after a hand edit, rewrite with `recipe.save(p, recipe.dumps_mapping(recipe.load(p), schema, recipe.header(p)))` (`dumps_style` for styles).
+- `shapes.py` builds the meshes in numpy. With the default style it must keep rebuilding the reference meshes (mesh parity test); a new pattern needs its repeat periods in `_pattern_periods` and passes `test_every_shape_repeats_after_its_periods`. Shapes that put more lines in view raise the base brightness and the kick pulses with it: check a new style's flash and sync gates at `--preview`.
 
 ## Generative audio (`dawdreamer/`, `src/datapipe/gen/`)
 

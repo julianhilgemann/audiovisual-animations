@@ -4,60 +4,66 @@
 # `hit:low|mid|high` (onsets of the percussive part by band), `band:<name>`, `mix:loud|bright`, `curve:build|energy`
 # and `section:<name>` (sections from novelty: intro, build, drop, breakdown, outro, or main).
 # Unused by this look: loud.dynamics, onset.lowmid, onset.highmid, stereo.balance, pitch.class.
+#
+# The twist is the drop and every change (novelty), eased over 20 frames; kick and the ring follow the low
+# percussive onsets.
+#
+# Written in the tuner's form (`datapipe tune`, Save as method default): the comment after each line comes
+# from look.toml, so notes about this method belong up here.
 
-ring = { track = "low", level = 0.3 }     # the light ring races into the tunnel on low percussive onsets
+ring = { track = "low", level = 0.3 }  # the light ring races into the tunnel on this track's hits, at this level
 
-[signals]              # one table per look signal: source = weight
-kick       = { "hit:low" = 0.8, "feature:percussive.onset" = 0.3 }        # zoom punch, roll jolt, portal squeeze, wall pump
-kick_light = { "hit:low" = 0.2 }                                          # glow and bloom on the low hits
-twist      = { "section:drop" = 0.8, "feature:section.novelty" = 0.4 }    # the drop and every change: hue shift, roll
+[signals]  # look signal = { source = weight }: the weighted sum of its sources, clamped to 0-1
+kick       = { "hit:low" = 0.8, "feature:percussive.onset" = 0.3 }      # zoom punch, roll jolt, portal squeeze, wall pump, forward burst
+kick_light = { "hit:low" = 0.2 }                                        # glow and bloom on the kick
+twist      = { "section:drop" = 0.8, "feature:section.novelty" = 0.4 }  # hue jump and extra camera roll
 
-[signals.bass]         # walls breathe, outer shell swells, haze, roll
-"band:sub" = 0.4
-"band:bass" = 0.4
-"feature:onset.sub" = 0.2
+[signals.bass]  # walls breathe, outer shell swells, haze, roll
+"band:sub"           = 0.4
+"band:bass"          = 0.4
+"feature:onset.sub"  = 0.2
 "feature:onset.bass" = 0.2
 
-[signals.energy]       # base glow, bloom, speed, colour cycling
-"feature:loud.momentary" = 0.5
-"feature:loud.short" = 0.3
+[signals.energy]  # base glow, bloom, forward speed, colour cycling
+"feature:loud.momentary"  = 0.5
+"feature:loud.short"      = 0.3
 "feature:percussive.loud" = 0.2
-"curve:build" = 0.3
+"curve:build"             = 0.3
 
-[signals.hats]         # sparkle wave
-"hit:high" = 0.5
-"feature:onset.air" = 0.3
-"band:air" = 0.2
+[signals.hats]  # sparkle wave, outer shell spin
+"hit:high"                  = 0.5
+"feature:onset.air"         = 0.3
+"band:air"                  = 0.2
 "feature:spectrum.flatness" = 0.2
 
-[signals.mids]         # portal spin: attacks and moving harmony
-"hit:mid" = 0.4
-"feature:onset.mid" = 0.2
+[signals.mids]  # portal spin
+"hit:mid"               = 0.4
+"feature:onset.mid"     = 0.2
 "feature:harmonic.loud" = 0.3
-"feature:pitch.change" = 0.3
+"feature:pitch.change"  = 0.3
 "feature:spectrum.flux" = 0.2
 
-[signals.bright]       # palette shift: brighter, wider, more tonal
-"mix:bright" = 0.4
-"feature:spectrum.rolloff" = 0.2
+[signals.bright]  # palette shift
+"mix:bright"                 = 0.4
+"feature:spectrum.rolloff"   = 0.2
 "feature:spectrum.bandwidth" = 0.1
-"feature:stereo.width" = 0.3
-"feature:harmonic.share" = 0.2
+"feature:stereo.width"       = 0.3
+"feature:harmonic.share"     = 0.2
 
-[smooth]               # moving average over this many frames, after the sources are summed
-energy = 12            # the level the whole tunnel glows and travels at: steady, so only kick_light pulses
+[smooth]  # moving average over this many frames, after the sources are summed
+energy = 12
 bright = 8
 twist  = 20
 
-[hit]                  # envelope per track, in frames: rise before the hit (anticipation), decay after
+[hit]  # envelope per track, in frames: rise before the hit (anticipation), decay after
 default = { windup = 0, decay = 8 }
 low     = { windup = 3, decay = 9 }
 mid     = { windup = 0, decay = 12 }
 high    = { windup = 0, decay = 5 }
 
 [motion]
-speed_curve = "build"  # build sections (0 -> 1 through each) speed the tunnel up
-speed_riser = 3.0      # forward speed added at the end of a build, in the units of the look's speed sliders
-roll_twist  = 1.0      # extra camera roll through the drop, same units as roll_idle
-twist_hue   = 0.15     # hue shift through the drop (1 = once around the colour wheel)
-section_ease = 30      # frames to ease a section signal in and out
+speed_curve  = "build"  # the curve that speeds the tunnel up
+speed_riser  = 3.0      # forward speed added by that curve, in the units of the look's speed sliders
+roll_twist   = 1.0      # extra camera roll through the twist, same units as roll_idle
+twist_hue    = 0.15     # hue jump through the twist (1 = once around the colour wheel)
+section_ease = 30       # frames to ease a section signal in and out

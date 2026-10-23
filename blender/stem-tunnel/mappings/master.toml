@@ -1,24 +1,31 @@
 # Method B (master): one finished track. Hits are onsets detected in the mix by band (kick 30-150 Hz weighted by how
 # kick-like each one sounds, snare 1-5 kHz, hats 7-16 kHz), and the steady signals come from the master's bands,
 # because there are no stems. Sources: see gen.toml. The least precise method: check report.png in the run folder.
+#
+# The song's build sections (curve:build, 0 -> 1 through each) speed the tunnel up; the twist is the drop. Energy
+# is smoothed over 12 frames: the level the whole tunnel glows and travels at stays steady, so only kick_light
+# pulses.
+#
+# Written in the tuner's form (`datapipe tune`, Save as method default): the comment after each line comes
+# from look.toml, so notes about this method belong up here.
 
-ring = { track = "kick", level = 0.3 }    # the light ring races into the tunnel on this track's hits
+ring = { track = "kick", level = 0.3 }  # the light ring races into the tunnel on this track's hits, at this level
 
-[signals]
-kick   = { "hit:kick" = 1.0 }                                    # zoom punch, roll jolt, portal squeeze, wall pump
-kick_light = { "hit:kick" = 0.2 }                               # glow and bloom on the kick
-bass   = { "band:sub" = 0.5, "band:bass" = 0.6 }                 # walls breathe, outer shell swells, haze, roll
-energy = { "mix:loud" = 0.7, "curve:energy" = 0.2, "curve:build" = 0.3 }   # base glow, bloom, speed, colour cycling
-hats   = { "hit:hats" = 0.8, "band:air" = 0.3 }                  # sparkle wave
-mids   = { "hit:snare" = 0.7, "band:mid" = 0.3 }                 # portal spin
-bright = { "mix:bright" = 0.6, "curve:build" = 0.6 }             # palette shift
-twist  = { "section:drop" = 1.0 }                                # the drop: hue shift and extra camera roll
+[signals]  # look signal = { source = weight }: the weighted sum of its sources, clamped to 0-1
+kick       = { "hit:kick" = 1.0 }                                             # zoom punch, roll jolt, portal squeeze, wall pump, forward burst
+kick_light = { "hit:kick" = 0.2 }                                             # glow and bloom on the kick
+bass       = { "band:sub" = 0.5, "band:bass" = 0.6 }                          # walls breathe, outer shell swells, haze, roll
+energy     = { "mix:loud" = 0.7, "curve:energy" = 0.2, "curve:build" = 0.3 }  # base glow, bloom, forward speed, colour cycling
+hats       = { "hit:hats" = 0.8, "band:air" = 0.3 }                           # sparkle wave, outer shell spin
+mids       = { "hit:snare" = 0.7, "band:mid" = 0.3 }                          # portal spin
+bright     = { "mix:bright" = 0.6, "curve:build" = 0.6 }                      # palette shift
+twist      = { "section:drop" = 1.0 }                                         # hue jump and extra camera roll
 
-[smooth]               # moving average over this many frames, after the sources are summed
-energy = 12            # the level the whole tunnel glows and travels at: steady, so only kick_light pulses
+[smooth]  # moving average over this many frames, after the sources are summed
+energy = 12
 bright = 8
 
-[hit]                  # envelope per track, in frames: rise before the hit (anticipation), decay after
+[hit]  # envelope per track, in frames: rise before the hit (anticipation), decay after
 default = { windup = 0, decay = 8 }
 kick    = { windup = 3, decay = 9 }
 snare   = { windup = 0, decay = 12 }
@@ -27,8 +34,8 @@ hats    = { windup = 0, decay = 5 }
 lead    = { windup = 0, decay = 8 }
 
 [motion]
-speed_curve = "build"  # the song's build sections (0 -> 1 through each) speed the tunnel up
-speed_riser = 3.0      # forward speed added at the end of a build, in the units of the look's speed sliders
-roll_twist  = 1.0      # extra camera roll through the drop, same units as roll_idle
-twist_hue   = 0.15     # hue shift through the drop (1 = once around the colour wheel)
-section_ease = 30      # frames to ease a section signal in and out
+speed_curve  = "build"  # the curve that speeds the tunnel up
+speed_riser  = 3.0      # forward speed added by that curve, in the units of the look's speed sliders
+roll_twist   = 1.0      # extra camera roll through the twist, same units as roll_idle
+twist_hue    = 0.15     # hue jump through the twist (1 = once around the colour wheel)
+section_ease = 30       # frames to ease a section signal in and out

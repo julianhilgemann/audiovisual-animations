@@ -1,0 +1,85 @@
+# Style "default": the stem tunnel's own look, the template's (stem_tunnel.blend). A style is the shape of the
+# tunnel and every live slider (look.toml lists them all with their ranges); one may list only what it changes.
+# `datapipe short ... --style <name>` renders with one, `datapipe tune` edits and saves them.
+
+[shape]  # rebuilds the tunnel's geometry
+# Cross-section
+profile       = "circle"  # Profile (circle, polygon, star, flower)
+sides         = 6         # Sides
+corner_round  = 0.0       # Corner rounding
+profile_depth = 0.5       # Point depth
+profile_angle = 0.0       # Turn (deg)
+radius        = 12.0      # Radius
+# Cells
+symmetry   = 2       # Cells around
+cell_depth = 1.0     # Cell length
+line_width = 0.9359  # Line width
+# Patterns
+walls         = "maze"    # Walls (maze, grid, diamonds, chevrons, hexes, circuit, stripes, rails, zigzag, truchet, dots, none)
+portals       = "crenel"  # Portals (crenel, rings, spokes, teeth, triple, frame, none)
+portal_every  = 1         # Portal every
+portal_inner  = 0.56      # Portal opening
+outer_pattern = "ladder"  # Outer shell (ladder, rails, helix, grid, dots, none)
+outer_size    = 2.2301    # Outer size
+seed          = 1         # Seed
+# Deform
+twist      = 0.0  # Twist
+wave       = 0.0  # Bulge
+wave_count = 1    # Bulges
+
+[look]  # live: the sliders on NeonControls
+# Kick
+kick_flash      = 3.0698  # Flash ring
+kick_ring_speed = 9.4259  # Ring speed
+kick_ring_decay = 0.8266  # Ring fade (s)
+kick_glow       = 5.0     # Glow burst
+kick_bloom      = 2.5233  # Bloom burst
+kick_pump       = 0.0     # Wall pump
+kick_squeeze    = 0.0727  # Portal squeeze
+kick_zoom       = 10.0    # Zoom punch
+kick_jolt       = 0.0349  # Roll jolt
+speed_kick      = 5.7035  # Speed burst
+# Bass
+bass_swell = 0.0887  # Outer swell
+bass_wall  = 0.3328  # Walls breathe
+bass_haze  = 12.157  # Haze
+roll_bass  = 1.3035  # Roll by bass
+# Hats and mids
+hats_sparkle     = 7.2384  # Sparkle
+outer_spin_hats  = 0.0     # Hats spin outer
+portal_spin_mids = 0.4942  # Mids spin portals
+# Loudness
+glow_base    = 0.593   # Base glow
+energy_glow  = 0.5442  # Loudness glow
+speed_energy = 2.7674  # Loudness speed
+color_energy = 3.5401  # Colour cycling
+color_shift  = 0.4244  # Brightness shifts palette
+# Base motion
+speed           = 0.2471  # Overall speed
+speed_idle      = 0.1017  # Idle speed
+roll_idle       = 0.2965  # Idle roll
+outer_spin_idle = 0.0262  # Idle outer spin
+color_idle      = 0.1651  # Idle colour cycling
+# Camera
+lens      = 25.8256  # Lens (mm)
+cam_orbit = 0.0      # Off centre
+near_fade = 55.0     # Portal near fade
+view_far  = 110.0    # View distance
+# Glow and colour
+bloom       = 1.0262  # Bloom
+hue_base    = 0.0     # Hue
+hue_depth   = 1.0     # Rainbow along depth
+hue_across  = 1.0     # Colour across lines
+saturation  = 1.0     # Saturation
+line_edges  = 1.0     # Edge lines
+line_core   = 1.3     # Core line
+line_sharp  = 1.6     # Line sharpness
+fill_glow   = 0.015   # Fill
+wave_amount = 0.28    # Brightness wave
+# Layers
+walls_glow   = 1.0  # Walls glow
+portals_glow = 1.0  # Portals glow
+outer_glow   = 1.0  # Outer glow
+walls_hue    = 0.0  # Walls hue
+portals_hue  = 0.0  # Portals hue
+outer_hue    = 0.0  # Outer hue

@@ -1,7 +1,7 @@
 # Datapipe — Audio-reactive Blender Shorts
 
-**Spec v0.9 · 2026-10-23 · Status: draft for review**
-*v0.9: Two more input methods (§16.7), built: E `slots`, instrument-agnostic stems with fixed generic features and no tempo, for non-musical or unknown material; F `deep`, a multi-analyzer for one complex track, with every feature hard-mapped to a fixed part of the look and sections from novelty. `controls.json` gains `features`, and `bpm` may be null; the sync gate follows the mapping's ring track (M5, M6 in §16.6). v0.8: Four input methods run in parallel (§16): A generative, B master only, C master and stems, D master, stems and MIDI. Each has its own front end, landing zone and run folders, and its own mapping per look; all feed one contract (`controls.json`) and one back end (render, encode, checks). In B, C and D the input sets the length. B is the song pipeline of §1–§11, now built on the generative mode's working path; M1–M4 replace P1–P3, and the Director rig becomes an optional second look. v0.7: A generated loop becomes a finished Short in one command, `datapipe short` (§15, G2–G4): controls from the stems and the score, the Blender project `blender/stem-tunnel` (the neon lines tunnel, loop-closed), a PyAV encode to the Shorts settings and the automatic S7 checks, including a full-frame flash gate. v0.6: The pipeline is Blender-only, because Blender can be driven entirely from code with every file at hand. TouchDesigner stays in the repo for the standalone projects (`projects/`) but no stage depends on it: reactivity is tuned in a tab of the Blender panel (§6.1, P6), and a generated run is read by Blender alone (§15, G2). v0.5: A second mode, generative loops (§15): DawDreamer composes and renders an 8-second loop first and the visuals follow its score; its audio engine (phase G1) is built. Tool paths per OS, so the repo runs on Windows and macOS (§8). v0.4: The repo is on GitHub and also holds standalone TouchDesigner projects under `projects/` (§4). v0.3: Phase 0 done; FFmpeg comes from PyAV inside the venv instead of a system install. v0.2: TouchDesigner becomes the reactivity-tuning tool (§6).*
+**Spec v0.10 · 2026-10-23 · Status: draft for review**
+*v0.10: Tuning by hand and shapes (§6, P5 and P6 built on the stem tunnel): `datapipe tune` opens any method's run in the Blender GUI with a Datapipe panel to tune the mapping (sources, weights, smoothing, hits, ring, motion), every live slider (keyframable per song) and the tunnel's shape, baking with the look's own code; *Save to run* writes the run's tuning folder, and a render takes the given files, then the run's tuning, then the look's (§6.3). The geometry is rebuilt in numpy (`shapes.py`): four profiles, twelve wall, seven portal and six shell patterns, cell proportions, twist and wave, with loop periods derived per shape so the seam still closes; a look's shape and sliders are a style (`styles/<name>.toml`, `--style`), all controls are listed in `look.toml`, and mappings and styles are written in one canonical, round-tripping form (`src/datapipe/recipe.py`). v0.9: Two more input methods (§16.7), built: E `slots`, instrument-agnostic stems with fixed generic features and no tempo, for non-musical or unknown material; F `deep`, a multi-analyzer for one complex track, with every feature hard-mapped to a fixed part of the look and sections from novelty. `controls.json` gains `features`, and `bpm` may be null; the sync gate follows the mapping's ring track (M5, M6 in §16.6). v0.8: Four input methods run in parallel (§16): A generative, B master only, C master and stems, D master, stems and MIDI. Each has its own front end, landing zone and run folders, and its own mapping per look; all feed one contract (`controls.json`) and one back end (render, encode, checks). In B, C and D the input sets the length. B is the song pipeline of §1–§11, now built on the generative mode's working path; M1–M4 replace P1–P3, and the Director rig becomes an optional second look. v0.7: A generated loop becomes a finished Short in one command, `datapipe short` (§15, G2–G4): controls from the stems and the score, the Blender project `blender/stem-tunnel` (the neon lines tunnel, loop-closed), a PyAV encode to the Shorts settings and the automatic S7 checks, including a full-frame flash gate. v0.6: The pipeline is Blender-only, because Blender can be driven entirely from code with every file at hand. TouchDesigner stays in the repo for the standalone projects (`projects/`) but no stage depends on it: reactivity is tuned in a tab of the Blender panel (§6.1, P6), and a generated run is read by Blender alone (§15, G2). v0.5: A second mode, generative loops (§15): DawDreamer composes and renders an 8-second loop first and the visuals follow its score; its audio engine (phase G1) is built. Tool paths per OS, so the repo runs on Windows and macOS (§8). v0.4: The repo is on GitHub and also holds standalone TouchDesigner projects under `projects/` (§4). v0.3: Phase 0 done; FFmpeg comes from PyAV inside the venv instead of a system install. v0.2: TouchDesigner becomes the reactivity-tuning tool (§6).*
 
 Drop an audio or video file into a folder → the pipeline analyzes its rhythm and spectrum → a Blender scene is animated from those features plus a hand-tuned look preset → one headless render produces a finished YouTube Short (video + audio) with no further editing.
 
@@ -74,7 +74,7 @@ Drop an audio or video file into a folder → the pipeline analyzes its rhythm a
 
 Steps 1–4 run in the pipeline's Python environment. Step 5 runs inside Blender. The mapping math (step 4) is **numpy-only**, so the same module also runs inside Blender, for the bake and for the reactivity tab's live re-bake.
 
-The two hand-tuned inputs both come from the Blender side panel (§6): `config/mappings/*.toml` from its reactivity tab and `presets/*.json` from its shape and look tabs. The panel doesn't have to be open to render.
+The two hand-tuned inputs both come from the Blender tuner (§6): a look's `mappings/<method>.toml` from its reactivity panels and `styles/<name>.toml` from its look and shape panels, or one run's own tuning folder. The tuner doesn't have to be open to render. *(The diagram above is the original song pipeline; since v0.8 songs go through `controls.json` and a look, §16.)*
 
 ---
 
@@ -95,8 +95,6 @@ datapipe/
 │  ├─ params.toml               # parameter schema (single source of truth, see §5.6)
 │  └─ mappings/
 │     └─ default.toml           # feature → parameter mapping (see §5.5)
-├─ presets/
-│  └─ neon_default.json         # look/shape values, written by the Blender side panel
 ├─ scenes/
 │  └─ neon_tunnel.blend         # template scene with Director rig (Phase 1)
 ├─ inbox/                       # ← DROP FILES HERE (.mp4 .mov .wav .mp3 .flac .m4a .ogg)
@@ -108,12 +106,13 @@ datapipe/
 ├─ reference/
 │  └─ neon_tunnel_5x.mp4
 ├─ src/datapipe/                # pipeline package (runs in the uv environment)
-│  ├─ cli.py                    # `datapipe run | watch | analyze | rerender | preview`
+│  ├─ cli.py                    # `datapipe short | analyze | tune | gen | example | plugins | doctor` (watch: P4)
 │  ├─ ingest.py                 # PyAV decode, trim, fades, optional loudness normalize
 │  ├─ analysis.py               # librosa: bands, onsets, beats, bars, sections
 │  ├─ window.py                 # fixed-length excerpt selection
 │  ├─ arc.py                    # song structure → story arc envelopes
 │  ├─ mapping.py                # NUMPY-ONLY, also imported by Blender
+│  ├─ recipe.py                 # mapping and style files: check, canonical write (stdlib only, also in Blender)
 │  ├─ jobs.py                   # job folders, sidecars, hashing, job.json
 │  ├─ watch.py                  # inbox polling
 │  └─ gen/                      # generative loops (§15): compose, engine, master, score, plugins, run
@@ -121,9 +120,11 @@ datapipe/
 ├─ docs/
 │  └─ sticky-av-shorts.md       # design of the generative mode (§15)
 ├─ blender/
-│  ├─ build_and_render.py       # headless entry point (step 5)
-│  ├─ rig.py                    # creates or migrates the Director rig in a template
-│  └─ addon_datapipe/           # the side panel: reactivity, shape and look (see §6)
+│  ├─ stem-tunnel/              # the look every method renders with (§16.1): stem_tunnel.blend and .py, the tuner
+│  │                            # (tuner.py, §6), shapes.py, look.toml, mappings/<method>.toml, styles/<name>.toml
+│  ├─ audio-tunnel/             # the reference scene the stem tunnel's template is made from
+│  ├─ build_and_render.py       # Director rig look (optional, P1): headless entry point (step 5)
+│  └─ rig.py                    # creates or migrates the Director rig in a template
 ├─ projects/                    # standalone TouchDesigner projects, not part of the pipeline (see projects/README.md)
 ├─ tools/
 │  └─ blender_bridge.py         # send Python to a running Blender (localhost:9876)
@@ -335,52 +336,51 @@ Based on YouTube's upload recommendations:
 
 ## 6. Tweak tools
 
-Two different things get tuned by feel, both in the Blender side panel, so everything is judged in the renderer that makes the final picture and every step can also run from code. Each tab writes a small file to the repo, and the pipeline applies those files to every new song. The panel doesn't have to be open to render.
+*Built in v0.10 on the stem tunnel (P5, P6).* The pipeline runs unattended, but every part of the picture can be tuned by feel, by hand, for one song or for all of them, in Blender against the renderer that makes the final picture, and then rendered exactly as tuned. Three things get tuned; each is a small text file.
 
 | What | Where | Writes | Judged on |
 |---|---|---|---|
-| **Reactivity:** which feature drives which parameter; gains, curves, attack/release, thresholds, limits | **Reactivity tab** (§6.1) | `config/mappings/<name>.toml` | timing and feel, replayed with the song |
-| **Shape and look:** geometry, palette, glow, lens, base values | **Shape and look tabs** (§6.2) | `presets/<name>.json` | the real EEVEE render |
+| **Reactivity:** which of a run's sources drive each look signal, with what weight and smoothing; hit envelopes, the light ring, the speed curve, the twist | the tuner's Reactivity panels (§6.1) | a mapping: `mappings/<method>.toml` of the look | timing and feel, played with the song |
+| **Look:** every live slider (reactions, base motion, camera, colour, line style, each layer's glow and hue), and keyframes of any of them for one song | the tuner's Look panels (§6.2) | a style's `[look]`; keyframes: the run's `automation.json` | the EEVEE viewport, the preview render |
+| **Shape:** the tunnel's geometry: profile, cells, patterns, portals, shell, twist, wave | the tuner's Shape panel (§6.2) | a style's `[shape]` | the same |
 
-**Why Blender only.** Blender can be driven entirely from code (headless batch, the bridge, the add-on), and every file it needs is in the repo or the job folder, so the pipeline has one host to automate, test and version. TouchDesigner is in the repo for the standalone projects (`projects/`), not for the pipeline. A browser tool (three.js with Web Audio) stays a last resort: its preview differs from the Blender render, so taste may not carry over.
+**Why Blender only.** Blender can be driven entirely from code (headless batch, the bridge, the add-on), and every file it needs is in the repo or the run folder, so the pipeline has one host to automate, test and version. TouchDesigner is in the repo for the standalone projects (`projects/`), not for the pipeline. A browser tool (three.js with Web Audio) stays a last resort: its preview differs from the Blender render, so taste may not carry over.
 
-### 6.1 Reactivity tab
+**The tuner.** `datapipe tune <method> <input>` analyses a song (or `--run <folder>` takes a run, or a bare `datapipe tune <method>` the method's latest) and opens the look in the Blender GUI with the run baked, the master on the timeline and a **Datapipe** tab in the 3D view's sidebar (`blender/stem-tunnel/tuner.py`, opened by `stem_tunnel.py --tune`). The rule that makes it work: it tunes the *recipe*, not the analysis, and bakes with the look's own functions (`look_signals`, `motion`, `bake`, `wire` in `stem_tunnel.py`, the shared `mapping.py`), so the scene you tune is keyed exactly as the headless render keys it. The session is saved as `<run>/tune.blend`, so the template is never overwritten.
 
-**The rule that makes it work:** the tab tunes the *recipe*, not the analysis. It loads the pipeline's own `features.json` for a song and runs the pipeline's own `mapping.py`, so a recipe means the same thing in the tab and in the render.
+**One schema.** `blender/stem-tunnel/look.toml` lists the look signals, the 47 sliders and the 19 shape controls with their group, label, range, default and help. The tuner builds its panels from it, `src/datapipe/recipe.py` checks every style against it and writes mappings and styles in one canonical form commented from it (so a saved file round-trips: load, save, identical text), and the template takes its sliders from it. It takes the place of `config/params.toml` (§5.6) for this look.
 
-1. **Pick a reference song.** `datapipe analyze song.mp4` writes `features.json` and `audio_full.wav` into the job folder; **Load job** in the panel bakes it and puts the audio on the timeline.
-2. **Tune.** Every recipe value is a slider generated from the mapping schema: per rule source, gain, curve, attack, release and mode; globally the limits and the sync offset. A change re-bakes the tracks with `mapping.py` (milliseconds for a few thousand frames) into the `Director` keyframes.
-3. **Replay.** Play the timeline with sound, or scrub. If the viewport can't hold 60 fps with the scene, lower the viewport resolution or judge timing in a `draft` render. Switch songs to check that the recipe holds up on more than one track.
-4. **Export.** A button writes `config/mappings/<name>.toml`, and optionally the base values into a preset. Commit the file.
+### 6.1 Reactivity (the mapping)
 
-**From code.** The same steps run through the bridge (§2) or headless: set recipe values, re-bake, render a draft. Claude can tune a recipe this way ("punchier kick flash, slower release").
+1. **Open a run.** `datapipe tune stems inbox/stems/mytrack` (any method, §16.5). The mapping comes from the run's tuning if it has one, else the look's `mappings/<method>.toml`.
+2. **Tune.** For each look signal (kick, kick_light, bass, energy, hats, mids, bright, twist): its sources (any of the run's: `hit:`, `stem:`, `mix:`, `band:`, `curve:`, `section:`, `feature:`) with a weight each, add or remove one, smoothing; a meter shows the signal at the current frame. Then each track's hit envelope (wind-up, decay), the ring's track and level, the speed curve and the twist's roll and hue. A change re-bakes every signal and the motion (0.08 s for an 8-second loop) into the `AudioSignals` keys.
+3. **Play.** Play the timeline with sound, or scrub. If the viewport can't hold 60 fps, lower its samples (in the panel) or render a preview from the panel.
+4. **Save.** *Save to run* writes the run's tuning (§6.3); *Save mapping as method default* writes `mappings/<method>.toml`, which every new run of that method uses. Commit that file.
 
-**Optional hero override.** For one special song, edited tracks can be saved to `work/<job-id>/tracks_override.csv`, and `build_and_render.py` then uses those instead of computing them. This is manual and per song, outside the automatic flow.
+**From code.** The same steps run through the bridge (§2) or headless: the panel's state is `scene.datapipe`, `tuner.flush()` re-bakes, `tuner.save_to_run()` saves (`tests/fixtures/tuner_check.py` does this).
 
-### 6.2 Blender side panel (`blender/addon_datapipe/`)
+### 6.2 Look and shape (the style)
 
-A "Datapipe" tab in Blender's sidebar (N panel) with:
+A **style** (`blender/stem-tunnel/styles/<name>.toml`) is the shape of the tunnel plus any of the look's sliders; it lists only what it changes, the rest keep `look.toml`'s defaults. `default` is the reference look; `hex_prism`, `square_circuit`, `star_vortex`, `flower_tube`, `speed_rails` and `truchet_maze` show what the shapes can do. `datapipe short … --style <name>` renders with one; the tuner's *Styles and defaults* panel loads them and saves the current state as a new one.
 
-- sliders generated from `config/params.toml` for every static shape and look parameter and for every dynamic parameter's base value, updating the viewport live;
-- **Save / Load preset** (`presets/<name>.json`) and a preset dropdown;
-- **Load job**, which bakes a job's tracks and loads its audio so you can scrub or play the timeline with the music;
-- **Render draft** for the current job.
+- **Look panels:** every slider as a custom property on `NeonControls`, drawn straight from it, so it can be keyframed (hover, I). Most are drivers and change at once; those the motion integrates (speeds, roll, spins, colour cycling, `motion = true` in look.toml) re-bake the motion when they change or their keys do. New in v0.10: hue, rainbow along depth, colour across lines, saturation, edge lines, core line, line sharpness, fill, brightness wave, view distance, the camera off the axis (orbiting with the roll), and glow and hue per layer (walls, portals, shell). Keyframes are kept per run as `automation.json` (every key with its handles); a keyframed slider that doesn't end where it started breaks the seam, and the seam gate says so.
+- **Shape panel:** the geometry is built by `blender/stem-tunnel/shapes.py` in numpy, 0.04–0.15 s for 130,000–370,000 vertices, so it rebuilds as you drag (Auto) or on *Rebuild*. Each of the three layers (walls, portals, outer shell) is a pattern of neon ribbons in a unit tile, cut into ribbons as the reference builder did, laid onto a cross-section of perimeter 2πR (`circle`, `polygon`, `star`, `flower`; sides, corner rounding, point depth, turn), K cells around and rows of `cell_depth` × a cell's width along the tunnel. Walls: `maze` (the reference), `grid`, `diamonds`, `chevrons`, `hexes`, `circuit`, `stripes`, `rails`, `zigzag`, `truchet` (seeded), `dots`, `none`; portals: `crenel` (the reference), `rings`, `spokes`, `teeth`, `triple`, `frame`, `none`, every N rows, with their opening; shell: `ladder` (the reference), `rails`, `helix`, `grid`, `dots`, `none`, and its size; `twist` turns the cross-section along the tunnel, `wave` swells it. A render rebuilds the shape only when the style's differs from the template's (`_built_shape` on NeonControls).
+- **The loop still closes.** `shapes.periods()` derives the repeat distance along the tunnel (the walls pattern's rows, `portal_every`, the wave, and for a twist the rows until the accumulated turn is a symmetry of the whole cross-section) and the repeat angles of the roll, the portals and the shell (the pattern's cells around combined with the profile's symmetry). They are stored on NeonControls (`_period_*`) and the motion closes on them (§5.5). The default shape's periods are the reference look's (2 segments, a full turn, half a turn).
+- **Speed counts rows**, so changing the radius, the cells or their length keeps the tunnel's rhythm.
 
-Claude can drive the same parameters through the bridge ("thicker lines, more magenta, slower spin") and save a preset. That's handy for big moves; the sliders are for fine adjustment.
+Why Python and not Geometry Nodes (§5.6, decision 11): the patterns are polylines cut into ribbons with mitred offsets; numpy rebuilds them faster than a slider drag needs, reproduces the reference meshes vertex for vertex, and keeps the periods computable and testable outside Blender.
 
-**Preset format** (`presets/<name>.json`, written by the panel):
+### 6.3 What a render uses
 
-```json
-{
-  "version": 1,
-  "name": "neon_default",
-  "template": "neon_tunnel.blend",
-  "static": { "sides": 4, "radius": 4.0, "ring_spacing": 3.14159, "line_width": 0.04,
-              "palette": ["#00E5FF", "#FF2BD6", "#FFD400"], "lens_mm": 16 },
-  "base":   { "speed": 1.0, "glow": 2.0, "hue_shift": 0.0, "spin_rate": 0.25 },
-  "mapping": "default"
-}
-```
+For each file, the first that exists (`render.look_files`):
+
+| File | 1 | 2 (written by *Save to run*) | 3 |
+|---|---|---|---|
+| mapping | `--mapping <name or .toml>` | `<run>/tuning/<look>/mapping.toml` | the look's `mappings/<method>.toml` |
+| style | `--style <name or .toml>` | `<run>/tuning/<look>/style.toml` | `[methods.<method>] style`, else `[looks.<look>] style` (`default`) |
+| keyframes | | `<run>/tuning/<look>/automation.json` | none |
+
+So a run tuned by hand renders as tuned with `datapipe short --run <run>` (or the panel's *Render preview* and *Render final*, which save first and show the checks), while new runs keep using the committed mappings and styles. The CLI and the sidecar `.json` record which file each came from (`tuning`). The run's tuning folder is pipeline state (gitignored with `work/`); styles and mappings are committed.
 
 ---
 
@@ -393,8 +393,10 @@ Claude can drive the same parameters through the bridge ("thicker lines, more ma
 | `run <file> [--preset P] [--mapping M] [--mode full\|fixed] [--length 30] [--start 42.0] [--profile draft\|final]` | one job, end to end |
 | `watch [--profile …]` | polls `inbox/` every 3 s and runs a job per new, stable file, one at a time (the GPU is the bottleneck) |
 | `analyze <file>` | stages 1–2 only: `features.json` and `report.png` |
-| `rerender <job-id> [--preset P] [--mapping M] [--profile …]` | reuses the cached analysis; for trying another look on the same song |
-| `preview <job-id>` | opens the Blender GUI with the job baked and audio loaded, for tweaking |
+| `rerender <job-id> [--preset P] [--mapping M] [--profile …]` | reuses the cached analysis; for trying another look on the same song. *Built as `short --run <run> [--style S] [--mapping M]` (§16.5).* |
+| `tune [<method> <input> \| --run <run>] [--style S] [--mapping M]` | opens the Blender GUI with the run baked and its audio loaded, for tuning by hand (§6); was `preview <job-id>` |
+
+*Since v0.8 the commands are per input method (§16.5): `short`, `analyze` and `tune` are built, `watch` is P4.*
 
 **Sidecar (optional):** drop `song.toml` next to `song.mp4` to override settings for that file:
 
@@ -474,8 +476,8 @@ That's enough to reproduce any output exactly.
 | **P2 Analysis** | ingest, features, beats and bars, sections, drop, `report.png`, cache | click-track golden test passes; reports from 3 real tracks reviewed and judged plausible |
 | **P3 Map, bake, render** | `mapping.py`, `window.py`, `arc.py`, loop closure, limits, `build_and_render.py`, draft and final profiles, audio in the MP4 | `datapipe run song.mp4 --length 30` produces an MP4 that passes the export and sync tests |
 | **P4 Orchestration** | `watch`, sidecars, job lifecycle, failure handling, `job.json`, `rerender` | watch test passes; re-rendering with a new preset skips analysis |
-| **P5 Shape and look panel** | `TunnelGen` Geometry Nodes rebuild, `params.toml`, `addon_datapipe` panel, presets, `preview` | moving a slider updates the viewport live; a saved preset gets used by `rerender`; the new tunnel matches the old look (signed off by eye) |
-| **P6 Reactivity tab** | reactivity tab in `addon_datapipe`: recipe sliders from the mapping schema, live re-bake through `mapping.py`, replay with audio, TOML export | a recipe tuned in the tab and rendered by the pipeline matches the tab's replay timing (sync test, ±1 frame); an exported TOML round-trips (load, export, identical file) |
+| **P5 Shape and look panel** | *done 2026-10-23 on macOS, on the stem tunnel (v0.10, §6.2):* the geometry rebuilt in numpy (`shapes.py`: profiles, patterns, twist, wave, periods) instead of Geometry Nodes (decision 11), `look.toml` instead of `params.toml`, the tuner's look and shape panels, styles instead of presets, `tune` instead of `preview` | moving a slider updates the viewport live; a saved style gets used by a re-render; the new tunnel matches the old look. **Met:** sliders are drivers or re-bake the motion; a style saved in the tuner renders through `short --run` (`tests/test_tune.py`); the default shape rebuilds the reference meshes (same vertex and face counts, at most 0.00024 apart: float32 at z −1734) and renders as the old template did, mean pixel difference 0.00001 at the old template's exact slider values, 0.0002–0.0005 with them rounded to 4 decimals for the style file (two renders of the old template: 0). Seven styles, every one's loop closes (preview seam 0.000009–0.00009), passes the flash and sync gates |
+| **P6 Reactivity tab** | *done 2026-10-23 on macOS, on the stem tunnel (v0.10, §6.1):* the tuner's reactivity panels on a run's `controls.json` (any method): sources, weights and smoothing per look signal, hit envelopes, ring, motion; live re-bake through the look's own functions and `mapping.py`; play with audio; save to the run or as the method's default | a recipe tuned in the tab and rendered by the pipeline matches the tab's replay timing (sync test, ±1 frame); an exported TOML round-trips (load, export, identical file). **Met:** the tuner and the headless render key the scene identically (the same digest of every key, `tests/test_tune.py`), so the render plays as the panel did; the sync gate holds on a tuned run (median 1 frame); all six mappings and seven styles round-trip as text, also through the panel's float32 properties |
 | **P7 Optional** | browser tool, Demucs stems, beat_this downbeats, more templates, YouTube upload | per item |
 
 The pipeline produces usable Shorts after **P3**, with the fixed tunnel shape and a hand-edited mapping. P5 adds shape tweaking and P6 reactivity tuning, both in the Blender panel. P6 builds on the panel from P5 but not on its Geometry Nodes rebuild.
@@ -507,7 +509,7 @@ The pipeline produces usable Shorts after **P3**, with the fixed tunnel shape an
 2. The tunnel also loops seamlessly after a travel of **π** (one portal) with no rotation, which gives finer loop closure; otherwise 6π (Phase 1).
 3. ~~librosa runs cleanly on Python 3.12 on Windows with this setup.~~ Verified 2026-10-19: librosa 1.0.0 with numba 0.68 imports and runs under `doctor`.
 4. How YouTube currently handles 4K uploads for Shorts. This doesn't block anything; the 1080p profile exists either way.
-5. Blender re-bakes a whole song's tracks from `mapping.py` and keys them on the `Director` fast enough to feel instant while dragging a slider, and its viewport plays the scene with audio smoothly enough to judge timing (P6).
+5. Blender re-bakes a whole song's tracks from `mapping.py` and keys them on the `Director` fast enough to feel instant while dragging a slider, and its viewport plays the scene with audio smoothly enough to judge timing (P6). *v0.10, on the stem tunnel: re-baking an 8-second loop's signals and motion takes 0.08 s, rebuilding a shape 0.04–0.15 s; whether the viewport holds 60 fps depends on its samples (the tuner sets 4 and shows the setting), else judge timing in the panel's preview render.*
 
 ## 14. Open decisions
 
@@ -523,6 +525,8 @@ The pipeline produces usable Shorts after **P3**, with the fixed tunnel shape an
 | 8 | Song input through `controls.json` and the stem-tunnel path instead of the Director rig (§16) | **Decided in v0.8: yes.** The Director rig becomes an optional look |
 | 9 | ~~Method names in commands and folders~~ | **Decided in v0.8:** `gen`, `master`, `stems`, `midi` (= A, B, C, D); v0.9 adds `slots`, `deep` (= E, F) |
 | 10 | ~~One Blender file per method, or one look with a mapping per method~~ | **Decided in v0.8:** one look (`stem_tunnel.blend`) as the central hub, `mappings/<method>.toml` per method (§16.1) |
+| 11 | ~~The tunnel's shape as Geometry Nodes (`TunnelGen`, §5.6) or rebuilt from Python~~ | **Decided in v0.10: Python (numpy, `shapes.py`).** 0.04–0.15 s a rebuild, the reference meshes vertex for vertex, periods testable without Blender (§6.2) |
+| 12 | ~~Where hand tuning for one song lives~~ | **Decided in v0.10:** in the run, `<run>/tuning/<look>/` (mapping, style, keyframes), picked before the look's own files (§6.3); shapes and sliders reusable across songs are styles in the look (`styles/<name>.toml`, `--style`), not `presets/` |
 
 ---
 
@@ -599,6 +603,7 @@ inbox/
 ├─ slots/<piece>/          stems/*.wav [+ master.wav]          [+ song.toml]   (or one file: one slot)
 └─ deep/                   track.wav  (any §5.1 format)       [+ <name>.toml next to it]
 work/<method>/<run>/       run folders; each method's newest is mirrored to work/<method>/latest/
+work/<method>/<run>/tuning/<look>/   mapping.toml, style.toml, automation.json: the run tuned by hand (§6.3)
 output/<method>/           MP4, .json sidecar with the checks, .png thumbnail
 ```
 
@@ -675,13 +680,16 @@ uv run datapipe short stems inbox/stems/mytrack             # C
 uv run datapipe short midi inbox/midi/mytrack --preview     # D
 uv run datapipe short slots inbox/slots/mypiece             # E: a folder of stems, or one file
 uv run datapipe short deep inbox/deep/track.wav             # F
-uv run datapipe short --run work/stems/latest               # render a run again (after editing its mapping)
+uv run datapipe short --run work/stems/latest               # render a run again (with its tuning, if it has one)
+uv run datapipe short stems inbox/stems/mytrack --style star_vortex   # another shape and look (§6.2)
+uv run datapipe tune stems inbox/stems/mytrack              # analyse, then tune by hand in Blender (§6)
+uv run datapipe tune deep                                   # tune the method's latest run
 uv run datapipe analyze <method> <input>                    # up to controls.json and report.png, no render
 uv run datapipe example <master|stems|midi>                 # a generated loop exported into that inbox
 uv run datapipe watch                                       # every inbox/<method>/ (P4, planned)
 ```
 
-Every method takes `--look`, `--preview` and `--keep-frames`; songs take `--start`, `--length`, `--bpm` and `--no-loop`. The CLI is a thin layer over two Python calls in `datapipe.shorts`: `make(method, input, *, run=None, look=None, preview=False, …) -> (Path, dict)` returns the MP4 and its report, and `analyze(method, input, …) -> Path` returns the run folder.
+Every method takes `--look`, `--style`, `--mapping`, `--preview` and `--keep-frames`; songs take `--start`, `--length`, `--bpm` and `--no-loop`. The CLI is a thin layer over Python calls in `datapipe.shorts`: `make(method, input, *, run=None, look=None, style=None, mapping=None, preview=False, …) -> (Path, dict)` returns the MP4 and its report, `analyze(method, input, …) -> Path` returns the run folder, and `tune(method, input, *, run=None, …) -> dict` opens the tuner on a run.
 
 ```
 src/datapipe/

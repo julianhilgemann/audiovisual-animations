@@ -1,0 +1,100 @@
+# The stem tunnel's controls (SPEC §6): what the tuner panel shows (tuner.py, `datapipe tune`), what a style
+# (styles/<name>.toml) may set and what a mapping (mappings/<method>.toml) fills. One line per control; the tuner
+# builds its sliders from this file, the render checks every style against it, and the saved files take their
+# comments from it. Defaults are the template's look (stem_tunnel.blend, built by stem_tunnel.py --make-template).
+
+[signals]      # the look signals a mapping fills (0-1, keyed on the AudioSignals empty), and what each drives
+kick       = "zoom punch, roll jolt, portal squeeze, wall pump, forward burst"
+kick_light = "glow and bloom on the kick"
+bass       = "walls breathe, outer shell swells, haze, roll"
+energy     = "base glow, bloom, forward speed, colour cycling"
+hats       = "sparkle wave, outer shell spin"
+mids       = "portal spin"
+bright     = "palette shift"
+twist      = "hue jump and extra camera roll"
+
+[recipe]       # the comments a saved mapping carries
+ring         = "the light ring races into the tunnel on this track's hits, at this level"
+signals      = "look signal = { source = weight }: the weighted sum of its sources, clamped to 0-1"
+smooth       = "moving average over this many frames, after the sources are summed"
+hit          = "envelope per track, in frames: rise before the hit (anticipation), decay after"
+speed_curve  = "the curve that speeds the tunnel up"
+speed_riser  = "forward speed added by that curve, in the units of the look's speed sliders"
+roll_twist   = "extra camera roll through the twist, same units as roll_idle"
+twist_hue    = "hue jump through the twist (1 = once around the colour wheel)"
+section_ease = "frames to ease a section signal in and out"
+
+# Live controls: custom properties on the NeonControls empty. Drivers read most of them every frame; `motion`
+# ones are integrated into the baked travel, roll and spins, so the tuner re-bakes when they change. Any of them
+# can be keyframed in the tuner; "Save to run" keeps those keys as the run's automation.
+[look]
+kick_flash       = { group = "Kick", label = "Flash ring", default = 3.0698, min = 0.0, max = 4.0, help = "Brightness of the ring of light that races into the tunnel on every hit of the ring's track" }
+kick_ring_speed  = { group = "Kick", label = "Ring speed", default = 9.4259, min = 0.5, max = 12.0, help = "How fast the ring travels away from you" }
+kick_ring_decay  = { group = "Kick", label = "Ring fade (s)", default = 0.8266, min = 0.05, max = 2.0, help = "How long the ring stays visible" }
+kick_glow        = { group = "Kick", label = "Glow burst", default = 5.0, min = 0.0, max = 8.0, help = "Extra brightness on each kick (kick_light)" }
+kick_bloom       = { group = "Kick", label = "Bloom burst", default = 2.5233, min = 0.0, max = 4.0, help = "Extra glow halo on each kick (kick_light)" }
+kick_pump        = { group = "Kick", label = "Wall pump", default = 0.0, min = 0.0, max = 0.6, help = "Walls push outward on each kick" }
+kick_squeeze     = { group = "Kick", label = "Portal squeeze", default = 0.0727, min = 0.0, max = 0.5, help = "Portal rings snap inward on each kick" }
+kick_zoom        = { group = "Kick", label = "Zoom punch", default = 10.0, min = 0.0, max = 16.0, help = "Camera punch-zoom on each kick, in mm of lens" }
+kick_jolt        = { group = "Kick", label = "Roll jolt", default = 0.0349, min = 0.0, max = 0.5, help = "The view twists a little on each kick" }
+speed_kick       = { group = "Kick", label = "Speed burst", default = 5.7035, min = 0.0, max = 10.0, motion = true, help = "Forward speed burst on each kick" }
+bass_swell       = { group = "Bass", label = "Outer swell", default = 0.0887, min = 0.0, max = 1.5, help = "The outer shell grows with the bass" }
+bass_wall        = { group = "Bass", label = "Walls breathe", default = 0.3328, min = 0.0, max = 0.5, help = "The walls breathe with the bass" }
+bass_haze        = { group = "Bass", label = "Haze", default = 12.157, min = 0.0, max = 20.0, help = "Faint glow between the lines rises with the bass" }
+roll_bass        = { group = "Bass", label = "Roll by bass", default = 1.3035, min = 0.0, max = 5.0, motion = true, help = "The view rotates faster when the bass is up" }
+hats_sparkle     = { group = "Hats and mids", label = "Sparkle", default = 7.2384, min = 0.0, max = 10.0, help = "Hats make a travelling light wave sparkle" }
+outer_spin_hats  = { group = "Hats and mids", label = "Hats spin outer", default = 0.0, min = 0.0, max = 10.0, motion = true, help = "Hats spin the outer shell" }
+portal_spin_mids = { group = "Hats and mids", label = "Mids spin portals", default = 0.4942, min = 0.0, max = 5.0, motion = true, help = "Mids spin the portals" }
+glow_base        = { group = "Loudness", label = "Base glow", default = 0.593, min = 0.0, max = 3.0, help = "Brightness when the track is quiet" }
+energy_glow      = { group = "Loudness", label = "Loudness glow", default = 0.5442, min = 0.0, max = 4.0, help = "Brightness added by the energy signal" }
+speed_energy     = { group = "Loudness", label = "Loudness speed", default = 2.7674, min = 0.0, max = 6.0, motion = true, help = "Forward speed added by the energy signal" }
+color_energy     = { group = "Loudness", label = "Colour cycling", default = 3.5401, min = 0.0, max = 5.0, motion = true, help = "Colours cycle faster when the energy is up" }
+color_shift      = { group = "Loudness", label = "Brightness shifts palette", default = 0.4244, min = 0.0, max = 1.0, help = "The bright signal shifts the colour palette" }
+speed            = { group = "Base motion", label = "Overall speed", default = 0.2471, min = 0.0, max = 5.0, motion = true, help = "Multiplies all forward motion (rows per second, so it keeps its rhythm on any shape)" }
+speed_idle       = { group = "Base motion", label = "Idle speed", default = 0.1017, min = 0.0, max = 3.0, motion = true, help = "Forward speed with no music" }
+roll_idle        = { group = "Base motion", label = "Idle roll", default = 0.2965, min = -3.0, max = 3.0, motion = true, help = "Rotation without bass; negative rolls the other way" }
+outer_spin_idle  = { group = "Base motion", label = "Idle outer spin", default = 0.0262, min = -3.0, max = 3.0, motion = true, help = "Outer shell spin without hats; negative spins the other way" }
+color_idle       = { group = "Base motion", label = "Idle colour cycling", default = 0.1651, min = 0.0, max = 3.0, motion = true, help = "Colour cycling when the track is quiet" }
+lens             = { group = "Camera", label = "Lens (mm)", default = 25.8256, min = 6.0, max = 50.0, help = "Camera lens: lower is wider" }
+cam_orbit        = { group = "Camera", label = "Off centre", default = 0.0, min = 0.0, max = 0.8, help = "Moves the camera off the tunnel's axis, as a share of the inner radius; it orbits with the roll" }
+near_fade        = { group = "Camera", label = "Portal near fade", default = 55.0, min = 0.0, max = 120.0, help = "Portals fade out within this distance of the camera (0 = off), so flying through them doesn't flash" }
+view_far         = { group = "Camera", label = "View distance", default = 110.0, min = 40.0, max = 250.0, help = "Lines fade out from half this depth to this depth" }
+bloom            = { group = "Glow and colour", label = "Bloom", default = 1.0262, min = 0.0, max = 3.0, help = "Overall glow halo around the lines" }
+hue_base         = { group = "Glow and colour", label = "Hue", default = 0.0, min = 0.0, max = 1.0, help = "Turns every colour around the colour wheel" }
+hue_depth        = { group = "Glow and colour", label = "Rainbow along depth", default = 1.0, min = 0.0, max = 4.0, help = "How fast the colour changes with depth (0 = one colour all the way down)" }
+hue_across       = { group = "Glow and colour", label = "Colour across lines", default = 1.0, min = 0.0, max = 4.0, help = "Colour change across each line, from edge to edge" }
+saturation       = { group = "Glow and colour", label = "Saturation", default = 1.0, min = 0.0, max = 1.0, help = "0 = white neon" }
+line_edges       = { group = "Glow and colour", label = "Edge lines", default = 1.0, min = 0.0, max = 3.0, help = "The two thin lines along the edges of every ribbon" }
+line_core        = { group = "Glow and colour", label = "Core line", default = 1.3, min = 0.0, max = 4.0, help = "The glowing line along the middle of every ribbon" }
+line_sharp       = { group = "Glow and colour", label = "Line sharpness", default = 1.6, min = 0.5, max = 6.0, help = "Higher is thinner, crisper lines" }
+fill_glow        = { group = "Glow and colour", label = "Fill", default = 0.015, min = 0.0, max = 0.2, help = "Faint glow across the whole ribbon" }
+wave_amount      = { group = "Glow and colour", label = "Brightness wave", default = 0.28, min = 0.0, max = 1.0, help = "A wave of brightness that travels along the tunnel" }
+walls_glow       = { group = "Layers", label = "Walls glow", default = 1.0, min = 0.0, max = 3.0, help = "Brightness of the walls (0 hides them)" }
+portals_glow     = { group = "Layers", label = "Portals glow", default = 1.0, min = 0.0, max = 3.0, help = "Brightness of the portal rings (0 hides them)" }
+outer_glow       = { group = "Layers", label = "Outer glow", default = 1.0, min = 0.0, max = 3.0, help = "Brightness of the outer shell (0 hides it)" }
+walls_hue        = { group = "Layers", label = "Walls hue", default = 0.0, min = 0.0, max = 1.0, help = "Turns the walls' colours" }
+portals_hue      = { group = "Layers", label = "Portals hue", default = 0.0, min = 0.0, max = 1.0, help = "Turns the portals' colours" }
+outer_hue        = { group = "Layers", label = "Outer hue", default = 0.0, min = 0.0, max = 1.0, help = "Turns the outer shell's colours" }
+
+# The geometry (shapes.py): changing any of these rebuilds the three tunnel meshes, so the tuner shows a Rebuild
+# button (or rebuilds on every change with Auto). The loop periods follow the shape, so the seam still closes.
+[shape]
+profile       = { group = "Cross-section", label = "Profile", default = "circle", options = ["circle", "polygon", "star", "flower"], help = "The tunnel's cross-section" }
+sides         = { group = "Cross-section", label = "Sides", default = 6, min = 3, max = 12, help = "Polygon corners, star points or flower lobes" }
+corner_round  = { group = "Cross-section", label = "Corner rounding", default = 0.0, min = 0.0, max = 1.0, help = "Polygon and star: 0 = sharp corners, 1 = fully rounded" }
+profile_depth = { group = "Cross-section", label = "Point depth", default = 0.5, min = 0.0, max = 1.0, help = "Star and flower: how deep the points or lobes cut in" }
+profile_angle = { group = "Cross-section", label = "Turn (deg)", default = 0.0, min = 0.0, max = 360.0, help = "Turns the cross-section, e.g. a square into a diamond" }
+radius        = { group = "Cross-section", label = "Radius", default = 12.0, min = 2.0, max = 30.0, help = "Tunnel size: every profile has the perimeter of a circle of this radius" }
+symmetry      = { group = "Cells", label = "Cells around", default = 2, min = 1, max = 16, help = "How many times the wall pattern repeats around the tunnel" }
+cell_depth    = { group = "Cells", label = "Cell length", default = 1.0, min = 0.25, max = 4.0, help = "Length of a row along the tunnel, relative to a cell's width; speed counts rows, so the rhythm stays" }
+line_width    = { group = "Cells", label = "Line width", default = 0.9359, min = 0.2, max = 4.0, help = "Thickness of every neon ribbon" }
+walls         = { group = "Patterns", label = "Walls", default = "maze", options = ["maze", "grid", "diamonds", "chevrons", "hexes", "circuit", "stripes", "rails", "zigzag", "truchet", "dots", "none"], help = "The pattern on the tunnel walls" }
+portals       = { group = "Patterns", label = "Portals", default = "crenel", options = ["crenel", "rings", "spokes", "teeth", "triple", "frame", "none"], help = "The pattern of the rings you fly through" }
+portal_every  = { group = "Patterns", label = "Portal every", default = 1, min = 1, max = 8, help = "A portal every this many rows" }
+portal_inner  = { group = "Patterns", label = "Portal opening", default = 0.56, min = 0.1, max = 0.95, help = "Inner edge of the portal rings, as a share of the radius (smaller = narrower opening)" }
+outer_pattern = { group = "Patterns", label = "Outer shell", default = "ladder", options = ["ladder", "rails", "helix", "grid", "dots", "none"], help = "The pattern on the outer shell" }
+outer_size    = { group = "Patterns", label = "Outer size", default = 2.2301, min = 1.05, max = 3.0, help = "Outer shell radius relative to the tunnel" }
+seed          = { group = "Patterns", label = "Seed", default = 1, min = 0, max = 999, help = "Truchet walls: which random tiling" }
+twist         = { group = "Deform", label = "Twist", default = 0.0, min = -2.0, max = 2.0, help = "Spiral: cells the cross-section turns per row, snapped to eighths so the loop still closes" }
+wave          = { group = "Deform", label = "Bulge", default = 0.0, min = 0.0, max = 0.5, help = "The tunnel swells and narrows along its length, by this share of the radius" }
+wave_count    = { group = "Deform", label = "Bulges", default = 1, min = 1, max = 8, help = "Bulges per pattern period" }
