@@ -21,15 +21,10 @@
 *.m4a
 *.zip
 
-# Blender and TouchDesigner backups
+# Blender backups
 *.blend1
 *.blend2
 *.blend@
-CrashAutoSave*
-
-# TouchDesigner, all projects: numbered incremental saves (name.17.toe) and the import cache
-*.[0-9]*.toe
-TDImportCache/
 
 # Python
 .venv/
@@ -38,30 +33,12 @@ __pycache__/
 .pytest_cache/
 
 # OS
+.DS_Store
 Thumbs.db
 desktop.ini
 
 # Claude Code personal settings
 .claude/settings.local.json
-
-# Embody / Envoy (auto-managed)
-Backup/
-logs/
-.mcp.json
-.embody_backup/
-.tdn_backup/
-opencode.json
-.cursor/mcp.json
-.vscode/mcp.json
-.gemini/settings.json
-.codex/config.toml
-.agents/mcp_config.json
-**/.embody/*
-!**/.embody/project.json
-.claude/projects/
-briefs/
-.DS_Store
-projects/octatrack-av-setup/TDPyEnvManagerContext.yaml
 
 # One machine's tool paths (config/machine.example.toml shows the format)
 /config/machine.toml
