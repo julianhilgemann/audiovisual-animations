@@ -4,6 +4,14 @@ Audio-reactive YouTube Shorts rendered with Blender. Generate a loop, or bring y
 
 > **Status:** six input methods work end to end on macOS (SPEC §16): a generated loop, a finished master, master and stems, master, stems and MIDI, any stems without instrument names, and one complex track measured from every side. Design and roadmap: [SPEC.md](SPEC.md).
 
+## How it works
+
+Every input method has its own front end, and all of them write the same run folder: `mix.wav` and `controls.json`. From there one back end does the rest. Headless Blender bakes the controls into the neon tunnel and renders the frames, then `render.py` encodes the MP4 and checks it.
+
+![How Datapipe makes a Short](docs/diagrams/pipeline.png)
+
+Both diagrams are also in [docs/diagrams/](docs/diagrams/) as SVG and as one editable draw.io file ([datapipe.drawio](docs/diagrams/datapipe.drawio)).
+
 ## Setup
 
 ```
@@ -26,6 +34,8 @@ Six methods, side by side. The master is always what you hear; stems and MIDI on
 | **E** `slots`: stems of anything, no beat needed | `inbox/slots/mypiece/stems/*.wav` (master optional; `slots = [...]` in `song.toml` sets the order) | `uv run datapipe short slots inbox/slots/mypiece` |
 | **F** `deep`: one complex track, every feature | `inbox/deep/mytrack.wav` | `uv run datapipe short deep inbox/deep/mytrack.wav` |
 | **A** `gen`: fully generated | nothing | `uv run datapipe short gen --preset neon_house --seed 42` |
+
+![Six input methods, one contract, one back end](docs/diagrams/methods.png)
 
 E reads every stem the same way (loudness, transients, density, crest, brightness, flatness, three bands, activity) and gives slot 1 the punch, slot 2 the body, slot 3 the sparkle and slot 4 the portals; no tempo, kick or sections are assumed. F measures loudness (BS.1770), spectral shape, onsets per band, stereo width, the harmonic and percussive parts, pitch and structural changes, and maps each one to a fixed part of the tunnel. SPEC §16.7 has the details.
 
@@ -62,7 +72,7 @@ Requirements, on Windows or macOS: [uv](https://docs.astral.sh/uv/) (`winget ins
 | `config/mappings/` | Reactivity recipes for the Director rig look (optional, not built yet) |
 | `dawdreamer/` | Generated audio: specs, presets, Faust instruments, the free VST3 plugin list (see [dawdreamer/README.md](dawdreamer/README.md)) |
 | `blender/stem-tunnel/` | The neon lines tunnel every method renders with: one mapping per method in `mappings/`, shapes and looks in `styles/`, the tuner (see its [README](blender/stem-tunnel/README.md)) |
-| `docs/` | Design of the generative mode ([sticky-av-shorts.md](docs/sticky-av-shorts.md)) |
+| `docs/` | Design of the generative mode ([sticky-av-shorts.md](docs/sticky-av-shorts.md)); the architecture diagrams in `diagrams/`: JSON specs, PNG and SVG renders, an editable `datapipe.drawio`, and `build.py` to render them again |
 | `reference/` | Reference renders |
 | `work/`, `cache/`, `archive/` | Pipeline internals; runs land in `work/<method>/`, the newest in `work/<method>/latest/` |
 

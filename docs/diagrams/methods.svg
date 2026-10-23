@@ -1,0 +1,203 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1800 1020" width="1800" height="1020" font-family="'Segoe UI', 'IBM Plex Sans', system-ui, Arial, sans-serif">
+<title>Six input methods, one contract, one back end</title><defs>
+<symbol id="a-phone" viewBox="0 0 24 24" fill="currentColor"><path d="M15.75 2C16.99 2 18 3 18 4.25v15.5c0 1.24-1 2.25-2.25 2.25h-7.5C7.01 22 6 21 6 19.75V4.25C6 3.01 7 2 8.25 2zm0 1.5h-7.5a.75.75 0 0 0-.75.75v15.5c0 .41.34.75.75.75h7.5c.41 0 .75-.34.75-.75V4.25a.75.75 0 0 0-.75-.75m-2.5 14a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1 0-1.5z"/></symbol>
+<symbol id="i-braces" viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 5.75A2.75 2.75 0 0 1 7.25 3a.75.75 0 0 1 0 1.5C6.56 4.5 6 5.06 6 5.75v4.3c0 .75-.3 1.45-.8 1.95.5.5.8 1.2.8 1.94v4.31c0 .69.56 1.25 1.25 1.25a.75.75 0 0 1 0 1.5 2.75 2.75 0 0 1-2.75-2.75v-4.3c0-.55-.34-1.02-.85-1.2l-.14-.04a.75.75 0 0 1 0-1.42l.14-.05c.5-.17.85-.64.85-1.18zm15 0A2.75 2.75 0 0 0 16.75 3a.75.75 0 0 0 0 1.5c.69 0 1.25.56 1.25 1.25v4.3c0 .75.3 1.45.8 1.95-.5.5-.8 1.2-.8 1.94v4.31c0 .69-.56 1.25-1.25 1.25a.75.75 0 0 0 0 1.5 2.75 2.75 0 0 0 2.75-2.75v-4.3c0-.55.34-1.02.85-1.2l.14-.04a.75.75 0 0 0 0-1.42l-.14-.05a1.25 1.25 0 0 1-.85-1.18z"/></symbol>
+<symbol id="logo-blender" viewBox="0 0 24 24" fill="currentColor"><path d="M12.51 13.214c.046-.8.438-1.506 1.03-2.006a3.424 3.424 0 0 1 2.212-.79c.85 0 1.631.3 2.211.79.592.5.983 1.206 1.028 2.005.045.823-.285 1.586-.865 2.153a3.389 3.389 0 0 1-2.374.938 3.393 3.393 0 0 1-2.376-.938c-.58-.567-.91-1.33-.865-2.152M7.35 14.831c.006.314.106.922.256 1.398a7.372 7.372 0 0 0 1.593 2.757 8.227 8.227 0 0 0 2.787 2.001 8.947 8.947 0 0 0 3.66.76 8.964 8.964 0 0 0 3.657-.772 8.285 8.285 0 0 0 2.785-2.01 7.428 7.428 0 0 0 1.592-2.762 6.964 6.964 0 0 0 .25-3.074 7.123 7.123 0 0 0-1.016-2.779 7.764 7.764 0 0 0-1.852-2.043h.002L13.566 2.55l-.02-.015c-.492-.378-1.319-.376-1.86.002-.547.382-.609 1.015-.123 1.415l-.001.001 3.126 2.543-9.53.01h-.013c-.788.001-1.545.518-1.695 1.172-.154.665.38 1.217 1.2 1.22V8.9l4.83-.01-8.62 6.617-.034.025c-.813.622-1.075 1.658-.563 2.313.52.667 1.625.668 2.447.004L7.414 14s-.069.52-.063.831zm12.09 1.741c-.97.988-2.326 1.548-3.795 1.55-1.47.004-2.827-.552-3.797-1.538a4.51 4.51 0 0 1-1.036-1.622 4.282 4.282 0 0 1 .282-3.519 4.702 4.702 0 0 1 1.153-1.371c.942-.768 2.141-1.183 3.396-1.185 1.256-.002 2.455.41 3.398 1.175.48.391.87.854 1.152 1.367a4.28 4.28 0 0 1 .522 1.706 4.236 4.236 0 0 1-.239 1.811 4.54 4.54 0 0 1-1.035 1.626"/></symbol>
+<symbol id="x-compose" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17.5V6l11-2.5V15M9 9.5 20 7"/><g fill="currentColor" stroke="none"><ellipse cx="6.6" cy="17.6" rx="2.6" ry="2.1"/><ellipse cx="17.6" cy="15.1" rx="2.6" ry="2.1"/></g></symbol>
+<symbol id="x-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><g fill="currentColor" stroke="none"><circle cx="8.2" cy="8.2" r="1.5"/><circle cx="15.8" cy="8.2" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="8.2" cy="15.8" r="1.5"/><circle cx="15.8" cy="15.8" r="1.5"/></g></symbol>
+<symbol id="x-film" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 8h4M3 12h4M3 16h4M17 8h4M17 12h4M17 16h4"/></symbol>
+<symbol id="x-midi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.2"/><path d="M7.5 12.5V20M12 12.5V20M16.5 12.5V20"/><path fill="currentColor" stroke="none" d="M6.25 4h2.5v8.5h-2.5zM10.75 4h2.5v8.5h-2.5zM15.25 4h2.5v8.5h-2.5z"/></symbol>
+<symbol id="x-onsets" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15v3M6.6 11.5v10M10.2 14v5M13.8 10v13M17.4 13.5v6M21 15v3" transform="translate(0 -1.5)"/><path fill="currentColor" stroke="none" d="M4.9 2.5h3.4L6.6 5.6zM12.1 2.5h3.4l-1.7 3.1z"/></symbol>
+<symbol id="x-stems" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6c1.5-1.6 3-1.6 4.5 0s3 1.6 4.5 0 3-1.6 4.5 0 3 1.6 4.5 0"/><path d="M3 12c1.5-2.6 3-2.6 4.5 0s3 2.6 4.5 0 3-2.6 4.5 0 3 2.6 4.5 0"/><path d="M3 18c1.5-1 3-1 4.5 0s3 1 4.5 0 3-1 4.5 0 3 1 4.5 0"/></symbol>
+<symbol id="x-wave" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5v3M6.6 7v10M10.2 3.5v17M13.8 6v12M17.4 8.5v7M21 10.5v3"/></symbol>
+<marker id="ah-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#2B7BB9"/></marker>
+<marker id="ah-consume" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#0E7A6D"/></marker>
+<marker id="ah-custom" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#6B4FBB"/></marker>
+<marker id="ah-self" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#C05A1F"/></marker>
+<marker id="ah-deploy" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#4A5868"/></marker>
+</defs><rect width="100%" height="100%" fill="#FFFFFF"/>
+<text x="40" y="54" font-size="24" font-weight="600" fill="#18212B">Six input methods, one contract, one back end</text>
+<text x="40" y="80" font-size="14" fill="#5B6875">What you bring decides where the picture&#x27;s timing comes from. Everything after controls.json is shared.</text>
+<rect x="40" y="192" width="1300" height="96" rx="10" fill="#F8FAFC" stroke="#E1E6EB" stroke-width="1.2"/>
+<rect x="40" y="300" width="1300" height="96" rx="10" fill="#F8FAFC" stroke="#E1E6EB" stroke-width="1.2"/>
+<rect x="40" y="408" width="1300" height="96" rx="10" fill="#F8FAFC" stroke="#E1E6EB" stroke-width="1.2"/>
+<rect x="40" y="516" width="1300" height="96" rx="10" fill="#F8FAFC" stroke="#E1E6EB" stroke-width="1.2"/>
+<rect x="40" y="624" width="1300" height="96" rx="10" fill="#F8FAFC" stroke="#E1E6EB" stroke-width="1.2"/>
+<rect x="40" y="732" width="1300" height="96" rx="10" fill="#F8FAFC" stroke="#E1E6EB" stroke-width="1.2"/>
+<rect x="1410" y="192" width="350" height="636" rx="12" fill="#F0F7F5" stroke="#8CC7BD" stroke-width="1.2"/>
+<polyline points="1340,240 1380,240" fill="none" stroke="#6B4FBB" stroke-width="1.8" stroke-linejoin="round"/>
+<polyline points="1340,348 1380,348" fill="none" stroke="#2B7BB9" stroke-width="1.8" stroke-linejoin="round"/>
+<polyline points="1340,456 1380,456" fill="none" stroke="#2B7BB9" stroke-width="1.8" stroke-linejoin="round"/>
+<polyline points="1340,564 1380,564" fill="none" stroke="#6B4FBB" stroke-width="1.8" stroke-linejoin="round"/>
+<polyline points="1340,672 1380,672" fill="none" stroke="#2B7BB9" stroke-width="1.8" stroke-linejoin="round"/>
+<polyline points="1340,780 1380,780" fill="none" stroke="#2B7BB9" stroke-width="1.8" stroke-linejoin="round"/>
+<polyline points="1380,780 1380,240 1429,240" fill="none" stroke="#0E7A6D" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#ah-consume)"/>
+<polyline points="1450,260 1450,377" fill="none" stroke="#0E7A6D" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#ah-consume)"/>
+<polyline points="1450,422 1450,539" fill="none" stroke="#0E7A6D" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#ah-consume)"/>
+<polyline points="1450,580 1450,697" fill="none" stroke="#0E7A6D" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#ah-consume)"/>
+<circle cx="270" cy="240" r="3.5" fill="#C9D1D9"/>
+<circle cx="332" cy="240" r="3.5" fill="#C9D1D9"/>
+<circle cx="394" cy="240" r="3.5" fill="#C9D1D9"/>
+<circle cx="1380" cy="240" r="3.5" fill="#0E7A6D"/>
+<circle cx="332" cy="348" r="3.5" fill="#C9D1D9"/>
+<circle cx="394" cy="348" r="3.5" fill="#C9D1D9"/>
+<circle cx="456" cy="348" r="3.5" fill="#C9D1D9"/>
+<circle cx="1380" cy="348" r="3.5" fill="#0E7A6D"/>
+<circle cx="394" cy="456" r="3.5" fill="#C9D1D9"/>
+<circle cx="456" cy="456" r="3.5" fill="#C9D1D9"/>
+<circle cx="1380" cy="456" r="3.5" fill="#0E7A6D"/>
+<circle cx="456" cy="564" r="3.5" fill="#C9D1D9"/>
+<circle cx="1380" cy="564" r="3.5" fill="#0E7A6D"/>
+<circle cx="394" cy="672" r="3.5" fill="#C9D1D9"/>
+<circle cx="456" cy="672" r="3.5" fill="#C9D1D9"/>
+<circle cx="1380" cy="672" r="3.5" fill="#0E7A6D"/>
+<circle cx="332" cy="780" r="3.5" fill="#C9D1D9"/>
+<circle cx="394" cy="780" r="3.5" fill="#C9D1D9"/>
+<circle cx="456" cy="780" r="3.5" fill="#C9D1D9"/>
+<circle cx="1380" cy="780" r="3.5" fill="#0E7A6D"/>
+<use href="#x-dice" xlink:href="#x-dice" x="441.0" y="225.0" width="30" height="30" style="color:#4A5868"/>
+<use href="#x-compose" xlink:href="#x-compose" x="657.0" y="225.0" width="30" height="30" style="color:#6B4FBB"/>
+<use href="#x-wave" xlink:href="#x-wave" x="255.0" y="333.0" width="30" height="30" style="color:#4A5868"/>
+<use href="#x-onsets" xlink:href="#x-onsets" x="657.0" y="333.0" width="30" height="30" style="color:#2B7BB9"/>
+<use href="#x-wave" xlink:href="#x-wave" x="255.0" y="441.0" width="30" height="30" style="color:#4A5868"/>
+<use href="#x-stems" xlink:href="#x-stems" x="317.0" y="441.0" width="30" height="30" style="color:#4A5868"/>
+<use href="#x-onsets" xlink:href="#x-onsets" x="657.0" y="441.0" width="30" height="30" style="color:#2B7BB9"/>
+<use href="#x-wave" xlink:href="#x-wave" x="255.0" y="549.0" width="30" height="30" style="color:#4A5868"/>
+<use href="#x-stems" xlink:href="#x-stems" x="317.0" y="549.0" width="30" height="30" style="color:#4A5868"/>
+<use href="#x-midi" xlink:href="#x-midi" x="379.0" y="549.0" width="30" height="30" style="color:#4A5868"/>
+<use href="#x-midi" xlink:href="#x-midi" x="657.0" y="549.0" width="30" height="30" style="color:#6B4FBB"/>
+<use href="#x-wave" xlink:href="#x-wave" x="255.0" y="657.0" width="30" height="30" style="color:#9AA5B1"/>
+<use href="#x-stems" xlink:href="#x-stems" x="317.0" y="657.0" width="30" height="30" style="color:#4A5868"/>
+<use href="#x-onsets" xlink:href="#x-onsets" x="657.0" y="657.0" width="30" height="30" style="color:#2B7BB9"/>
+<use href="#x-wave" xlink:href="#x-wave" x="255.0" y="765.0" width="30" height="30" style="color:#4A5868"/>
+<use href="#x-onsets" xlink:href="#x-onsets" x="657.0" y="765.0" width="30" height="30" style="color:#2B7BB9"/>
+<use href="#i-braces" xlink:href="#i-braces" x="1432.0" y="222.0" width="36" height="36" style="color:#0E7A6D"/>
+<use href="#logo-blender" xlink:href="#logo-blender" x="1430.0" y="380.0" width="40" height="40" style="color:#E87D0D"/>
+<use href="#x-film" xlink:href="#x-film" x="1432.0" y="542.0" width="36" height="36" style="color:#0E7A6D"/>
+<use href="#a-phone" xlink:href="#a-phone" x="1430.0" y="700.0" width="40" height="40" style="color:#0E7A6D"/>
+<text x="58" y="150" text-anchor="start" font-size="12.5" font-weight="600" fill="#18212B">Method</text>
+<text x="363" y="150" text-anchor="middle" font-size="12.5" font-weight="600" fill="#18212B">You bring</text>
+<text x="500" y="150" text-anchor="start" font-size="12.5" font-weight="600" fill="#18212B">Lands in</text>
+<text x="660" y="150" text-anchor="start" font-size="12.5" font-weight="600" fill="#18212B">Front end</text>
+<text x="880" y="150" text-anchor="start" font-size="12.5" font-weight="600" fill="#18212B">Hits (timing) from</text>
+<text x="1065" y="150" text-anchor="start" font-size="12.5" font-weight="600" fill="#18212B">Mapping</text>
+<text x="1225" y="150" text-anchor="start" font-size="12.5" font-weight="600" fill="#18212B">Length</text>
+<text x="1430" y="150" text-anchor="start" font-size="12.5" font-weight="600" fill="#18212B">Shared by all six</text>
+<text x="270" y="172" text-anchor="middle" font-size="11" font-weight="400" fill="#5B6875">master</text>
+<text x="332" y="172" text-anchor="middle" font-size="11" font-weight="400" fill="#5B6875">stems</text>
+<text x="394" y="172" text-anchor="middle" font-size="11" font-weight="400" fill="#5B6875">MIDI</text>
+<text x="456" y="172" text-anchor="middle" font-size="11" font-weight="400" fill="#5B6875">preset + seed</text>
+<text x="72" y="249" text-anchor="middle" font-size="26" font-weight="700" fill="#6B4FBB">A</text>
+<text x="100" y="237" text-anchor="start" font-size="15" font-weight="600" fill="#18212B">gen</text>
+<text x="100" y="255" text-anchor="start" font-size="11.5" font-weight="400" fill="#5B6875">fully generated</text>
+<text x="500" y="237" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">no inbox</text>
+<text x="500" y="254" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">work/gen/&lt;run&gt;/</text>
+<text x="694" y="237" text-anchor="start" font-size="12.5" font-weight="600" fill="#18212B">gen/compose, engine</text>
+<text x="694" y="254" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">score → DawDreamer</text>
+<text x="880" y="237" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">the composed score</text>
+<text x="880" y="254" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">note-ons, exact</text>
+<text x="1065" y="237" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">mappings/gen.toml</text>
+<text x="1065" y="254" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">light ring: kick</text>
+<text x="1225" y="237" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">8 s loop</text>
+<text x="1225" y="254" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">seam closed</text>
+<text x="72" y="357" text-anchor="middle" font-size="26" font-weight="700" fill="#2B7BB9">B</text>
+<text x="100" y="345" text-anchor="start" font-size="15" font-weight="600" fill="#18212B">master</text>
+<text x="100" y="363" text-anchor="start" font-size="11.5" font-weight="400" fill="#5B6875">one finished track</text>
+<text x="500" y="345" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">inbox/master/</text>
+<text x="500" y="362" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">one file</text>
+<text x="694" y="345" text-anchor="start" font-size="12.5" font-weight="600" fill="#18212B">song/onsets.py</text>
+<text x="694" y="362" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">percussive split, bands</text>
+<text x="880" y="345" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">onsets on the mix</text>
+<text x="880" y="362" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">by band, kick-likeness</text>
+<text x="1065" y="345" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">mappings/master.toml</text>
+<text x="1065" y="362" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">light ring: kick</text>
+<text x="1225" y="345" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">input&#x27;s length</text>
+<text x="1225" y="362" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">warns over 60 s</text>
+<text x="72" y="465" text-anchor="middle" font-size="26" font-weight="700" fill="#2B7BB9">C</text>
+<text x="100" y="453" text-anchor="start" font-size="15" font-weight="600" fill="#18212B">stems</text>
+<text x="100" y="471" text-anchor="start" font-size="11.5" font-weight="400" fill="#5B6875">master and stems</text>
+<text x="500" y="453" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">inbox/stems/&lt;song&gt;/</text>
+<text x="500" y="470" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">master.wav, stems/</text>
+<text x="694" y="453" text-anchor="start" font-size="12.5" font-weight="600" fill="#18212B">song/ingest + onsets</text>
+<text x="694" y="470" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">roles from file names</text>
+<text x="880" y="453" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">onsets on each stem</text>
+<text x="880" y="470" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">drum bus split by band</text>
+<text x="1065" y="453" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">mappings/stems.toml</text>
+<text x="1065" y="470" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">light ring: kick</text>
+<text x="1225" y="453" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">input&#x27;s length</text>
+<text x="1225" y="470" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">warns over 60 s</text>
+<text x="72" y="573" text-anchor="middle" font-size="26" font-weight="700" fill="#6B4FBB">D</text>
+<text x="100" y="561" text-anchor="start" font-size="15" font-weight="600" fill="#18212B">midi</text>
+<text x="100" y="579" text-anchor="start" font-size="11.5" font-weight="400" fill="#5B6875">master, stems, MIDI</text>
+<text x="500" y="561" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">inbox/midi/&lt;song&gt;/</text>
+<text x="500" y="578" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">+ midi/*.mid</text>
+<text x="694" y="561" text-anchor="start" font-size="12.5" font-weight="600" fill="#18212B">song/midi.py</text>
+<text x="694" y="578" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">tempo map, markers</text>
+<text x="880" y="561" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">MIDI note-ons</text>
+<text x="880" y="578" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">velocity as strength</text>
+<text x="1065" y="561" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">mappings/midi.toml</text>
+<text x="1065" y="578" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">light ring: kick</text>
+<text x="1225" y="561" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">input&#x27;s length</text>
+<text x="1225" y="578" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">warns over 60 s</text>
+<text x="72" y="681" text-anchor="middle" font-size="26" font-weight="700" fill="#2B7BB9">E</text>
+<text x="100" y="669" text-anchor="start" font-size="15" font-weight="600" fill="#18212B">slots</text>
+<text x="100" y="687" text-anchor="start" font-size="11.5" font-weight="400" fill="#5B6875">stems of anything</text>
+<text x="270" y="702" text-anchor="middle" font-size="9.5" font-weight="400" fill="#5B6875">optional</text>
+<text x="500" y="669" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">inbox/slots/&lt;piece&gt;/</text>
+<text x="500" y="686" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">master optional</text>
+<text x="694" y="669" text-anchor="start" font-size="12.5" font-weight="600" fill="#18212B">song/slots.py</text>
+<text x="694" y="686" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">ten features per slot</text>
+<text x="880" y="669" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">transients per slot</text>
+<text x="880" y="686" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">no tempo, no names</text>
+<text x="1065" y="669" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">mappings/slots.toml</text>
+<text x="1065" y="686" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">light ring: slot1</text>
+<text x="1225" y="669" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">input&#x27;s length</text>
+<text x="1225" y="686" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">warns over 60 s</text>
+<text x="72" y="789" text-anchor="middle" font-size="26" font-weight="700" fill="#2B7BB9">F</text>
+<text x="100" y="777" text-anchor="start" font-size="15" font-weight="600" fill="#18212B">deep</text>
+<text x="100" y="795" text-anchor="start" font-size="11.5" font-weight="400" fill="#5B6875">one complex track</text>
+<text x="500" y="777" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">inbox/deep/</text>
+<text x="500" y="794" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">one file</text>
+<text x="694" y="777" text-anchor="start" font-size="12.5" font-weight="600" fill="#18212B">song/deep.py</text>
+<text x="694" y="794" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">22 features of the mix</text>
+<text x="880" y="777" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">percussive onsets</text>
+<text x="880" y="794" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">low, mid, high bands</text>
+<text x="1065" y="777" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">mappings/deep.toml</text>
+<text x="1065" y="794" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">light ring: low</text>
+<text x="1225" y="777" text-anchor="start" font-size="12" font-weight="400" fill="#18212B">input&#x27;s length</text>
+<text x="1225" y="794" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">warns over 60 s</text>
+<text x="1480" y="236" text-anchor="start" font-size="13" font-weight="600" fill="#18212B">controls.json + mix.wav</text>
+<text x="1480" y="253" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">one schema for every method</text>
+<text x="1480" y="267" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">a missing source counts as 0</text>
+<text x="1480" y="396" text-anchor="start" font-size="13" font-weight="600" fill="#18212B">Look: stem_tunnel.blend</text>
+<text x="1480" y="413" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">+ mappings/&lt;method&gt;.toml</text>
+<text x="1480" y="427" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">+ a style: shape, sliders</text>
+<text x="1480" y="556" text-anchor="start" font-size="13" font-weight="600" fill="#18212B">render.py</text>
+<text x="1480" y="573" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">S5 render, S6 encode</text>
+<text x="1480" y="587" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">S7 checks, sync on the ring</text>
+<text x="1480" y="716" text-anchor="start" font-size="13" font-weight="600" fill="#18212B">output/&lt;method&gt;/</text>
+<text x="1480" y="733" text-anchor="start" font-size="11" font-weight="400" fill="#5B6875">MP4, .json checks, thumbnail</text>
+<circle cx="411" cy="146" r="10" fill="#2B7BB9" stroke="#FFFFFF" stroke-width="2"/><text x="411" y="150" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">1</text>
+<circle cx="572" cy="146" r="10" fill="#4A5868" stroke="#FFFFFF" stroke-width="2"/><text x="572" y="150" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">2</text>
+<circle cx="1022" cy="146" r="10" fill="#6B4FBB" stroke="#FFFFFF" stroke-width="2"/><text x="1022" y="150" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">3</text>
+<circle cx="1130" cy="146" r="10" fill="#0E7A6D" stroke="#FFFFFF" stroke-width="2"/><text x="1130" y="150" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">4</text>
+<circle cx="1283" cy="146" r="10" fill="#4A5868" stroke="#FFFFFF" stroke-width="2"/><text x="1283" y="150" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">5</text>
+<circle cx="1570" cy="146" r="10" fill="#0E7A6D" stroke="#FFFFFF" stroke-width="2"/><text x="1570" y="150" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">6</text>
+<line x1="40" y1="860" x2="1760" y2="860" stroke="#D9DFE5"/>
+<text x="40" y="891" font-size="15" font-weight="600" fill="#18212B">How to read it</text>
+<line x1="220" y1="886" x2="246" y2="886" stroke="#6B4FBB" stroke-width="3"/><text x="254" y="890" font-size="12" fill="#5B6875">Timing from notes: exact</text>
+<line x1="445.28000000000003" y1="886" x2="471.28000000000003" y2="886" stroke="#2B7BB9" stroke-width="3"/><text x="479.28000000000003" y="890" font-size="12" fill="#5B6875">Timing detected in the audio</text>
+<line x1="697.44" y1="886" x2="723.44" y2="886" stroke="#0E7A6D" stroke-width="3"/><text x="731.44" y="890" font-size="12" fill="#5B6875">Shared back end</text>
+<circle cx="50" cy="922" r="9" fill="#2B7BB9"/><text x="50" y="926" text-anchor="middle" font-size="10.5" font-weight="700" fill="#FFF">1</text>
+<text x="68" y="926" font-size="12.5" fill="#18212B">The master is what you hear. Stems and MIDI only steer the picture; E without a master plays the stems&#x27; sum.</text>
+<circle cx="50" cy="946" r="9" fill="#4A5868"/><text x="50" y="950" text-anchor="middle" font-size="10.5" font-weight="700" fill="#FFF">2</text>
+<text x="68" y="950" font-size="12.5" fill="#18212B">Each method has its own inbox and run folders; datapipe example master|stems|midi shows the layout.</text>
+<circle cx="50" cy="970" r="9" fill="#6B4FBB"/><text x="50" y="974" text-anchor="middle" font-size="10.5" font-weight="700" fill="#FFF">3</text>
+<text x="68" y="974" font-size="12.5" fill="#18212B">Purple rows take their timing from notes (the score or MIDI), exact to the frame; blue rows detect it.</text>
+<circle cx="930.0" cy="922" r="9" fill="#0E7A6D"/><text x="930.0" y="926" text-anchor="middle" font-size="10.5" font-weight="700" fill="#FFF">4</text>
+<text x="948.0" y="926" font-size="12.5" fill="#18212B">Each method has its own mapping onto the look; the S7 sync gate checks the track the light ring follows.</text>
+<circle cx="930.0" cy="946" r="9" fill="#4A5868"/><text x="930.0" y="950" text-anchor="middle" font-size="10.5" font-weight="700" fill="#FFF">5</text>
+<text x="948.0" y="950" font-size="12.5" fill="#18212B">Songs keep their length: a warning over 60 s, refused over 180 s. A is an 8-second seamless loop.</text>
+<circle cx="930.0" cy="970" r="9" fill="#0E7A6D"/><text x="930.0" y="974" text-anchor="middle" font-size="10.5" font-weight="700" fill="#FFF">6</text>
+<text x="948.0" y="974" font-size="12.5" fill="#18212B">Everything after controls.json is one back end: the same Blender look, encode and checks for all six.</text>
+</svg>

@@ -1,0 +1,118 @@
+{
+ "page": "Pipeline",
+ "W": 1800, "H": 1100,
+ "title": "How Datapipe makes a Short",
+ "subtitle": "uv run datapipe short <method> <input>: read the audio, render headless in Blender, encode and check. One command, no post-production.",
+ "zones": [
+  {"id": "inputs", "x": 40, "y": 120, "w": 200, "h": 550, "fill": "#F6F8FA", "stroke": "#D0D7DE",
+   "title": "inbox/<method>/", "sub": "what you bring"},
+  {"id": "front", "x": 270, "y": 120, "w": 270, "h": 550, "fill": "#F2F7FC", "stroke": "#9CC3E4",
+   "icon": "logo-python", "isize": 20, "title": "Front ends", "sub": "uv venv · Python 3.12"},
+  {"id": "run", "x": 570, "y": 120, "w": 210, "h": 550, "fill": "#FFFFFF", "stroke": "data", "sw": 1.6,
+   "title": "Run folder", "sub": "work/<method>/<run>/", "chip": ["contract", "data"]},
+  {"id": "look", "x": 810, "y": 120, "w": 360, "h": 550, "fill": "#FDF6EE", "stroke": "#EBC79E",
+   "icon": "logo-blender", "isize": 22, "imono": "#E87D0D",
+   "title": "Look · Blender 5.2, headless", "sub": "blender/stem-tunnel/ · Python 3.13"},
+  {"id": "recipes", "x": 818, "y": 400, "w": 344, "h": 230, "fill": "#FFFFFF", "stroke": "deploy", "sw": 1, "dash": "5 4"},
+  {"id": "back", "x": 1200, "y": 120, "w": 340, "h": 550, "fill": "#F2F7FC", "stroke": "#9CC3E4",
+   "icon": "logo-python", "isize": 20, "title": "Back end · render.py", "sub": "uv venv · Python 3.12"},
+  {"id": "output", "x": 1570, "y": 120, "w": 190, "h": 550, "fill": "#F6F8FA", "stroke": "#D0D7DE",
+   "title": "output/<method>/", "sub": "upload-ready"}
+ ],
+ "nodes": {
+  "master": {"icon": "x-wave", "cx": 140, "cy": 215, "size": 44, "mono": "data", "label": "Master", "sub": ["audio or video file"]},
+  "stems": {"icon": "x-stems", "cx": 140, "cy": 330, "size": 44, "mono": "data", "label": "Stems", "sub": ["one file per track"]},
+  "midi": {"icon": "x-midi", "cx": 140, "cy": 445, "size": 44, "mono": "data", "label": "MIDI", "sub": ["one .mid per track"]},
+  "seed": {"icon": "x-dice", "cx": 140, "cy": 560, "size": 44, "mono": "custom", "label": "Preset + seed", "sub": ["nothing to drop (A)"]},
+
+  "song": {"icon": "x-onsets", "cx": 405, "cy": 330, "size": 52, "mono": "data", "label": "song/ · B to F",
+           "sub": ["decode to 48 kHz, align", "hits, tempo, sections", "slot and deep features"]},
+  "gen": {"icon": "x-compose", "cx": 405, "cy": 560, "size": 52, "mono": "custom", "label": "gen/ · A",
+          "sub": ["compose a score", "render with DawDreamer", "8 s loop, −14 LUFS"]},
+
+  "controls": {"icon": "i-braces", "cx": 675, "cy": 215, "size": 40, "mono": "data", "label": "controls.json", "sub": ["one schema, all six"]},
+  "mix": {"icon": "x-wave", "cx": 675, "cy": 330, "size": 40, "mono": "data", "label": "mix.wav", "sub": ["the master, 48 kHz"]},
+  "report": {"icon": "i-chart", "cx": 675, "cy": 445, "size": 40, "mono": "deploy", "label": "report.png", "sub": ["hits, sections (B to F)"]},
+  "runjson": {"icon": "i-document", "cx": 675, "cy": 560, "size": 40, "mono": "deploy", "label": "run.json", "sub": ["job record (B to F)"]},
+
+  "bake": {"icon": "logo-numpy", "cx": 900, "cy": 215, "size": 44, "label": "mapping.py",
+           "sub": ["look signals per frame", "keyed on AudioSignals", "same file as the venv"]},
+  "render": {"icon": "logo-blender", "cx": 1075, "cy": 215, "size": 48, "mono": "#E87D0D", "label": "stem_tunnel.blend",
+             "sub": ["drivers read the keys", "EEVEE → PNG frames"]},
+  "mapping": {"icon": "i-document", "cx": 900, "cy": 480, "size": 36, "mono": "deploy", "label": "mapping",
+              "sub": ["mappings/<method>.toml", "which sound drives what"]},
+  "style": {"icon": "x-tunnel", "cx": 1075, "cy": 480, "size": 36, "mono": "deploy", "label": "style",
+            "sub": ["styles/<name>.toml", "tunnel shape, sliders"]},
+
+  "encode": {"icon": "x-film", "cx": 1290, "cy": 215, "size": 44, "mono": "consume", "label": "S6 encode",
+             "sub": ["PyAV: H.264 + AAC", "frames + mix.wav"]},
+  "checks": {"icon": "s-shield-check", "cx": 1450, "cy": 215, "size": 44, "mono": "consume", "label": "S7 checks",
+             "sub": ["loudness, true peak", "sync, seam, flashes"]},
+
+  "mp4": {"icon": "a-phone", "cx": 1665, "cy": 215, "size": 52, "mono": "consume", "label": "The Short (MP4)",
+          "sub": ["9:16, 60 fps", "ready for YouTube"]},
+  "sidecar": {"icon": "i-braces", "cx": 1665, "cy": 360, "size": 36, "mono": "deploy", "label": "<name>.json", "sub": ["every check, timings"]},
+  "thumb": {"icon": "x-image", "cx": 1665, "cy": 480, "size": 36, "mono": "deploy", "label": "<name>.png", "sub": ["thumbnail"]},
+
+  "tuner": {"icon": "x-sliders", "cx": 1120, "cy": 770, "size": 48, "mono": "self", "label": "datapipe tune",
+            "sub": ["Blender GUI, Datapipe panel", "tune live, with the sound"]}
+ },
+ "edges": [
+  {"c": "data", "pts": [[164, 215], [255, 215], [255, 445], [164, 445]], "arrow": "none"},
+  {"c": "data", "pts": [[164, 330], [376, 330]], "src": "stems", "dst": "song"},
+  {"c": "custom", "pts": [[164, 560], [376, 560]], "src": "seed", "dst": "gen"},
+  {"c": "data", "pts": [[431, 330], [567, 330]], "src": "song", "dst": "run"},
+  {"c": "custom", "pts": [[431, 560], [567, 560]], "src": "gen", "dst": "run"},
+
+  {"c": "consume", "pts": [[697, 215], [875, 215]], "src": "controls", "dst": "bake"},
+  {"c": "consume", "pts": [[924, 215], [1048, 215]], "src": "bake", "dst": "render"},
+  {"c": "consume", "pts": [[1101, 215], [1265, 215]], "src": "render", "dst": "encode"},
+  {"c": "consume", "pts": [[1314, 215], [1425, 215]], "src": "encode", "dst": "checks"},
+  {"c": "consume", "pts": [[1474, 215], [1636, 215]], "src": "checks", "dst": "mp4"},
+  {"c": "consume", "pts": [[697, 330], [1197, 330]], "src": "mix", "dst": "back"},
+
+  {"c": "deploy", "pts": [[900, 460], [900, 306]], "src": "mapping", "dst": "bake", "dash": "6 4"},
+  {"c": "deploy", "pts": [[1075, 460], [1075, 294]], "src": "style", "dst": "render", "dash": "6 4"},
+
+  {"c": "self", "pts": [[1120, 744], [1120, 633]], "src": "tuner", "dst": "recipes", "dash": "6 4"},
+  {"c": "self", "pts": [[1094, 770], [675, 770], [675, 673]], "src": "tuner", "dst": "run", "dash": "6 4", "arrow": "both"}
+ ],
+ "dots": [[255, 215, "data"], [255, 330, "data"], [255, 445, "data"]],
+ "texts": [
+  {"x": 1135, "y": 205, "t": "PNG frames", "fs": 11, "c": "consume", "a": "middle"},
+  {"x": 987, "y": 322, "t": "the soundtrack", "fs": 11, "c": "consume", "a": "middle", "halo": true},
+  {"x": 834, "y": 612, "t": "Committed recipes · look.toml is the schema", "fs": 11, "c": "deploy"},
+  {"x": 826, "y": 652, "t": "config/pipeline.toml picks the look per method", "fs": 11},
+  {"x": 1128, "y": 705, "t": "save as default or style", "fs": 11, "c": "self"},
+  {"x": 820, "y": 762, "t": "opens a run · Save to run", "fs": 11, "c": "self", "a": "middle"},
+  {"x": 1222, "y": 400, "t": "S7 gates, no human needed", "fs": 12, "c": "#18212B", "w": 600},
+  {"x": 1222, "y": 424, "t": "·  H.264 High, BT.709 tags, index first", "fs": 11},
+  {"x": 1222, "y": 444, "t": "·  length to the frame", "fs": 11},
+  {"x": 1222, "y": 464, "t": "·  true peak ≤ −1 dBTP; A at −14 LUFS", "fs": 11},
+  {"x": 1222, "y": 484, "t": "·  hits of the light ring's track in sync", "fs": 11},
+  {"x": 1222, "y": 504, "t": "·  loop seam: frame n + 1 matches frame 1", "fs": 11},
+  {"x": 1222, "y": 524, "t": "·  no full-frame flashes", "fs": 11},
+  {"x": 1222, "y": 552, "t": "results go to the .json sidecar", "fs": 11, "c": "consume"}
+ ],
+ "badges": [
+  [1, 255, 388, "data"], [2, 318, 330, "data"], [3, 318, 560, "custom"], [4, 500, 330, "data"],
+  [5, 795, 215, "consume"], [6, 900, 370, "deploy"], [7, 1185, 215, "consume"], [8, 1370, 215, "consume"],
+  [9, 1555, 215, "consume"], [10, 720, 770, "self"]
+ ],
+ "legend_y": 890,
+ "legend": [["Audio and analysis", "data", false], ["Generated audio (A)", "custom", false],
+            ["Render and delivery", "consume", false], ["Recipes", "deploy", true], ["Tuning by hand", "self", true]],
+ "legend_frames": [["Python venv", "#F2F7FC", "#9CC3E4", false], ["Blender", "#FDF6EE", "#EBC79E", false]],
+ "steps": [
+  ["Drop a master, stems or MIDI into inbox/<method>/; the method decides how the audio is read.", "data"],
+  ["song/ decodes every file to 48 kHz, checks they line up, and finds hits, tempo and sections.", "data"],
+  ["Method A needs no file: gen/ composes a score and renders an 8-second loop with DawDreamer.", "custom"],
+  ["Every method writes the same run folder: mix.wav plus controls.json, one schema for all six.", "data"],
+  ["Headless Blender reads controls.json; mapping.py bakes it into per-frame look signals.", "consume"],
+  ["The method's mapping says which sound drives what; the style sets the tunnel's shape and look.", "deploy"],
+  ["EEVEE renders the neon tunnel to PNG frames, 1080×1920 at 60 fps (S5).", "consume"],
+  ["PyAV encodes the frames and mix.wav to H.264 and AAC for YouTube (S6).", "consume"],
+  ["S7 checks format, length, loudness, sync, the loop seam and flashes, then fills output/<method>/.", "consume"],
+  ["Optional: datapipe tune opens a run in Blender; save it to the run, or as the method's default.", "self"]
+ ]
+}

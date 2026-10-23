@@ -1,0 +1,1317 @@
+{
+ "page": "Input methods",
+ "W": 1800,
+ "H": 1020,
+ "title": "Six input methods, one contract, one back end",
+ "subtitle": "What you bring decides where the picture's timing comes from. Everything after controls.json is shared.",
+ "zones": [
+  {
+   "id": "lane_gen",
+   "x": 40,
+   "y": 192,
+   "w": 1300,
+   "h": 96,
+   "fill": "#F8FAFC",
+   "stroke": "#E1E6EB",
+   "rx": 10
+  },
+  {
+   "id": "lane_master",
+   "x": 40,
+   "y": 300,
+   "w": 1300,
+   "h": 96,
+   "fill": "#F8FAFC",
+   "stroke": "#E1E6EB",
+   "rx": 10
+  },
+  {
+   "id": "lane_stems",
+   "x": 40,
+   "y": 408,
+   "w": 1300,
+   "h": 96,
+   "fill": "#F8FAFC",
+   "stroke": "#E1E6EB",
+   "rx": 10
+  },
+  {
+   "id": "lane_midi",
+   "x": 40,
+   "y": 516,
+   "w": 1300,
+   "h": 96,
+   "fill": "#F8FAFC",
+   "stroke": "#E1E6EB",
+   "rx": 10
+  },
+  {
+   "id": "lane_slots",
+   "x": 40,
+   "y": 624,
+   "w": 1300,
+   "h": 96,
+   "fill": "#F8FAFC",
+   "stroke": "#E1E6EB",
+   "rx": 10
+  },
+  {
+   "id": "lane_deep",
+   "x": 40,
+   "y": 732,
+   "w": 1300,
+   "h": 96,
+   "fill": "#F8FAFC",
+   "stroke": "#E1E6EB",
+   "rx": 10
+  },
+  {
+   "id": "shared",
+   "x": 1410,
+   "y": 192,
+   "w": 350,
+   "h": 636,
+   "fill": "#F0F7F5",
+   "stroke": "#8CC7BD"
+  }
+ ],
+ "nodes": {
+  "gen_x-dice": {
+   "icon": "x-dice",
+   "cx": 456,
+   "cy": 240,
+   "size": 30,
+   "mono": "#4A5868"
+  },
+  "gen_front": {
+   "icon": "x-compose",
+   "cx": 672,
+   "cy": 240,
+   "size": 30,
+   "mono": "custom"
+  },
+  "master_x-wave": {
+   "icon": "x-wave",
+   "cx": 270,
+   "cy": 348,
+   "size": 30,
+   "mono": "#4A5868"
+  },
+  "master_front": {
+   "icon": "x-onsets",
+   "cx": 672,
+   "cy": 348,
+   "size": 30,
+   "mono": "data"
+  },
+  "stems_x-wave": {
+   "icon": "x-wave",
+   "cx": 270,
+   "cy": 456,
+   "size": 30,
+   "mono": "#4A5868"
+  },
+  "stems_x-stems": {
+   "icon": "x-stems",
+   "cx": 332,
+   "cy": 456,
+   "size": 30,
+   "mono": "#4A5868"
+  },
+  "stems_front": {
+   "icon": "x-onsets",
+   "cx": 672,
+   "cy": 456,
+   "size": 30,
+   "mono": "data"
+  },
+  "midi_x-wave": {
+   "icon": "x-wave",
+   "cx": 270,
+   "cy": 564,
+   "size": 30,
+   "mono": "#4A5868"
+  },
+  "midi_x-stems": {
+   "icon": "x-stems",
+   "cx": 332,
+   "cy": 564,
+   "size": 30,
+   "mono": "#4A5868"
+  },
+  "midi_x-midi": {
+   "icon": "x-midi",
+   "cx": 394,
+   "cy": 564,
+   "size": 30,
+   "mono": "#4A5868"
+  },
+  "midi_front": {
+   "icon": "x-midi",
+   "cx": 672,
+   "cy": 564,
+   "size": 30,
+   "mono": "custom"
+  },
+  "slots_x-wave": {
+   "icon": "x-wave",
+   "cx": 270,
+   "cy": 672,
+   "size": 30,
+   "mono": "#9AA5B1"
+  },
+  "slots_x-stems": {
+   "icon": "x-stems",
+   "cx": 332,
+   "cy": 672,
+   "size": 30,
+   "mono": "#4A5868"
+  },
+  "slots_front": {
+   "icon": "x-onsets",
+   "cx": 672,
+   "cy": 672,
+   "size": 30,
+   "mono": "data"
+  },
+  "deep_x-wave": {
+   "icon": "x-wave",
+   "cx": 270,
+   "cy": 780,
+   "size": 30,
+   "mono": "#4A5868"
+  },
+  "deep_front": {
+   "icon": "x-onsets",
+   "cx": 672,
+   "cy": 780,
+   "size": 30,
+   "mono": "data"
+  },
+  "controls": {
+   "icon": "i-braces",
+   "cx": 1450,
+   "cy": 240,
+   "size": 36,
+   "mono": "consume"
+  },
+  "look": {
+   "icon": "logo-blender",
+   "cx": 1450,
+   "cy": 400,
+   "size": 40,
+   "mono": "#E87D0D"
+  },
+  "render": {
+   "icon": "x-film",
+   "cx": 1450,
+   "cy": 560,
+   "size": 36,
+   "mono": "consume"
+  },
+  "out": {
+   "icon": "a-phone",
+   "cx": 1450,
+   "cy": 720,
+   "size": 40,
+   "mono": "consume"
+  }
+ },
+ "edges": [
+  {
+   "c": "custom",
+   "pts": [
+    [
+     1340,
+     240
+    ],
+    [
+     1380,
+     240
+    ]
+   ],
+   "arrow": "none",
+   "src": "lane_gen"
+  },
+  {
+   "c": "data",
+   "pts": [
+    [
+     1340,
+     348
+    ],
+    [
+     1380,
+     348
+    ]
+   ],
+   "arrow": "none",
+   "src": "lane_master"
+  },
+  {
+   "c": "data",
+   "pts": [
+    [
+     1340,
+     456
+    ],
+    [
+     1380,
+     456
+    ]
+   ],
+   "arrow": "none",
+   "src": "lane_stems"
+  },
+  {
+   "c": "custom",
+   "pts": [
+    [
+     1340,
+     564
+    ],
+    [
+     1380,
+     564
+    ]
+   ],
+   "arrow": "none",
+   "src": "lane_midi"
+  },
+  {
+   "c": "data",
+   "pts": [
+    [
+     1340,
+     672
+    ],
+    [
+     1380,
+     672
+    ]
+   ],
+   "arrow": "none",
+   "src": "lane_slots"
+  },
+  {
+   "c": "data",
+   "pts": [
+    [
+     1340,
+     780
+    ],
+    [
+     1380,
+     780
+    ]
+   ],
+   "arrow": "none",
+   "src": "lane_deep"
+  },
+  {
+   "c": "consume",
+   "pts": [
+    [
+     1380,
+     780
+    ],
+    [
+     1380,
+     240
+    ],
+    [
+     1429,
+     240
+    ]
+   ],
+   "dst": "controls"
+  },
+  {
+   "c": "consume",
+   "pts": [
+    [
+     1450,
+     260
+    ],
+    [
+     1450,
+     377
+    ]
+   ],
+   "src": "controls",
+   "dst": "look"
+  },
+  {
+   "c": "consume",
+   "pts": [
+    [
+     1450,
+     422
+    ],
+    [
+     1450,
+     539
+    ]
+   ],
+   "src": "look",
+   "dst": "render"
+  },
+  {
+   "c": "consume",
+   "pts": [
+    [
+     1450,
+     580
+    ],
+    [
+     1450,
+     697
+    ]
+   ],
+   "src": "render",
+   "dst": "out"
+  }
+ ],
+ "texts": [
+  {
+   "x": 58,
+   "y": 150,
+   "t": "Method",
+   "fs": 12.5,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 363,
+   "y": 150,
+   "t": "You bring",
+   "fs": 12.5,
+   "c": "#18212B",
+   "a": "middle",
+   "w": 600
+  },
+  {
+   "x": 500,
+   "y": 150,
+   "t": "Lands in",
+   "fs": 12.5,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 660,
+   "y": 150,
+   "t": "Front end",
+   "fs": 12.5,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 880,
+   "y": 150,
+   "t": "Hits (timing) from",
+   "fs": 12.5,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 1065,
+   "y": 150,
+   "t": "Mapping",
+   "fs": 12.5,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 1225,
+   "y": 150,
+   "t": "Length",
+   "fs": 12.5,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 1430,
+   "y": 150,
+   "t": "Shared by all six",
+   "fs": 12.5,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 270,
+   "y": 172,
+   "t": "master",
+   "fs": 11,
+   "c": "#5B6875",
+   "a": "middle"
+  },
+  {
+   "x": 332,
+   "y": 172,
+   "t": "stems",
+   "fs": 11,
+   "c": "#5B6875",
+   "a": "middle"
+  },
+  {
+   "x": 394,
+   "y": 172,
+   "t": "MIDI",
+   "fs": 11,
+   "c": "#5B6875",
+   "a": "middle"
+  },
+  {
+   "x": 456,
+   "y": 172,
+   "t": "preset + seed",
+   "fs": 11,
+   "c": "#5B6875",
+   "a": "middle"
+  },
+  {
+   "x": 72,
+   "y": 249,
+   "t": "A",
+   "fs": 26,
+   "c": "custom",
+   "a": "middle",
+   "w": 700
+  },
+  {
+   "x": 100,
+   "y": 237,
+   "t": "gen",
+   "fs": 15,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 100,
+   "y": 255,
+   "t": "fully generated",
+   "fs": 11.5,
+   "c": "#5B6875"
+  },
+  {
+   "x": 500,
+   "y": 237,
+   "t": "no inbox",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 500,
+   "y": 254,
+   "t": "work/gen/<run>/",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 694,
+   "y": 237,
+   "t": "gen/compose, engine",
+   "fs": 12.5,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 694,
+   "y": 254,
+   "t": "score → DawDreamer",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 880,
+   "y": 237,
+   "t": "the composed score",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 880,
+   "y": 254,
+   "t": "note-ons, exact",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1065,
+   "y": 237,
+   "t": "mappings/gen.toml",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 1065,
+   "y": 254,
+   "t": "light ring: kick",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1225,
+   "y": 237,
+   "t": "8 s loop",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 1225,
+   "y": 254,
+   "t": "seam closed",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 72,
+   "y": 357,
+   "t": "B",
+   "fs": 26,
+   "c": "data",
+   "a": "middle",
+   "w": 700
+  },
+  {
+   "x": 100,
+   "y": 345,
+   "t": "master",
+   "fs": 15,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 100,
+   "y": 363,
+   "t": "one finished track",
+   "fs": 11.5,
+   "c": "#5B6875"
+  },
+  {
+   "x": 500,
+   "y": 345,
+   "t": "inbox/master/",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 500,
+   "y": 362,
+   "t": "one file",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 694,
+   "y": 345,
+   "t": "song/onsets.py",
+   "fs": 12.5,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 694,
+   "y": 362,
+   "t": "percussive split, bands",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 880,
+   "y": 345,
+   "t": "onsets on the mix",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 880,
+   "y": 362,
+   "t": "by band, kick-likeness",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1065,
+   "y": 345,
+   "t": "mappings/master.toml",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 1065,
+   "y": 362,
+   "t": "light ring: kick",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1225,
+   "y": 345,
+   "t": "input's length",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 1225,
+   "y": 362,
+   "t": "warns over 60 s",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 72,
+   "y": 465,
+   "t": "C",
+   "fs": 26,
+   "c": "data",
+   "a": "middle",
+   "w": 700
+  },
+  {
+   "x": 100,
+   "y": 453,
+   "t": "stems",
+   "fs": 15,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 100,
+   "y": 471,
+   "t": "master and stems",
+   "fs": 11.5,
+   "c": "#5B6875"
+  },
+  {
+   "x": 500,
+   "y": 453,
+   "t": "inbox/stems/<song>/",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 500,
+   "y": 470,
+   "t": "master.wav, stems/",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 694,
+   "y": 453,
+   "t": "song/ingest + onsets",
+   "fs": 12.5,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 694,
+   "y": 470,
+   "t": "roles from file names",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 880,
+   "y": 453,
+   "t": "onsets on each stem",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 880,
+   "y": 470,
+   "t": "drum bus split by band",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1065,
+   "y": 453,
+   "t": "mappings/stems.toml",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 1065,
+   "y": 470,
+   "t": "light ring: kick",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1225,
+   "y": 453,
+   "t": "input's length",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 1225,
+   "y": 470,
+   "t": "warns over 60 s",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 72,
+   "y": 573,
+   "t": "D",
+   "fs": 26,
+   "c": "custom",
+   "a": "middle",
+   "w": 700
+  },
+  {
+   "x": 100,
+   "y": 561,
+   "t": "midi",
+   "fs": 15,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 100,
+   "y": 579,
+   "t": "master, stems, MIDI",
+   "fs": 11.5,
+   "c": "#5B6875"
+  },
+  {
+   "x": 500,
+   "y": 561,
+   "t": "inbox/midi/<song>/",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 500,
+   "y": 578,
+   "t": "+ midi/*.mid",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 694,
+   "y": 561,
+   "t": "song/midi.py",
+   "fs": 12.5,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 694,
+   "y": 578,
+   "t": "tempo map, markers",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 880,
+   "y": 561,
+   "t": "MIDI note-ons",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 880,
+   "y": 578,
+   "t": "velocity as strength",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1065,
+   "y": 561,
+   "t": "mappings/midi.toml",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 1065,
+   "y": 578,
+   "t": "light ring: kick",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1225,
+   "y": 561,
+   "t": "input's length",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 1225,
+   "y": 578,
+   "t": "warns over 60 s",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 72,
+   "y": 681,
+   "t": "E",
+   "fs": 26,
+   "c": "data",
+   "a": "middle",
+   "w": 700
+  },
+  {
+   "x": 100,
+   "y": 669,
+   "t": "slots",
+   "fs": 15,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 100,
+   "y": 687,
+   "t": "stems of anything",
+   "fs": 11.5,
+   "c": "#5B6875"
+  },
+  {
+   "x": 270,
+   "y": 702,
+   "t": "optional",
+   "fs": 9.5,
+   "c": "#5B6875",
+   "a": "middle"
+  },
+  {
+   "x": 500,
+   "y": 669,
+   "t": "inbox/slots/<piece>/",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 500,
+   "y": 686,
+   "t": "master optional",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 694,
+   "y": 669,
+   "t": "song/slots.py",
+   "fs": 12.5,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 694,
+   "y": 686,
+   "t": "ten features per slot",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 880,
+   "y": 669,
+   "t": "transients per slot",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 880,
+   "y": 686,
+   "t": "no tempo, no names",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1065,
+   "y": 669,
+   "t": "mappings/slots.toml",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 1065,
+   "y": 686,
+   "t": "light ring: slot1",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1225,
+   "y": 669,
+   "t": "input's length",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 1225,
+   "y": 686,
+   "t": "warns over 60 s",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 72,
+   "y": 789,
+   "t": "F",
+   "fs": 26,
+   "c": "data",
+   "a": "middle",
+   "w": 700
+  },
+  {
+   "x": 100,
+   "y": 777,
+   "t": "deep",
+   "fs": 15,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 100,
+   "y": 795,
+   "t": "one complex track",
+   "fs": 11.5,
+   "c": "#5B6875"
+  },
+  {
+   "x": 500,
+   "y": 777,
+   "t": "inbox/deep/",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 500,
+   "y": 794,
+   "t": "one file",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 694,
+   "y": 777,
+   "t": "song/deep.py",
+   "fs": 12.5,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 694,
+   "y": 794,
+   "t": "22 features of the mix",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 880,
+   "y": 777,
+   "t": "percussive onsets",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 880,
+   "y": 794,
+   "t": "low, mid, high bands",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1065,
+   "y": 777,
+   "t": "mappings/deep.toml",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 1065,
+   "y": 794,
+   "t": "light ring: low",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1225,
+   "y": 777,
+   "t": "input's length",
+   "fs": 12,
+   "c": "#18212B"
+  },
+  {
+   "x": 1225,
+   "y": 794,
+   "t": "warns over 60 s",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1480,
+   "y": 236,
+   "t": "controls.json + mix.wav",
+   "fs": 13,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 1480,
+   "y": 253,
+   "t": "one schema for every method",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1480,
+   "y": 267,
+   "t": "a missing source counts as 0",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1480,
+   "y": 396,
+   "t": "Look: stem_tunnel.blend",
+   "fs": 13,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 1480,
+   "y": 413,
+   "t": "+ mappings/<method>.toml",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1480,
+   "y": 427,
+   "t": "+ a style: shape, sliders",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1480,
+   "y": 556,
+   "t": "render.py",
+   "fs": 13,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 1480,
+   "y": 573,
+   "t": "S5 render, S6 encode",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1480,
+   "y": 587,
+   "t": "S7 checks, sync on the ring",
+   "fs": 11,
+   "c": "#5B6875"
+  },
+  {
+   "x": 1480,
+   "y": 716,
+   "t": "output/<method>/",
+   "fs": 13,
+   "c": "#18212B",
+   "w": 600
+  },
+  {
+   "x": 1480,
+   "y": 733,
+   "t": "MP4, .json checks, thumbnail",
+   "fs": 11,
+   "c": "#5B6875"
+  }
+ ],
+ "dots": [
+  [
+   270,
+   240,
+   "#C9D1D9"
+  ],
+  [
+   332,
+   240,
+   "#C9D1D9"
+  ],
+  [
+   394,
+   240,
+   "#C9D1D9"
+  ],
+  [
+   1380,
+   240,
+   "consume"
+  ],
+  [
+   332,
+   348,
+   "#C9D1D9"
+  ],
+  [
+   394,
+   348,
+   "#C9D1D9"
+  ],
+  [
+   456,
+   348,
+   "#C9D1D9"
+  ],
+  [
+   1380,
+   348,
+   "consume"
+  ],
+  [
+   394,
+   456,
+   "#C9D1D9"
+  ],
+  [
+   456,
+   456,
+   "#C9D1D9"
+  ],
+  [
+   1380,
+   456,
+   "consume"
+  ],
+  [
+   456,
+   564,
+   "#C9D1D9"
+  ],
+  [
+   1380,
+   564,
+   "consume"
+  ],
+  [
+   394,
+   672,
+   "#C9D1D9"
+  ],
+  [
+   456,
+   672,
+   "#C9D1D9"
+  ],
+  [
+   1380,
+   672,
+   "consume"
+  ],
+  [
+   332,
+   780,
+   "#C9D1D9"
+  ],
+  [
+   394,
+   780,
+   "#C9D1D9"
+  ],
+  [
+   456,
+   780,
+   "#C9D1D9"
+  ],
+  [
+   1380,
+   780,
+   "consume"
+  ]
+ ],
+ "badges": [
+  [
+   1,
+   411,
+   146,
+   "data"
+  ],
+  [
+   2,
+   572,
+   146,
+   "deploy"
+  ],
+  [
+   3,
+   1022,
+   146,
+   "custom"
+  ],
+  [
+   4,
+   1130,
+   146,
+   "consume"
+  ],
+  [
+   5,
+   1283,
+   146,
+   "deploy"
+  ],
+  [
+   6,
+   1570,
+   146,
+   "consume"
+  ]
+ ],
+ "legend_y": 860,
+ "legend": [
+  [
+   "Timing from notes: exact",
+   "custom",
+   false
+  ],
+  [
+   "Timing detected in the audio",
+   "data",
+   false
+  ],
+  [
+   "Shared back end",
+   "consume",
+   false
+  ]
+ ],
+ "steps": [
+  [
+   "The master is what you hear. Stems and MIDI only steer the picture; E without a master plays the stems' sum.",
+   "data"
+  ],
+  [
+   "Each method has its own inbox and run folders; datapipe example master|stems|midi shows the layout.",
+   "deploy"
+  ],
+  [
+   "Purple rows take their timing from notes (the score or MIDI), exact to the frame; blue rows detect it.",
+   "custom"
+  ],
+  [
+   "Each method has its own mapping onto the look; the S7 sync gate checks the track the light ring follows.",
+   "consume"
+  ],
+  [
+   "Songs keep their length: a warning over 60 s, refused over 180 s. A is an 8-second seamless loop.",
+   "deploy"
+  ],
+  [
+   "Everything after controls.json is one back end: the same Blender look, encode and checks for all six.",
+   "consume"
+  ]
+ ]
+}
