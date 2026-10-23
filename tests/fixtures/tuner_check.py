@@ -42,10 +42,10 @@ if os.environ.get("TUNER_CHECK", "tune") == "tune":
     t.shape.profile, t.shape.sides, t.shape.walls, t.shape.twist = "polygon", 6, "hexes", 0.25
     tuner.flush()                                               # what the timer does in the GUI
     out["shape"] = look.shape_info(ctrl, None)
-    out["changed_after_tuning"] = tuner.snapshot() != tuner._state["saved"]
+    out["changed_after_tuning"] = tuner.snapshot() != t.saved
     folder = tuner.save_to_run()
     out["saved"] = sorted(p.name for p in folder.iterdir())
-    out["clean_after_save"] = tuner.snapshot() == tuner._state["saved"]
+    out["clean_after_save"] = tuner.snapshot() == t.saved
     out["baked"] = look.baked_digest()
     out["lens_keys"] = json.loads((folder / "automation.json").read_text())["params"]["lens"]["keys"].__len__()
 print("TUNER_CHECK " + json.dumps(out), flush=True)

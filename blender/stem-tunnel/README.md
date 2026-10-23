@@ -14,7 +14,7 @@ uv run datapipe tune stems                                        # tune the lat
 uv run datapipe short --run work/stems/latest --preview           # render a run again, with what you tuned
 ```
 
-Output: `output/<method>/<run>.mp4`, a `.json` sidecar with the checks (and which mapping, style and keyframes it used), and a `.png` thumbnail from the twist (or the drop). The run folder keeps the same MP4, `controls.json`, `render.log` and `scene_baked.blend` (open it, scrub, play: the master is on the timeline); a song's run also has `report.png`, what the analysis found.
+Output: `output/<method>/<run>.mp4`, a `.json` sidecar with the checks (and which mapping, style and keyframes it used), and a `.png` thumbnail from the twist (or the drop). The run folder keeps the same MP4, `controls.json`, `render.log` and `scene_baked.blend` (open it to scrub, play and tune: the master is on the timeline, and the tuner comes with it, see below); a song's run also has `report.png`, what the analysis found.
 
 ## Tune by hand
 
@@ -33,13 +33,15 @@ Blender opens on the run with the master on the timeline and a **Datapipe** tab 
 |---|---|---|
 | Reactivity: signals | for each look signal (kick, bass, energy, ...): its sources and their weights, add any of the run's sources (hits, stems, bands, curves, sections, features), smoothing; a meter shows the signal at the current frame | `mapping.toml` |
 | Reactivity: hits, ring, motion | each track's hit envelope (wind-up, decay), the track and level of the light ring, the curve that speeds the tunnel up, the twist's roll and hue | `mapping.toml` |
-| Look: Kick, Bass, ... Layers | every slider of the look (look.toml `[look]`, 47 of them): reactions, base motion, camera, colour, line style, each layer's glow and hue. Hover a slider and press I to keyframe it: keys become the run's automation, e.g. a lens that zooms in through the drop | `style.toml [look]`, `automation.json` |
+| Look: Kick, Bass, ... Watermark | every slider of the look (look.toml `[look]`, 48 of them): reactions, base motion, camera, colour, line style, each layer's glow and hue, the watermark's opacity. Hover a slider and press I to keyframe it: keys become the run's automation, e.g. a lens that zooms in through the drop | `style.toml [look]`, `automation.json` |
 | Shape | the tunnel's geometry (below); rebuilds as you change it (Auto), in 0.04–0.15 s | `style.toml [shape]` |
 | Styles and defaults | load a style; save the current shape and sliders as a style for any song; save the mapping as the method's default | `styles/<name>.toml`, `mappings/<method>.toml` |
 
 A mapping change re-bakes the signals in milliseconds; a slider that moves the camera or the spins (speeds, roll, spins, colour cycling) re-bakes the motion; the rest are drivers and change at once. The panel bakes with this folder's own `stem_tunnel.py` functions, so the scene you tune is keyed exactly as the render will be (`tests/test_tune.py` checks it).
 
-**Save to run** writes `<run>/tuning/stem-tunnel/` (`mapping.toml`, `style.toml`, `automation.json` when something is keyframed), and from then on `datapipe short --run <run>` renders with it; **Render preview** and **Render final** in the panel save and run exactly that, and show the checks. What a render uses is, for each file, the first that exists: `--mapping` / `--style`, the run's tuning, then the look's `mappings/<method>.toml` and the style `[methods.<method>]` or `[looks.stem-tunnel]` names in `config/pipeline.toml` (`default`). The CLI and the sidecar say which. The session is saved as `<run>/tune.blend`, so the template is never overwritten; open runs with `datapipe tune` (the panel isn't stored in the .blend). Keyframes that don't end where they started break the loop's seam, and the seam check says so: use `--no-loop` for such a song, or key the last frame like the first.
+**Save to run** writes `<run>/tuning/stem-tunnel/` (`mapping.toml`, `style.toml`, `automation.json` when something is keyframed), and from then on `datapipe short --run <run>` renders with it; **Render preview** and **Render final** in the panel save and run exactly that, and show the checks. What a render uses is, for each file, the first that exists: `--mapping` / `--style`, the run's tuning, then the look's `mappings/<method>.toml` and the style `[methods.<method>]` or `[looks.stem-tunnel]` names in `config/pipeline.toml` (`default`). The CLI and the sidecar say which. The session is saved as `<run>/tune.blend`, so the template is never overwritten. Keyframes that don't end where they started break the loop's seam, and the seam check says so: use `--no-loop` for such a song, or key the last frame like the first.
+
+**The tuner travels with the .blend.** A run's `scene_baked.blend` (every render saves one) and `tune.blend` carry the panel as a small text block, `datapipe_tuner.py`, that loads `tuner.py` from this repo. Open either in Blender and click *Allow Execution* when Blender asks (or turn on *Auto Run Python Scripts* in Preferences > Save & Load, which skips the question): the Datapipe tab is back on the run, exactly as the file was saved, with nothing re-baked, and Save to run and the Render buttons work as in `datapipe tune`. Blender's own Ctrl+S keeps your changes in the file; Save to run is what a render takes. Without allowing scripts, the file still plays and renders as baked; only the panel is missing. If the repo has moved, the panel can't load: open the run with `datapipe tune --run <run>` instead.
 
 ## Shapes and styles
 
@@ -55,6 +57,8 @@ A style (`styles/<name>.toml`) is the shape of the tunnel plus any of the look's
 | `twist`, `wave`, `wave_count` | the cross-section turns along the tunnel (cells per row, in eighths); the tunnel swells and narrows |
 
 The live sliders added to the reference look's: `hue_base`, `hue_depth`, `hue_across`, `saturation`, `line_edges`, `line_core`, `line_sharp`, `fill_glow`, `wave_amount`, `view_far`, `cam_orbit` (the camera off the axis, orbiting with the roll), and `walls_glow`, `portals_glow`, `outer_glow`, `walls_hue`, `portals_hue`, `outer_hue` per layer.
+
+**The watermark.** A white, letter-spaced *hyperadapted* in Blender's own sans-serif sits at the top centre, barely there: `watermark` is its opacity (0.02 by default; 0 hides it). It is a text object just in front of the camera, parented to it and scaled against the lens, so it holds still while the tunnel rolls and the kick punches the zoom. Its light stays under the glare's threshold, so it doesn't bloom, and it doesn't move the checks: a preview of the same run counted the same flashes at the same mean luminance (0.058) with it as without.
 
 Styles in the repo: `default` (the reference look), `hex_prism`, `square_circuit`, `star_vortex`, `flower_tube`, `speed_rails`, `truchet_maze`.
 
@@ -133,9 +137,9 @@ With the defaults the 50 % preview of `neon_house` seed 42 has no flashes; the k
 
 | File | What |
 |---|---|
-| `stem_tunnel.blend` | the template: the reference lines tunnel at `styles/default.toml`, no kaleidoscope, no UI script, drivers on the run signals, `near_fade` on the portals |
+| `stem_tunnel.blend` | the template: the reference lines tunnel at `styles/default.toml`, no kaleidoscope, no UI script, drivers on the run signals, `near_fade` on the portals, the watermark |
 | `stem_tunnel.py` | runs inside Blender: maps controls onto the look, applies the style, bakes, wires the drivers, renders; `--tune` opens the tuner, `--make-template` rebuilds the template |
-| `tuner.py` | the Datapipe panel (`datapipe tune`) |
+| `tuner.py` | the Datapipe panel (`datapipe tune`, and every saved run's .blend) |
 | `shapes.py` | the geometry: profiles, patterns, twist and wave, and the periods the loop closes on |
 | `look.toml` | every control: the look signals, the sliders and the shape, with ranges, defaults and help |
 | `mappings/<method>.toml` | which modulator drives which look signal, per input method: `gen`, `master`, `stems`, `midi`, `slots`, `deep` |

@@ -75,6 +75,7 @@ outer_glow       = { group = "Layers", label = "Outer glow", default = 1.0, min 
 walls_hue        = { group = "Layers", label = "Walls hue", default = 0.0, min = 0.0, max = 1.0, help = "Turns the walls' colours" }
 portals_hue      = { group = "Layers", label = "Portals hue", default = 0.0, min = 0.0, max = 1.0, help = "Turns the portals' colours" }
 outer_hue        = { group = "Layers", label = "Outer hue", default = 0.0, min = 0.0, max = 1.0, help = "Turns the outer shell's colours" }
+watermark        = { group = "Watermark", label = "Opacity", default = 0.02, min = 0.0, max = 0.3, help = "The white \"hyperadapted\" at the top centre, barely there by default (0 hides it)" }
 
 # The geometry (shapes.py): changing any of these rebuilds the three tunnel meshes, so the tuner shows a Rebuild
 # button (or rebuilds on every change with Auto). The loop periods follow the shape, so the seam still closes.

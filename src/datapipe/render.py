@@ -111,7 +111,8 @@ def make_short(run: Path, look: str | None = None, preview: bool = False, keep_f
            "--run", str(run), "--frames-dir", str(frames), "--mapping", str(files["mapping"]),
            "--width", str(width), "--height", str(height),
            "--percent", str(profile["percent"]), "--samples", str(profile["eevee_samples"]),
-           "--save-blend", str(run / "scene_baked.blend")] + (["--seam"] if controls.get("close", True) else [])
+           "--save-blend", str(run / "scene_baked.blend"), "--method", method, "--save-to", str(files["tuning_dir"]),
+           "--pipeline-python", sys.executable] + (["--seam"] if controls.get("close", True) else [])
     cmd += ["--style", str(files["style"])] if files["style"] else []
     cmd += ["--automation", str(files["automation"])] if files["automation"] else []
     tuning = tuning_report(files)

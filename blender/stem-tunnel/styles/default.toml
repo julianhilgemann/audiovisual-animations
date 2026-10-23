@@ -83,3 +83,5 @@ outer_glow   = 1.0  # Outer glow
 walls_hue    = 0.0  # Walls hue
 portals_hue  = 0.0  # Portals hue
 outer_hue    = 0.0  # Outer hue
+# Watermark
+watermark = 0.02  # Opacity

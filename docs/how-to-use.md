@@ -186,6 +186,8 @@ This analyses the song first, the same as `short` does, then opens Blender. To o
 
 When Blender is open, move the mouse over the big 3D view and press **N**. A sidebar appears on the right; click its **Datapipe** tab. Press **Play** in the panel and the tunnel moves with the song while you change things.
 
+**Coming back later.** Every song's folder in `work/` holds Blender files you can simply double-click: `scene_baked.blend` (what the last video was made from) and `tune.blend` (the tuner's own file: Blender's **Ctrl+S** keeps your changes in it, **Save to run** is what the next video uses). Blender asks whether to allow the file's scripts: click **Allow Execution**, and the Datapipe tab is back, just as you left it. (To stop Blender asking, tick *Auto Run Python Scripts* under Edit > Preferences > Save & Load.) If you don't allow it, the file still plays, only without the tab.
+
 ### The main panel
 
 At the top, the **Datapipe tuner** panel shows which song and method you're working on and how long it is, and has these buttons:
@@ -222,7 +224,7 @@ The picture listens to eight **signals**. Each one moves its own part of the tun
 
 ### How it looks: the "Look" panels
 
-Eight panels of sliders: **Kick**, **Bass**, **Hats and mids**, **Loudness**, **Base motion** (the overall speed, and the drift when the music is quiet), **Camera** (lens, off-centre, view distance), **Glow and colour** (bloom, hue, saturation, line style) and **Layers** (glow and colour of the walls, rings and outer shell separately). Most change the picture at once; speeds and spins take a moment to recalculate.
+Nine panels of sliders: **Kick**, **Bass**, **Hats and mids**, **Loudness**, **Base motion** (the overall speed, and the drift when the music is quiet), **Camera** (lens, off-centre, view distance), **Glow and colour** (bloom, hue, saturation, line style), **Layers** (glow and colour of the walls, rings and outer shell separately) and **Watermark** (how visible the faint *hyperadapted* at the top is; 0 hides it). Most change the picture at once; speeds and spins take a moment to recalculate.
 
 **To change a slider over the course of the song** (say, a lens that zooms in through the drop), use keyframes: move to a moment in the song, set the slider, hover over it and press **I**. Move to another moment, change it, and press **I** again. Blender blends between them.
 

@@ -3,7 +3,8 @@
 Without Blender: the mapping and style files round-trip in the tuner's canonical form, styles are checked against
 look.toml, a render picks its files given > run tuning > look, and every shape repeats exactly after the periods
 the look closes its loop on. With Blender: the default shape rebuilds the reference look's meshes, the tuner holds
-its files exactly and a run tuned in it renders keyed as tuned, and every style's loop closes.
+its files exactly and a run tuned in it renders keyed as tuned, a rendered scene opens with the panel, and every
+style's loop closes.
 """
 
 import json
@@ -199,6 +200,28 @@ def test_a_run_tuned_in_the_panel_renders_as_tuned(run, tmp_path):
                               files["automation"], "--no-render"), "STEM_TUNNEL_RESULT")
     assert rendered["baked"] == check["baked"]                   # keyed exactly as in the panel
     assert rendered["shape"]["rebuilt"] and np.isclose(rendered["shape"]["roll"], math.pi)
+
+
+@needs_blender
+def test_a_rendered_scene_opens_with_the_panel_and_a_still_watermark(run, tmp_path):
+    """The scene a render saves carries the tuner: opened with its scripts allowed, the panel is back on the run as
+    rendered, with nothing unsaved, and re-bakes to the render's keys. The watermark stays put through the zoom."""
+    files = look_files(load_config(), "gen", run=run)
+    frames, blend = tmp_path / "frames", tmp_path / "scene_baked.blend"
+    frames.mkdir()
+    given = ["--style", files["style"]] if files["style"] else []
+    given += ["--automation", files["automation"]] if files["automation"] else []
+    rendered = _line(_blender(files["scene"], "--python", files["script"], "--", "--run", run, "--frames-dir", frames,
+                              "--mapping", files["mapping"], *given, "--no-render", "--save-blend", blend,
+                              "--pipeline-python", sys.executable), "STEM_TUNNEL_RESULT")
+    opened = _line(_blender("--enable-autoexec", blend, "--python", ROOT / "tests" / "fixtures" / "opened_check.py"),
+                   "OPENED_CHECK")
+    assert opened["panel"] and opened["run"] == str(run) and opened["python"] == sys.executable, opened
+    assert opened["clean"] and opened["baked"] == rendered["baked"] == opened["rebaked"], opened
+    box = np.array(opened["watermark"])                          # x0, y0, x1, y1 in the frame, 0-1 from bottom left
+    assert max(opened["lens"]) - min(opened["lens"]) > 2         # the kick punches the zoom ...
+    assert np.ptp(box, axis=0).max() < 1e-4                      # ... and the watermark holds still
+    assert np.isclose(box[:, [0, 2]].mean(), 0.5, atol=1e-3) and 0.9 < box[0, 1] < box[0, 3] < 0.95   # top centre
 
 
 @needs_blender

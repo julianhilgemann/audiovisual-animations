@@ -8,7 +8,8 @@ The pipeline calls it (`datapipe short <method>`); by hand:
         [--automation <run>/tuning/stem-tunnel/automation.json] [--percent 50] [--samples 8] [--seam]
 
 `datapipe tune` opens the same scene in the Blender GUI with the tuner panel (tuner.py, `--tune`), which bakes with
-these same functions, so what you tune is what renders.
+these same functions, so what you tune is what renders. The scene a render saves (`--save-blend`) carries the panel
+too: open it in Blender, allow its scripts, and tune on.
 
 Rebuild the template from the reference scene, e.g. after re-tuning the look in blender/audio-tunnel:
 
@@ -17,7 +18,7 @@ Rebuild the template from the reference scene, e.g. after re-tuning the look in 
 
 Every reaction is a driver on the AudioSignals empty (the run's modulators, baked one key per frame) and the
 NeonControls empty (the look's sliders, look.toml). All drivers are simple expressions, so no Python auto-run is
-needed. The geometry comes from shapes.py and the style's [shape].
+needed (only the panel a saved scene carries is). The geometry comes from shapes.py and the style's [shape].
 """
 
 import argparse
@@ -50,6 +51,8 @@ MOTION = tuple(k for k, spec in SCHEMA["look"].items() if spec.get("motion"))
 SHADER = ("hue_base", "hue_depth", "hue_across", "saturation", "line_edges", "line_core", "line_sharp", "fill_glow",
           "wave_amount", "view_far")                                  # look values the material reads directly
 EMIT, HUE_D, RING_W, RING_GAIN = 10.0, 14.0, 3.0, 22.0                # the reference look's constants
+MARK, MARK_TEXT = "Watermark", "hyperadapted"
+MARK_NEAR = 0.1                # the watermark's distance in front of the camera, just past its clip start
 
 
 def main() -> None:
@@ -76,6 +79,9 @@ def main() -> None:
     configure(scene, a.width, a.height, a.percent, a.samples, a.frames_dir, n)
     set_sound(scene, a.run / "mix.wav")
     if a.save_blend:
+        import tuner
+
+        tuner.keep(a)
         bpy.ops.wm.save_as_mainfile(filepath=str(a.save_blend), compress=True, copy=True)
     timings = {"bake_s": round(time.time() - t0, 2)}
     if a.frames:
@@ -114,12 +120,12 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--seam", action="store_true", help="also render frame n + 1, which must match frame 1")
     p.add_argument("--frames", type=lambda s: [int(f) for f in s.split(",")],
                    help="render only these frames (e.g. 1,481) as frame_<n>.png")
-    p.add_argument("--save-blend", type=Path, help="save the baked scene here, to open and scrub")
+    p.add_argument("--save-blend", type=Path, help="save the baked scene here, with the tuner panel, to open and tune")
     p.add_argument("--no-render", action="store_true")
     p.add_argument("--tune", action="store_true", help="open the tuner panel instead of rendering (GUI)")
-    p.add_argument("--method", help="tune: the run's method, for saving its default mapping")
-    p.add_argument("--save-to", type=Path, help="tune: where 'Save to run' writes (the run's tuning folder)")
-    p.add_argument("--pipeline-python", help="tune: the pipeline's Python, for the panel's render buttons")
+    p.add_argument("--method", help="the panel: the run's method, for saving its default mapping")
+    p.add_argument("--save-to", type=Path, help="the panel: where 'Save to run' writes (the run's tuning folder)")
+    p.add_argument("--pipeline-python", help="the panel: the pipeline's Python, for its render buttons")
     p.add_argument("--make-template", type=Path, help="turn the open reference scene into the template, save it here")
     a = p.parse_args(argv)
     if not a.make_template and not a.tune and not (a.run and a.frames_dir):
@@ -385,12 +391,17 @@ def wire(scene, ctrl) -> None:
     nodes = bpy.data.materials["NeonLine"].node_tree.nodes
     glare = sorted((nd for nd in scene.compositing_node_group.nodes if nd.bl_idname == "CompositorNodeGlare"),
                    key=lambda nd: nd.name)
+    lens = "max(lens - kick_zoom*kick, 2)"
+    half = MARK_NEAR * cam.data.sensor_width / 2       # half the frame's height at the watermark, times the lens
     specs = [
         (cam, "location", 0, "cam_orbit*_inradius*cos(roll)"),
         (cam, "location", 1, "cam_orbit*_inradius*sin(roll)"),
         (cam, "location", 2, f"-fmod(travel, {per:.8f})"),
         (cam, "rotation_euler", 2, "roll + kick_jolt*kick"),
-        (cam.data, "lens", -1, "max(lens - kick_zoom*kick, 2)"),
+        (cam.data, "lens", -1, lens),
+        (O[MARK], "scale", 0, f"{half:.6f}/{lens}"),             # the watermark keeps its size through the zoom
+        (O[MARK], "scale", 1, f"{half:.6f}/{lens}"),
+        (bpy.data.materials[MARK].node_tree.nodes["Opacity"].inputs["Fac"], "default_value", -1, "watermark"),
         (portals, "rotation_euler", 2, "portal"),
         (outer, "rotation_euler", 2, "-outer"),
         (glare[0].inputs["Strength"], "default_value", -1, "0.42*bloom*(0.6 + 0.6*energy + 0.8*kick_bloom*kick_light)"),
@@ -480,7 +491,7 @@ def set_sound(scene, wav: Path | None) -> None:
 def make_template(path: Path) -> None:
     """From the reference scene: keep the lines look and its sliders (at styles/default.toml's values), drop the
     kaleidoscope, the old audio wiring and the UI script, rebuild the material and the meshes with this look's code,
-    wire the drivers to neutral signals and save."""
+    add the watermark, wire the drivers to neutral signals and save."""
     scene, ctrl = bpy.context.scene, bpy.data.objects[CTRL]
     for text in list(bpy.data.texts):
         bpy.data.texts.remove(text)
@@ -502,6 +513,7 @@ def make_template(path: Path) -> None:
                                           default=spec["default"], precision=3, description=spec["help"])
     build_material()
     ensure_shape(style["shape"], ctrl, force=True)
+    build_watermark(bpy.data.objects[CAM])
     silent = {"frames": FRAMES, "sections": [{"name": "hook", "frame": 0}], "tracks": {}, "stems": {}, "curves": {},
               "mix": {"loud": [0.0] * FRAMES, "bright": [0.0] * FRAMES}}
     bake_run(silent, recipe.load(HERE / "mappings" / "gen.toml"), ctrl)
@@ -608,6 +620,34 @@ def build_material() -> None:
     links.new(comb.outputs[0], emi.inputs["Color"])
     links.new(strength, emi.inputs["Strength"])
     links.new(emi.outputs[0], out.inputs["Surface"])
+
+
+def build_watermark(cam) -> None:
+    """MARK_TEXT in white at the top centre, at the `watermark` slider's opacity: a text object MARK_NEAR in front of
+    the camera and parented to it, so it holds still on screen while the view rolls. Its units are half the frame's
+    height (wire scales it against the lens, which also keeps it still through the kick's zoom punch)."""
+    cu = bpy.data.curves.get(MARK) or bpy.data.curves.new(MARK, "FONT")
+    cu.body, cu.align_x, cu.align_y = MARK_TEXT, "CENTER", "CENTER"
+    cu.size, cu.space_character, cu.offset_y = 0.035, 1.3, 0.86      # Blender's own sans, letter-spaced, at the top
+    ob = bpy.data.objects.get(MARK) or bpy.data.objects.new(MARK, cu)
+    if not ob.users_collection:
+        cam.users_collection[0].objects.link(ob)
+    ob.parent, ob.matrix_parent_inverse = cam, ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
+    ob.location, ob.rotation_euler = (0.0, 0.0, -MARK_NEAR), (0.0, 0.0, 0.0)
+    ob.hide_select = True
+    mat = bpy.data.materials.get(MARK) or bpy.data.materials.new(MARK)
+    mat.surface_render_method = "BLENDED"
+    nt = mat.node_tree
+    nt.nodes.clear()
+    out, mix = nt.nodes.new("ShaderNodeOutputMaterial"), nt.nodes.new("ShaderNodeMixShader")
+    clear, emi = nt.nodes.new("ShaderNodeBsdfTransparent"), nt.nodes.new("ShaderNodeEmission")
+    mix.name = mix.label = "Opacity"
+    emi.inputs["Color"].default_value, emi.inputs["Strength"].default_value = (1.0, 1.0, 1.0, 1.0), 1.0
+    nt.links.new(clear.outputs[0], mix.inputs[1])
+    nt.links.new(emi.outputs[0], mix.inputs[2])
+    nt.links.new(mix.outputs[0], out.inputs["Surface"])
+    cu.materials.clear()
+    cu.materials.append(mat)
 
 
 _frames = [FRAMES]                 # the run's frame count, for the progress line

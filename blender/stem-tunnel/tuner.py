@@ -17,7 +17,9 @@ wire), so the scene you tune and the headless render are keyed identically; a ma
 milliseconds, a slider that moves the camera or the spins re-bakes its motion, a shape change rebuilds the meshes.
 
 Opened by `stem_tunnel.py --tune` (stem_tunnel.blend in the GUI); the session is saved as <run>/tune.blend so the
-template stays untouched. In background mode (tests) nothing waits on timers: call ``flush()`` after a change.
+template stays untouched. That file and every render's <run>/scene_baked.blend carry the panel (``embed``): open one
+in Blender, allow its scripts, and it resumes as it was saved (``attach``). In background mode (tests) nothing waits
+on timers: call ``flush()`` after a change.
 """
 
 import json
@@ -39,7 +41,28 @@ CATEGORY = "Datapipe"
 MOTION_KEYS = ("speed_curve", "speed_riser", "roll_twist", "twist_hue", "section_ease")
 PREVIEW = {"percent": 50, "samples": 8}             # what F12 renders in the session (the pipeline's --preview)
 _state = {"controls": None, "pending": set(), "render": None, "motion": None, "loading": False, "python": None,
-          "mapping_head": "", "saved": None, "items": {}}
+          "mapping_head": "", "items": {}}
+BOOT = "datapipe_tuner.py"                         # the text block a saved file brings the panel back with
+BOOT_CODE = '''"""The Datapipe tuner for this file: blender/stem-tunnel/tuner.py of the repo below.
+
+Blender runs this when the file opens with its scripts allowed ("Allow Execution", or Auto Run Python Scripts in
+the preferences): the Datapipe tab comes back in the 3D view's sidebar (N), on the run this file holds. Without it
+the file still plays and renders as baked."""
+
+import sys
+from pathlib import Path
+
+LOOK, PYTHON = Path({look!r}), {python!r}
+if (LOOK / "tuner.py").exists():
+    for path in (str(LOOK.parents[1] / "src"), str(LOOK)):
+        if path not in sys.path:
+            sys.path.insert(0, path)
+    import tuner
+
+    tuner.attach(PYTHON)
+else:
+    print(f"Datapipe: no tuner at {{LOOK}}, so this file opens without its panel")
+'''
 
 
 # ---- state in the scene ------------------------------------------------------------------------------------------
@@ -142,6 +165,7 @@ class DATAPIPE_Tuning(PropertyGroup):
     shape_info: StringProperty(default="")
     style_name: StringProperty(name="Name", default="my_style")
     dirty: BoolProperty(default=False)
+    saved: StringProperty(default="")              # snapshot() as last loaded or saved to the run
     message: StringProperty(default="")
     render_status: StringProperty(default="")
     render_video: StringProperty(default="")
@@ -157,10 +181,64 @@ def start(a) -> None:
     load_run(run, mapping=a.mapping, style=a.style, automation=a.automation, method=a.method,
              save_to=a.save_to or run / "tuning" / look.HERE.name)
     if not bpy.app.background:
+        embed(a.pipeline_python)
         bpy.ops.wm.save_as_mainfile(filepath=str(run / "tune.blend"), compress=True)
-        bpy.app.timers.register(_setup_ui, first_interval=0.3)
-        bpy.app.timers.register(_tick, first_interval=1.0, persistent=True)
+        _live()
     print(f"DATAPIPE_TUNER ready {run}", flush=True)
+
+
+def keep(a) -> None:
+    """Before a render saves its baked scene (stem_tunnel.py --save-blend): the panel on the run and the files it
+    rendered with, as `datapipe tune` would open it, put into the file (``embed``). Nothing is re-baked."""
+    register()
+    fill(a.run, a.mapping, a.style, a.method, a.save_to)
+    bpy.context.scene.frame_set(1)                 # keyframed sliders at the frame the file opens on
+    bpy.context.scene.datapipe.saved = snapshot()
+    embed(a.pipeline_python)
+
+
+def embed(python: str | None) -> None:
+    """A text block Blender runs as a module when the saved file opens with its scripts allowed: it imports this
+    tuner from the repo and calls ``attach``. Drivers never need it; the file plays and renders as baked without."""
+    text = bpy.data.texts.get(BOOT) or bpy.data.texts.new(BOOT)
+    text.from_string(BOOT_CODE.format(look=str(look.HERE), python=python))
+    text.use_module = True
+
+
+def attach(python: str | None = None) -> None:
+    """Called by the text block of a file opened in Blender (``embed``): the panel, on the state the file was saved
+    with, once the file has loaded."""
+    register()
+    _state["python"] = python
+    if bpy.app.background:
+        resume()
+    else:
+        bpy.app.timers.register(resume, first_interval=0.1)
+
+
+def resume() -> None:
+    """Take up the panel a saved file holds: its scene is baked already, the run's controls are read for re-baking."""
+    t = bpy.context.scene.datapipe
+    if not t.run:
+        return None
+    run = Path(t.run)
+    if not (run / "controls.json").exists():
+        t.message = f"Run not found: {run}"
+        return None
+    _state["controls"] = json.loads((run / "controls.json").read_text(encoding="utf-8"))
+    _state["mapping_head"] = recipe.header(t.mapping_path) if Path(t.mapping_path).exists() else ""
+    _state["motion"] = _motion_state(bpy.data.objects[look.CTRL])
+    t.message = f"Opened {Path(bpy.data.filepath).name}"
+    if not bpy.app.background:
+        _live()
+    return None
+
+
+def _live() -> None:
+    """The GUI's timers: the view set up once, the Saved line and a render's progress every second."""
+    bpy.app.timers.register(_setup_ui, first_interval=0.3)
+    if not bpy.app.timers.is_registered(_tick):
+        bpy.app.timers.register(_tick, first_interval=1.0, persistent=True)
 
 
 def load_run(run: Path, mapping: Path, style: Path | dict | None = None, automation: Path | None = None,
@@ -168,22 +246,9 @@ def load_run(run: Path, mapping: Path, style: Path | dict | None = None, automat
     """Bake ``run`` with a mapping file and a style (a file, a resolved style, or None for the defaults)."""
     scene, t = bpy.context.scene, bpy.context.scene.datapipe
     ctrl = bpy.data.objects[look.CTRL]
-    controls = json.loads((run / "controls.json").read_text(encoding="utf-8"))
-    _state["controls"] = controls
     _state["loading"] = True
     try:
-        t.run, t.method = str(run), method or controls.get("method", "gen")
-        t.save_to = str(save_to or run / "tuning" / look.HERE.name)
-        t.mapping_path = str(mapping)
-        if not isinstance(style, dict):
-            t.style_path = str(style or "")
-        for coll, names in ((t.tracks, controls.get("tracks", {})), (t.curves, controls.get("curves", {})),
-                            (t.sources, look.available_sources(controls))):
-            coll.clear()
-            for name in names:
-                coll.add().name = name
-        set_mapping(recipe.load(mapping), recipe.header(mapping))
-        set_style(style if isinstance(style, dict) else recipe.resolve_style(recipe.load(style) if style else {}, SCHEMA))
+        controls = _state["controls"] = fill(run, mapping, style, method, save_to)
         if ctrl.animation_data:
             ctrl.animation_data_clear()
         if automation and Path(automation).exists():
@@ -192,13 +257,37 @@ def load_run(run: Path, mapping: Path, style: Path | dict | None = None, automat
         _state["loading"] = False
     rebuild_now()
     look.configure(scene, 1080, 1920, PREVIEW["percent"], PREVIEW["samples"], None, controls["frames"])
-    look.set_sound(scene, run / "mix.wav")
+    look.set_sound(scene, Path(t.run) / "mix.wav")
+    scene.frame_set(1)
+    t.saved = snapshot()
+    t.dirty, t.message = False, f"Loaded {Path(t.run).name}"
+
+
+def fill(run: Path, mapping: Path, style: Path | dict | None = None, method: str | None = None,
+         save_to: Path | None = None) -> dict:
+    """The panel from a run and its files, and the sliders from the style; returns the run's controls."""
+    t, run = bpy.context.scene.datapipe, Path(run).absolute()
+    controls = json.loads((run / "controls.json").read_text(encoding="utf-8"))
+    was, _state["loading"] = _state["loading"], True
+    try:
+        t.run, t.method = str(run), method or controls.get("method", "gen")
+        t.save_to = str(Path(save_to or run / "tuning" / look.HERE.name).absolute())
+        t.mapping_path = str(Path(mapping).absolute())
+        if not isinstance(style, dict):
+            t.style_path = str(Path(style).absolute()) if style else ""
+        for coll, names in ((t.tracks, controls.get("tracks", {})), (t.curves, controls.get("curves", {})),
+                            (t.sources, look.available_sources(controls))):
+            coll.clear()
+            for name in names:
+                coll.add().name = name
+        set_mapping(recipe.load(mapping), recipe.header(mapping))
+        set_style(style if isinstance(style, dict) else recipe.resolve_style(recipe.load(style) if style else {}, SCHEMA))
+    finally:
+        _state["loading"] = was
     sig = bpy.data.objects[look.SIG]
     for name in look.LEVELS:
         sig.id_properties_ui(name).update(min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, precision=2)
-    scene.frame_set(1)
-    _state["saved"] = snapshot()
-    t.dirty, t.message = False, f"Loaded {run.name}"
+    return controls
 
 
 def set_mapping(cfg: dict, head: str) -> None:
@@ -298,7 +387,7 @@ def save_to_run() -> Path:
         auto.unlink()
     t.mapping_path, t.style_path = str(folder / "mapping.toml"), str(folder / "style.toml")
     _state["mapping_head"] = head
-    _state["saved"] = snapshot()
+    t.saved = snapshot()
     t.dirty, t.message = False, f"Saved to {folder.relative_to(ROOT) if folder.is_relative_to(ROOT) else folder}"
     return folder
 
@@ -378,7 +467,7 @@ def _tick():
     if not getattr(scene, "datapipe", None) or not scene.datapipe.run:
         return 1.0
     t = scene.datapipe
-    dirty = snapshot() != _state["saved"]
+    dirty = snapshot() != t.saved
     if dirty != t.dirty:
         t.dirty = dirty
     job = _state["render"]
