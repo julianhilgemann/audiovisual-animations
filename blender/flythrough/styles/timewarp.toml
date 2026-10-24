@@ -1,0 +1,21 @@
+# Style "timewarp": the watch movement at warp speed. Clockwork, faster, with streaks racing past the gears.
+
+[shape]  # rebuilds the tunnel's geometry
+# Layers
+streaks       = 500   # Streaks
+streak_length = 30.0  # Streak length
+
+[look]  # live: the sliders on NeonControls
+# Kick
+speed_kick = 2.5  # Speed burst
+# Loudness
+speed_energy = 1.8  # Loudness speed
+# Base motion
+speed_idle = 0.7  # Idle speed
+# Camera
+warp_fov = 5.0   # Warp widening
+bank     = 0.35  # Lean into bends
+# Glow and colour
+streak_tail = 0.6  # Streak length at warp
+# Layers
+streaks_glow = 0.7  # Streaks glow

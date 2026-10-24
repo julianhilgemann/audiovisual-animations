@@ -1,0 +1,88 @@
+# Style "clockwork": flying through a watch movement, the template's world (flythrough.blend). Plates with Geneva
+# stripes, bridges and blued screws; gear trains that mesh and turn, ticked by the kick like an escapement; dial
+# rings, ring gears and balance wheels to fly through. A style is the world's shape and any live slider (look.toml
+# lists them all with their ranges); this one lists every value, the others only what they change.
+# `datapipe short ... --look flythrough --style <name>` renders with one.
+
+[shape]  # rebuilds the tunnel's geometry
+# Tunnel
+radius = 10.0  # Radius
+sides  = 8     # Sides
+fold   = 4     # Repeats around
+mirror = 0     # Mirror
+# Path
+segment       = 12.0  # Segment
+bend          = 0.5   # Bend
+bend_segments = 8     # Bend length
+# Layers
+walls         = "plates"     # Walls (plates, grid, none)
+gears         = 1.0          # Gears
+gear_levels   = 2            # Gear levels
+gear_size     = 1.0          # Gear size
+portals       = "clockwork"  # Portals (clockwork, dial, ring_gear, balance, gate, rosette, none)
+portal_every  = 1            # Portal every
+portal_inner  = 0.62         # Portal opening
+streaks       = 0            # Streaks
+streak_length = 24.0         # Streak length
+shards        = 0.0          # Crystals
+seed          = 1            # Seed
+
+[look]  # live: the sliders on NeonControls
+# Kick
+kick_flash      = 1.0   # Racing light
+kick_ring_speed = 1.6   # Racing speed
+kick_ring_decay = 0.7   # Racing fade (s)
+kick_glow       = 1.2   # Glow burst
+kick_bloom      = 1.0   # Bloom burst
+kick_zoom       = 4.0   # Zoom punch
+kick_jolt       = 0.03  # Roll jolt
+speed_kick      = 1.5   # Speed burst
+tick_kick       = 0.6   # Escapement tick
+# Bass
+drive_bass = 3.0  # Drive train
+roll_bass  = 0.6  # Roll by bass
+bass_haze  = 0.6  # Haze
+# Hats and mids
+whirr_hats       = 6.0  # Whirr
+hats_sparkle     = 1.5  # Sparkle
+portal_spin_mids = 1.2  # Mids turn portals
+# Loudness
+glow_base      = 0.8  # Base glow
+energy_glow    = 0.6  # Loudness glow
+lantern_energy = 0.5  # Loudness light
+speed_energy   = 1.2  # Loudness speed
+color_energy   = 2.0  # Colour cycling
+color_shift    = 0.3  # Brightness shifts palette
+# Base motion
+speed       = 1.0   # Overall speed
+speed_idle  = 0.5   # Idle speed
+roll_idle   = 0.1   # Idle roll
+tick_idle   = 0.5   # Idle tick
+portal_idle = 0.2   # Idle portal turn
+color_idle  = 0.2   # Idle colour cycling
+swing       = 40.0  # Balance swing
+# Camera
+lens      = 16.0   # Lens (mm)
+warp_fov  = 3.0    # Warp widening
+bank      = 0.25   # Lean into bends
+near_fade = 6.0    # Near fade
+view_far  = 110.0  # View distance
+# Light
+lantern        = 1.0   # Lantern
+lantern_warmth = 0.35  # Lantern warmth
+side_lights    = 1.0   # Side lights
+metal_rough    = 0.3   # Metal roughness
+# Glow and colour
+bloom       = 1.0  # Bloom
+hue_base    = 0.0  # Hue
+hue_depth   = 0.5  # Rainbow along depth
+saturation  = 0.8  # Saturation
+streak_tail = 0.8  # Streak length at warp
+# Layers
+walls_glow   = 1.0  # Walls glow
+gears_glow   = 1.0  # Jewels glow
+portals_glow = 1.0  # Portals glow
+streaks_glow = 1.0  # Streaks glow
+shards_glow  = 1.0  # Crystals glow
+# Watermark
+watermark = 0.02  # Opacity

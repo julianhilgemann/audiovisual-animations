@@ -1,0 +1,99 @@
+# The flythrough's controls (SPEC §6): what a style (styles/<name>.toml) may set and what a mapping
+# (mappings/<method>.toml) fills. One line per control; the render checks every style against this file, and the
+# saved files take their comments from it. Defaults are the template's look (flythrough.blend, built by
+# flythrough.py --make-template) with styles/clockwork.toml.
+
+[signals]      # the look signals a mapping fills (0-1, keyed on the AudioSignals empty), and what each drives
+kick       = "zoom punch, roll jolt, speed burst, the escapement ticks the gears"
+kick_light = "lights and glow pulse on the kick"
+bass       = "the drive train turns, haze, roll"
+energy     = "speed, lantern, glow, colour cycling"
+hats       = "small gears whirr, streaks sparkle"
+mids       = "dial rings, gates and crystal slabs turn"
+bright     = "palette shift"
+twist      = "hue jump and extra camera roll"
+
+[recipe]       # the comments a saved mapping carries
+ring         = "a light launches into the tunnel on this track's hits, at this level"
+signals      = "look signal = { source = weight }: the weighted sum of its sources, clamped to 0-1"
+smooth       = "moving average over this many frames, after the sources are summed"
+hit          = "envelope per track, in frames: rise before the hit (anticipation), decay after"
+speed_curve  = "the curve that speeds the flight up"
+speed_riser  = "forward speed added by that curve, in the units of the look's speed sliders"
+roll_twist   = "extra camera roll through the twist, same units as roll_idle"
+twist_hue    = "hue jump through the twist (1 = once around the colour wheel)"
+section_ease = "frames to ease a section signal in and out"
+
+# Live controls: custom properties on the NeonControls empty. Drivers read most of them every frame; `motion`
+# ones are integrated into the baked flight, roll and gear trains, so changing one means baking again.
+[look]
+kick_flash       = { group = "Kick", label = "Racing light", default = 1.0, min = 0.0, max = 4.0, help = "A light launches into the tunnel on every hit of the ring's track and lights the walls as it goes" }
+kick_ring_speed  = { group = "Kick", label = "Racing speed", default = 1.6, min = 0.2, max = 6.0, help = "How fast that light races away from you, in segments a second" }
+kick_ring_decay  = { group = "Kick", label = "Racing fade (s)", default = 0.7, min = 0.05, max = 2.0, help = "How long that light lasts" }
+kick_glow        = { group = "Kick", label = "Glow burst", default = 1.2, min = 0.0, max = 8.0, help = "Extra brightness of everything that glows on each kick (kick_light)" }
+kick_bloom       = { group = "Kick", label = "Bloom burst", default = 1.0, min = 0.0, max = 4.0, help = "Extra glow halo on each kick (kick_light)" }
+kick_zoom        = { group = "Kick", label = "Zoom punch", default = 4.0, min = 0.0, max = 16.0, help = "Camera punch-zoom on each kick, in mm of lens" }
+kick_jolt        = { group = "Kick", label = "Roll jolt", default = 0.03, min = 0.0, max = 0.5, help = "The view twists a little on each kick" }
+speed_kick       = { group = "Kick", label = "Speed burst", default = 1.5, min = 0.0, max = 10.0, motion = true, help = "Forward speed burst on each kick" }
+tick_kick        = { group = "Kick", label = "Escapement tick", default = 0.6, min = 0.0, max = 3.0, motion = true, help = "Teeth the ticking gear trains jump on each kick, like a watch's escapement" }
+drive_bass       = { group = "Bass", label = "Drive train", default = 3.0, min = 0.0, max = 12.0, motion = true, help = "Teeth a second the drive trains turn with the bass" }
+roll_bass        = { group = "Bass", label = "Roll by bass", default = 0.6, min = 0.0, max = 5.0, motion = true, help = "The view rotates faster when the bass is up" }
+bass_haze        = { group = "Bass", label = "Haze", default = 0.6, min = 0.0, max = 3.0, help = "The glowing seams and lume brighten with the bass" }
+whirr_hats       = { group = "Hats and mids", label = "Whirr", default = 6.0, min = 0.0, max = 20.0, motion = true, help = "Teeth a second the small gear trains whirr with the hats" }
+hats_sparkle     = { group = "Hats and mids", label = "Sparkle", default = 1.5, min = 0.0, max = 6.0, help = "Hats make the streaks and crystals sparkle" }
+portal_spin_mids = { group = "Hats and mids", label = "Mids turn portals", default = 1.2, min = 0.0, max = 6.0, motion = true, help = "Mids turn the dial rings, gates and crystal slabs" }
+glow_base        = { group = "Loudness", label = "Base glow", default = 0.8, min = 0.0, max = 3.0, help = "Brightness of everything that glows when the track is quiet" }
+energy_glow      = { group = "Loudness", label = "Loudness glow", default = 0.6, min = 0.0, max = 4.0, help = "Brightness added by the energy signal" }
+lantern_energy   = { group = "Loudness", label = "Loudness light", default = 0.5, min = 0.0, max = 2.0, help = "The lantern brightens with the energy signal" }
+speed_energy     = { group = "Loudness", label = "Loudness speed", default = 1.2, min = 0.0, max = 6.0, motion = true, help = "Forward speed added by the energy signal" }
+color_energy     = { group = "Loudness", label = "Colour cycling", default = 2.0, min = 0.0, max = 5.0, motion = true, help = "Colours cycle faster when the energy is up" }
+color_shift      = { group = "Loudness", label = "Brightness shifts palette", default = 0.3, min = 0.0, max = 1.0, help = "The bright signal shifts the colour palette" }
+speed            = { group = "Base motion", label = "Overall speed", default = 1.0, min = 0.0, max = 5.0, motion = true, help = "Multiplies all forward motion (segments a second)" }
+speed_idle       = { group = "Base motion", label = "Idle speed", default = 0.5, min = 0.0, max = 3.0, motion = true, help = "Forward speed with no music, in segments a second" }
+roll_idle        = { group = "Base motion", label = "Idle roll", default = 0.1, min = -3.0, max = 3.0, motion = true, help = "Rotation without bass; negative rolls the other way" }
+tick_idle        = { group = "Base motion", label = "Idle tick", default = 0.5, min = 0.0, max = 6.0, motion = true, help = "Teeth a second all gear trains turn with no music" }
+portal_idle      = { group = "Base motion", label = "Idle portal turn", default = 0.2, min = -3.0, max = 3.0, motion = true, help = "Portals turn without mids; negative turns them the other way" }
+color_idle       = { group = "Base motion", label = "Idle colour cycling", default = 0.2, min = 0.0, max = 3.0, motion = true, help = "Colour cycling when the track is quiet" }
+swing            = { group = "Base motion", label = "Balance swing", default = 40.0, min = 0.0, max = 180.0, motion = true, help = "How far the balance wheels rock to the beat, in degrees, at full energy" }
+lens             = { group = "Camera", label = "Lens (mm)", default = 16.0, min = 6.0, max = 50.0, help = "Camera lens: lower is wider" }
+warp_fov         = { group = "Camera", label = "Warp widening", default = 3.0, min = 0.0, max = 10.0, help = "The lens widens with speed, in mm at full warp" }
+bank             = { group = "Camera", label = "Lean into bends", default = 0.25, min = -1.0, max = 1.0, help = "The camera leans into the tunnel's bends, in radians at the sharpest bend" }
+near_fade        = { group = "Camera", label = "Near fade", default = 6.0, min = 0.0, max = 30.0, help = "Portals and crystals fade out within this distance of the camera (0 = off), so flying through them doesn't flash" }
+view_far         = { group = "Camera", label = "View distance", default = 110.0, min = 40.0, max = 160.0, help = "The tunnel fades into the dark from 40 % of this distance to this distance" }
+lantern          = { group = "Light", label = "Lantern", default = 1.0, min = 0.0, max = 4.0, help = "The light the camera carries" }
+lantern_warmth   = { group = "Light", label = "Lantern warmth", default = 0.35, min = 0.0, max = 1.0, help = "0 = white, 1 = candle" }
+side_lights      = { group = "Light", label = "Side lights", default = 1.0, min = 0.0, max = 4.0, help = "The two coloured lights flying with the camera, left and right" }
+metal_rough      = { group = "Light", label = "Metal roughness", default = 0.3, min = 0.05, max = 0.8, help = "Polished (low) or satin (high) gears and plates" }
+bloom            = { group = "Glow and colour", label = "Bloom", default = 1.0, min = 0.0, max = 3.0, help = "Overall glow halo" }
+hue_base         = { group = "Glow and colour", label = "Hue", default = 0.0, min = 0.0, max = 1.0, help = "Turns every glowing colour around the colour wheel" }
+hue_depth        = { group = "Glow and colour", label = "Rainbow along depth", default = 0.5, min = 0.0, max = 4.0, help = "How fast the glowing colours change with depth" }
+saturation       = { group = "Glow and colour", label = "Saturation", default = 0.8, min = 0.0, max = 1.0, help = "0 = white light" }
+streak_tail      = { group = "Glow and colour", label = "Streak length at warp", default = 0.8, min = 0.02, max = 1.0, help = "How much of each streak shows at full speed; at rest they are points" }
+walls_glow       = { group = "Layers", label = "Walls glow", default = 1.0, min = 0.0, max = 3.0, help = "Brightness of the seams and light lines on the walls" }
+gears_glow       = { group = "Layers", label = "Jewels glow", default = 1.0, min = 0.0, max = 3.0, help = "Brightness of the ruby jewels" }
+portals_glow     = { group = "Layers", label = "Portals glow", default = 1.0, min = 0.0, max = 3.0, help = "Brightness of the lume on the dials and of the gates" }
+streaks_glow     = { group = "Layers", label = "Streaks glow", default = 1.0, min = 0.0, max = 3.0, help = "Brightness of the warp streaks (0 hides them)" }
+shards_glow      = { group = "Layers", label = "Crystals glow", default = 1.0, min = 0.0, max = 3.0, help = "Brightness of the crystal slabs and rosettes (0 hides them)" }
+watermark        = { group = "Watermark", label = "Opacity", default = 0.02, min = 0.0, max = 0.3, help = "The white \"hyperadapted\" at the top centre, barely there by default (0 hides it)" }
+
+# The geometry (worlds.py): changing any of these rebuilds the world. The loop periods follow the shape, so the
+# seam still closes.
+[shape]
+radius        = { group = "Tunnel", label = "Radius", default = 10.0, min = 4.0, max = 20.0, help = "Tunnel size: the distance from the path to the plates" }
+sides         = { group = "Tunnel", label = "Sides", default = 8, min = 3, max = 16, help = "Plates around the tunnel" }
+fold          = { group = "Tunnel", label = "Repeats around", default = 4, min = 1, max = 12, help = "The content repeats this many times around the tunnel (plates: a divisor of their number)" }
+mirror        = { group = "Tunnel", label = "Mirror", default = 0, min = 0, max = 1, help = "1 = each repeat is mirrored too, as in a kaleidoscope (streaks, crystals, rosettes)" }
+segment       = { group = "Path", label = "Segment", default = 12.0, min = 4.0, max = 40.0, help = "Distance between portals; speed counts segments a second" }
+bend          = { group = "Path", label = "Bend", default = 0.5, min = 0.0, max = 1.2, help = "How far the path swings, as a share of the radius (0 = straight)" }
+bend_segments = { group = "Path", label = "Bend length", default = 8, min = 3, max = 24, help = "Segments before the path's bends repeat: everything along it repeats there too" }
+walls         = { group = "Layers", label = "Walls", default = "plates", options = ["plates", "grid", "none"], help = "The lining: a watch's plates with bridges and screws, lines of light, or nothing" }
+gears         = { group = "Layers", label = "Gears", default = 1.0, min = 0.0, max = 1.5, help = "How densely gear trains cover the plates (0 = none; plates only)" }
+gear_levels   = { group = "Layers", label = "Gear levels", default = 2, min = 1, max = 3, help = "Layers of gear trains above the plates" }
+gear_size     = { group = "Layers", label = "Gear size", default = 1.0, min = 0.5, max = 1.6, help = "Tooth size: bigger gears, fewer of them" }
+portals       = { group = "Layers", label = "Portals", default = "clockwork", options = ["clockwork", "dial", "ring_gear", "balance", "gate", "rosette", "none"], help = "What you fly through: clockwork takes turns of dial ring, ring gear and balance wheel" }
+portal_every  = { group = "Layers", label = "Portal every", default = 1, min = 1, max = 4, help = "A portal every this many segments" }
+portal_inner  = { group = "Layers", label = "Portal opening", default = 0.62, min = 0.3, max = 0.9, help = "Inner edge of the portals, as a share of the radius" }
+streaks       = { group = "Layers", label = "Streaks", default = 0, min = 0, max = 6000, help = "Warp streaks per bend length (0 = none)" }
+streak_length = { group = "Layers", label = "Streak length", default = 24.0, min = 2.0, max = 60.0, help = "The longest a streak gets, at full warp" }
+shards        = { group = "Layers", label = "Crystals", default = 0.0, min = 0.0, max = 1.5, help = "How densely the kaleidoscope's crystal slabs fill the tunnel (0 = none)" }
+seed          = { group = "Layers", label = "Seed", default = 1, min = 0, max = 999, help = "Which random gear trains, streaks and crystals" }

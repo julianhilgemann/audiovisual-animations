@@ -146,9 +146,12 @@ A preview is half size and quick to make. The timing in it is the same as in the
 | `--start 30 --length 45` | use only 45 seconds, starting 30 seconds in |
 | `--bpm 124` | tell it the tempo, if it guessed wrong |
 | `--style hex_prism` | a different tunnel shape and look; also `square_circuit`, `star_vortex`, `flower_tube`, `speed_rails`, `truchet_maze`, or a style you saved yourself |
+| `--look flythrough` | a different world altogether: the camera flies down a winding tunnel through the inside of a watch, gears turning to your beat. Add `--style warp` (hyperspace streaks), `--style kaleido` (a kaleidoscope of crystals) or `--style timewarp` (the watch at warp speed) |
 | `--no-loop` | don't make the end of the video flow back into its start |
 
 By default the picture's movement is closed into a loop, so when YouTube replays the Short it carries on without a jump.
+
+The flythrough is slower to draw than the neon tunnel: on an M1 Mac a preview takes about as long, but full quality takes about three times as long (around 40 minutes for 30 seconds). Make previews of a few styles first, then render the one you like.
 
 ## 6. When the render finishes
 
@@ -164,7 +167,7 @@ The terminal prints a short list of checks, each marked `ok` or `FAIL`:
 
 The video is saved either way. A `FAIL` tells you what to look at; [section 8](#8-if-something-goes-wrong) says what to do.
 
-You get three files in `output/<method>/`, named after the date and the song (or, for method A, the preset and seed):
+You get three files in `output/<method>/`, named after the date and the song (or, for method A, the preset and seed), plus the look and style when you chose them (`..._flythrough_warp.mp4`), so different versions don't overwrite each other:
 
 - **the MP4**, ready to upload to YouTube Shorts as it is;
 - **a PNG**, a still from a strong moment, to use as the thumbnail;
@@ -174,7 +177,7 @@ The working files of each attempt stay in `work/<method>/`, and `work/<method>/l
 
 ## 7. Fine-tune it in Blender
 
-The automatic result is a starting point. You can change, by hand and while the song plays, what reacts to what, every visual setting, and the shape of the tunnel, and then render exactly what you see.
+The automatic result is a starting point. You can change, by hand and while the song plays, what reacts to what, every visual setting, and the shape of the tunnel, and then render exactly what you see. (The tuner works with the neon tunnel; the flythrough doesn't have one yet.)
 
 ### Open the tuner
 

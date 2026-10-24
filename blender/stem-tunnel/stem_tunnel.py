@@ -136,68 +136,12 @@ def parse_args() -> argparse.Namespace:
 # ---- modulators -> look signals ------------------------------------------------------------------------------------
 
 def look_signals(controls: dict, cfg: dict) -> dict[str, np.ndarray]:
-    """The look's 0-1 signals from the run's modulators, as the method's mapping wires them."""
-    n, wrap = controls["frames"], controls.get("wrap", True)
-    zeros = np.zeros(n)
-    hit_shapes = cfg.get("hit", {})
-    ease = int(cfg.get("motion", {}).get("section_ease", 15))
-
-    def source(name: str) -> np.ndarray:
-        kind, _, key = name.partition(":")
-        if kind == "hit":
-            track = controls["tracks"].get(key)
-            shape = {**hit_shapes.get("default", {}), **hit_shapes.get(key, {})}
-            return (mapping.hit_envelope(track["hits"], n, shape.get("windup", 0), shape.get("decay", 8), wrap=wrap)
-                    if track else zeros)
-        if kind == "stem":
-            return np.asarray(controls["stems"].get(key, {}).get("loud", zeros))
-        if kind == "mix":
-            return np.asarray(controls["mix"][key])
-        if kind == "band":
-            return np.asarray(controls.get("bands", {}).get(key, zeros))
-        if kind == "curve":
-            return np.asarray(controls["curves"].get(key, zeros))
-        if kind == "section":
-            return section(controls, key, ease)
-        if kind == "feature":
-            return np.asarray(controls.get("features", {}).get(key, zeros))
-        raise ValueError(f"mapping: unknown source {name!r}")
-
-    out = {name: np.clip(sum((w * source(s) for s, w in sources.items()), zeros), 0.0, 1.0)
-           for name, sources in cfg["signals"].items()}
-    for name, frames in cfg.get("smooth", {}).items():
-        out[name] = mapping.smooth(out[name], frames, wrap)
-    for name in LEVELS:
-        out.setdefault(name, zeros)
-    ring_cfg = cfg.get("ring", {})
-    ring = controls["tracks"].get(ring_cfg.get("track", "kick"))
-    out["kick_age"], last = mapping.since_last_hit(ring["hits"] if ring else [], n, wrap)
-    out["kick_last"] = float(ring_cfg.get("level", 1.0)) * last
-    out["hue_off"] = float(cfg.get("motion", {}).get("twist_hue", 0.0)) * out["twist"]
-    return out
+    """The look's 0-1 signals from the run's modulators, as the method's mapping wires them (mapping.py, shared
+    with every look)."""
+    return mapping.look_signals(controls, cfg, LEVELS)
 
 
-def available_sources(controls: dict) -> list[str]:
-    """Every source a mapping can read from this run, as `kind:name`."""
-    names = [f"hit:{t}" for t in controls.get("tracks", {})]
-    names += [f"stem:{s}" for s in controls.get("stems", {})]
-    names += [f"mix:{m}" for m in controls.get("mix", {})]
-    names += [f"band:{b}" for b in controls.get("bands", {})]
-    names += [f"curve:{c}" for c in controls.get("curves", {})]
-    names += [f"section:{s}" for s in dict.fromkeys(s["name"] for s in controls.get("sections", []))]
-    names += [f"feature:{f}" for f in controls.get("features", {})]
-    return names
-
-
-def section(controls: dict, name: str, ease: int) -> np.ndarray:
-    """1 inside a section of the story, with linear ramps of ``ease`` frames centred on its edges."""
-    n = controls["frames"]
-    starts = sorted((s["frame"], s["name"]) for s in controls["sections"]) + [(n, "")]
-    gate = np.zeros(n)
-    for (a, nm), (b, _) in zip(starts, starts[1:]):
-        if nm == name:
-            gate[a:b] = 1.0
-    return mapping.smooth(gate, ease, controls.get("wrap", True))
+available_sources = mapping.available_sources
 
 
 def motion(levels: dict, controls: dict, ctrl, cfg: dict) -> tuple[dict, dict]:

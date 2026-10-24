@@ -14,7 +14,7 @@ uv run datapipe tune stems                                        # tune the lat
 uv run datapipe short --run work/stems/latest --preview           # render a run again, with what you tuned
 ```
 
-Output: `output/<method>/<run>.mp4`, a `.json` sidecar with the checks (and which mapping, style and keyframes it used), and a `.png` thumbnail from the twist (or the drop). The run folder keeps the same MP4, `controls.json`, `render.log` and `scene_baked.blend` (open it to scrub, play and tune: the master is on the timeline, and the tuner comes with it, see below); a song's run also has `report.png`, what the analysis found.
+Output: `output/<method>/<run>.mp4` (`<run>_<look>_<style>.mp4` when you name another look or a style, so they sit side by side), a `.json` sidecar with the checks (and which mapping, style and keyframes it used), and a `.png` thumbnail from the twist (or the drop). The run folder keeps the same MP4, `controls.json`, `render.log` and `scene_baked.blend` (open it to scrub, play and tune: the master is on the timeline, and the tuner comes with it, see below); a song's run also has `report.png`, what the analysis found.
 
 ## Tune by hand
 

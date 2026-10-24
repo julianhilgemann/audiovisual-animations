@@ -92,7 +92,8 @@ def make_short(run: Path, look: str | None = None, preview: bool = False, keep_f
                **overrides) -> tuple[Path, dict]:
     """Render, encode and check a run that already has controls.json and mix.wav; returns the MP4 and its report.
     ``style`` and ``mapping`` override what the run's tuning or the look would use (``look_files``); ``overrides``
-    replace profile settings (percent, eevee_samples, crf, x264_preset) for this call."""
+    replace profile settings (percent, eevee_samples, crf, x264_preset) for this call. The files are named after the
+    run, plus the look when it isn't the method's (its scene_baked.blend too) and the style when one is given."""
     cfg = load_config()
     short = cfg["short"]
     profile = {**short, **(short["preview"] if preview else {}), **overrides}
@@ -100,6 +101,7 @@ def make_short(run: Path, look: str | None = None, preview: bool = False, keep_f
     controls = json.loads((run / "controls.json").read_text(encoding="utf-8"))
     method, n = controls.get("method", "gen"), controls["frames"]
     files = look_files(cfg, method, look, run=run, style=style, mapping=mapping)
+    other = f"_{files['name']}" if files["name"] != cfg["methods"][method]["look"] else ""   # beside the method's look
     times = {}
 
     t = time.perf_counter()
@@ -111,7 +113,8 @@ def make_short(run: Path, look: str | None = None, preview: bool = False, keep_f
            "--run", str(run), "--frames-dir", str(frames), "--mapping", str(files["mapping"]),
            "--width", str(width), "--height", str(height),
            "--percent", str(profile["percent"]), "--samples", str(profile["eevee_samples"]),
-           "--save-blend", str(run / "scene_baked.blend"), "--method", method, "--save-to", str(files["tuning_dir"]),
+           "--save-blend", str(run / f"scene_baked{other}.blend"), "--method", method,
+           "--save-to", str(files["tuning_dir"]),
            "--pipeline-python", sys.executable] + (["--seam"] if controls.get("close", True) else [])
     cmd += ["--style", str(files["style"])] if files["style"] else []
     cmd += ["--automation", str(files["automation"])] if files["automation"] else []
@@ -122,7 +125,7 @@ def make_short(run: Path, look: str | None = None, preview: bool = False, keep_f
     times["render"] = time.perf_counter() - t
 
     t = time.perf_counter()
-    name = run.name + ("_preview" if preview else "")
+    name = run.name + other + (f"_{Path(style).stem}" if style else "") + ("_preview" if preview else "")
     mp4 = run / f"{name}.mp4"
     encoded = encode(sorted(frames.glob("frame_*.png")), run / "mix.wav", mp4, profile["crf"], profile["x264_preset"])
     times["encode"] = time.perf_counter() - t
@@ -164,6 +167,9 @@ def open_tuner(run: Path, look: str | None = None, style: str | None = None, map
     controls = json.loads((run / "controls.json").read_text(encoding="utf-8"))
     method = controls.get("method", "gen")
     files = look_files(cfg, method, look, run=run, style=style, mapping=mapping)
+    if not (files["script"].parent / "tuner.py").exists():
+        raise ValueError(f"look {files['name']!r} has no tuner panel yet: render it with --style, or tune the "
+                         f"stem tunnel (--look stem-tunnel)")
     log = run / "tune.log"
     cmd = [str(resolve_path(cfg, "blender")), str(files["scene"]), "--python", str(files["script"]), "--", "--tune",
            "--run", str(run), "--mapping", str(files["mapping"]), "--method", method,
@@ -194,19 +200,23 @@ def thumbnail_frame(controls: dict) -> int:
 
 
 def _blender(cmd: list[str], log: Path, n: int, progress) -> dict:
-    """Run Blender, keep its whole output in ``log``, report progress, return the script's result line."""
+    """Run Blender, keep its whole output in ``log``, report progress, return the script's result line (a look's
+    script prints ``<TAG> frame i/n`` and ``<TAG>_RESULT {json}``, e.g. STEM_TUNNEL, FLYTHROUGH)."""
     result, started = {}, time.perf_counter()
     with open(log, "w", encoding="utf-8") as fh, subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace") as p:
         for line in p.stdout:
             fh.write(line)
-            if line.startswith("STEM_TUNNEL frame "):
-                done = int(line.split()[2].split("/")[0])
+            tag, _, rest = line.partition(" ")
+            if not tag.replace("_", "").isupper():
+                continue
+            if rest.startswith("frame "):
+                done = int(rest.split()[1].split("/")[0])
                 if done % 60 == 0 or done == n:
                     rate = (time.perf_counter() - started) / done
                     progress(f"  render {done}/{n} ({rate:.2f} s/frame)")
-            elif line.startswith("STEM_TUNNEL_RESULT "):
-                result = json.loads(line.split(" ", 1)[1])
+            elif tag.endswith("_RESULT"):
+                result = json.loads(rest)
     if p.returncode != 0 or not result:
         raise RuntimeError(f"Blender failed (exit {p.returncode}); see {log}")
     return result

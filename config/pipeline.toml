@@ -79,6 +79,14 @@ scene = "stem_tunnel.blend"
 script = "stem_tunnel.py"
 style = "default"
 
+# A camera that really flies down a winding tunnel: a watch movement's gears, warp streaks or a kaleidoscope of
+# crystals (`--look flythrough --style clockwork|warp|kaleido|...`). No tuner panel yet.
+[looks.flythrough]
+project = "blender/flythrough"
+scene = "flythrough.blend"
+script = "flythrough.py"
+style = "clockwork"
+
 # The six input methods (SPEC §16): where their inputs land, where their runs go, which look renders them.
 [methods.gen]                # A: a preset and a seed, composed and rendered by DawDreamer
 look = "stem-tunnel"         # runs go to [gen] out

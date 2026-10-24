@@ -1,0 +1,27 @@
+# Style "kaleido": a kaleidoscope you fly through. Slabs of crystal mirrored six times around, turning against each
+# other with the mids, rosettes to fly through; the colours repeat, mirrored, in every wedge.
+
+[shape]  # rebuilds the tunnel's geometry
+# Tunnel
+fold   = 6  # Repeats around
+mirror = 1  # Mirror
+# Path
+bend = 0.4  # Bend
+# Layers
+walls   = "none"     # Walls (plates, grid, none)
+gears   = 0.0        # Gears
+portals = "rosette"  # Portals (clockwork, dial, ring_gear, balance, gate, rosette, none)
+streaks = 500        # Streaks
+shards  = 1.0        # Crystals
+
+[look]  # live: the sliders on NeonControls
+# Hats and mids
+portal_spin_mids = 2.5  # Mids turn portals
+# Base motion
+roll_idle   = 0.5  # Idle roll
+portal_idle = 0.6  # Idle portal turn
+# Glow and colour
+hue_depth  = 0.3  # Rainbow along depth
+saturation = 1.0  # Saturation
+# Layers
+streaks_glow = 0.6  # Streaks glow

@@ -62,6 +62,8 @@ inbox/midi/mysong/
 
 **Tune by hand:** `uv run datapipe tune stems` opens the latest stems run in Blender with a *Datapipe* tab in the sidebar (N): which sounds drive what and how strongly, every slider of the look (keyframable for one song), and the tunnel's shape, all live while the song plays. *Save to run*, then `uv run datapipe short --run work/stems/latest` (or the panel's *Render* buttons) renders exactly that. A shape and look you want for every song becomes a style: `--style hex_prism` (also `square_circuit`, `star_vortex`, `flower_tube`, `speed_rails`, `truchet_maze`, or your own from the panel). See [blender/stem-tunnel/README.md](blender/stem-tunnel/README.md#tune-by-hand).
 
+**Another world:** `--look flythrough` renders any run with a camera that really flies down a winding tunnel: through a watch movement whose gears mesh and tick to the kick (`--style clockwork`, the default), hyperspace streaks (`warp`), a kaleidoscope of mirrored crystals (`kaleido`) or the watch at warp speed (`timewarp`). Same mappings, same checks; no tuner panel yet. See [blender/flythrough/README.md](blender/flythrough/README.md).
+
 Requirements, on Windows or macOS: [uv](https://docs.astral.sh/uv/) (`winget install astral-sh.uv`, or `brew install uv`), and Blender 5.2 LTS. The pipeline needs nothing else. Tool paths per OS are in `config/pipeline.toml`; `config/machine.toml` overrides them for one machine.
 
 ## Folders
@@ -74,6 +76,7 @@ Requirements, on Windows or macOS: [uv](https://docs.astral.sh/uv/) (`winget ins
 | `config/mappings/` | Reactivity recipes for the Director rig look (optional, not built yet) |
 | `dawdreamer/` | Generated audio: specs, presets, Faust instruments, the free VST3 plugin list (see [dawdreamer/README.md](dawdreamer/README.md)) |
 | `blender/stem-tunnel/` | The neon lines tunnel every method renders with: one mapping per method in `mappings/`, shapes and looks in `styles/`, the tuner (see its [README](blender/stem-tunnel/README.md)) |
+| `blender/flythrough/` | The second look (`--look flythrough`): a camera flying a winding path through gears, streaks or crystals; its own mappings and worlds in `styles/` (see its [README](blender/flythrough/README.md)) |
 | `docs/` | The step-by-step guide ([how-to-use.md](docs/how-to-use.md)); design of the generative mode ([sticky-av-shorts.md](docs/sticky-av-shorts.md)); the architecture diagrams in `diagrams/`: JSON specs, PNG and SVG renders, an editable `datapipe.drawio`, and `build.py` to render them again |
 | `reference/` | Reference renders |
 | `work/`, `cache/`, `archive/` | Pipeline internals; runs land in `work/<method>/`, the newest in `work/<method>/latest/` |

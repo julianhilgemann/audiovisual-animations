@@ -1,0 +1,40 @@
+# Style "warp": hyperspace. A tube of light lines with gates, and streaks that grow from points into lines with the
+# speed; every kick is a burst forward, and the lens widens at speed.
+
+[shape]  # rebuilds the tunnel's geometry
+# Tunnel
+radius = 8.0  # Radius
+sides  = 12   # Sides
+fold   = 6    # Repeats around
+# Path
+segment       = 10.0  # Segment
+bend          = 0.5   # Bend
+bend_segments = 6     # Bend length
+# Layers
+walls         = "grid"  # Walls (plates, grid, none)
+gears         = 0.0     # Gears
+portals       = "gate"  # Portals (clockwork, dial, ring_gear, balance, gate, rosette, none)
+portal_every  = 2       # Portal every
+streaks       = 700     # Streaks
+streak_length = 30.0    # Streak length
+
+[look]  # live: the sliders on NeonControls
+# Kick
+speed_kick = 2.5  # Speed burst
+# Loudness
+speed_energy = 2.0  # Loudness speed
+# Base motion
+speed_idle = 0.8  # Idle speed
+# Camera
+lens     = 14.0   # Lens (mm)
+warp_fov = 6.0    # Warp widening
+bank     = 0.4    # Lean into bends
+view_far = 150.0  # View distance
+# Glow and colour
+hue_base    = 0.55  # Hue
+hue_depth   = 0.4   # Rainbow along depth
+saturation  = 0.55  # Saturation
+streak_tail = 0.5   # Streak length at warp
+# Layers
+walls_glow   = 0.8  # Walls glow
+streaks_glow = 0.6  # Streaks glow

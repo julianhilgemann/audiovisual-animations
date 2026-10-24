@@ -1,0 +1,63 @@
+# Method F (deep): one complex track, every feature measured and hard-mapped, on the flythrough (SPEC §16.7). The
+# same feature-to-signal recipe as the stem tunnel (blender/stem-tunnel/mappings/deep.toml lists every feature and
+# why); kick and the racing light follow the low percussive onsets, the twist is the drop and every change.
+#
+# Written in the canonical form (src/datapipe/recipe.py): the comment after each line comes from look.toml, so
+# notes about this method belong up here.
+
+ring = { track = "low", level = 0.3 }  # a light launches into the tunnel on this track's hits, at this level
+
+[signals]  # look signal = { source = weight }: the weighted sum of its sources, clamped to 0-1
+kick       = { "hit:low" = 0.8, "feature:percussive.onset" = 0.3 }      # zoom punch, roll jolt, speed burst, the escapement ticks the gears
+kick_light = { "hit:low" = 0.2 }                                        # lights and glow pulse on the kick
+twist      = { "section:drop" = 0.8, "feature:section.novelty" = 0.4 }  # hue jump and extra camera roll
+
+[signals.bass]  # the drive train turns, haze, roll
+"band:sub"           = 0.4
+"band:bass"          = 0.4
+"feature:onset.sub"  = 0.2
+"feature:onset.bass" = 0.2
+
+[signals.energy]  # speed, lantern, glow, colour cycling
+"feature:loud.momentary"  = 0.5
+"feature:loud.short"      = 0.3
+"feature:percussive.loud" = 0.2
+"curve:build"             = 0.3
+
+[signals.hats]  # small gears whirr, streaks sparkle
+"hit:high"                  = 0.5
+"feature:onset.air"         = 0.3
+"band:air"                  = 0.2
+"feature:spectrum.flatness" = 0.2
+
+[signals.mids]  # dial rings, gates and crystal slabs turn
+"hit:mid"               = 0.4
+"feature:onset.mid"     = 0.2
+"feature:harmonic.loud" = 0.3
+"feature:pitch.change"  = 0.3
+"feature:spectrum.flux" = 0.2
+
+[signals.bright]  # palette shift
+"mix:bright"                 = 0.4
+"feature:spectrum.rolloff"   = 0.2
+"feature:spectrum.bandwidth" = 0.1
+"feature:stereo.width"       = 0.3
+"feature:harmonic.share"     = 0.2
+
+[smooth]  # moving average over this many frames, after the sources are summed
+energy = 12
+bright = 8
+twist  = 20
+
+[hit]  # envelope per track, in frames: rise before the hit (anticipation), decay after
+default = { windup = 0, decay = 8 }
+low     = { windup = 3, decay = 9 }
+mid     = { windup = 0, decay = 12 }
+high    = { windup = 0, decay = 5 }
+
+[motion]
+speed_curve  = "build"  # the curve that speeds the flight up
+speed_riser  = 3.0      # forward speed added by that curve, in the units of the look's speed sliders
+roll_twist   = 1.0      # extra camera roll through the twist, same units as roll_idle
+twist_hue    = 0.15     # hue jump through the twist (1 = once around the colour wheel)
+section_ease = 30       # frames to ease a section signal in and out

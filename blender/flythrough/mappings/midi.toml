@@ -1,0 +1,37 @@
+# Method D (midi): master + stems + MIDI, on the flythrough. Hits come from your MIDI, loudness from the stems, the
+# rest from the master; why each source: blender/stem-tunnel/mappings/midi.toml. The song's build sections speed
+# the flight up; the twist is the drop.
+#
+# Written in the canonical form (src/datapipe/recipe.py): the comment after each line comes from look.toml, so
+# notes about this method belong up here.
+
+ring = { track = "kick", level = 0.3 }  # a light launches into the tunnel on this track's hits, at this level
+
+[signals]  # look signal = { source = weight }: the weighted sum of its sources, clamped to 0-1
+kick       = { "hit:kick" = 1.0 }                                             # zoom punch, roll jolt, speed burst, the escapement ticks the gears
+kick_light = { "hit:kick" = 0.2 }                                             # lights and glow pulse on the kick
+bass       = { "stem:bass" = 1.0 }                                            # the drive train turns, haze, roll
+energy     = { "mix:loud" = 0.7, "curve:energy" = 0.2, "curve:build" = 0.3 }  # speed, lantern, glow, colour cycling
+hats       = { "hit:hats" = 1.0 }                                             # small gears whirr, streaks sparkle
+mids       = { "hit:snare" = 0.8, "hit:clap" = 0.8, "hit:lead" = 0.6 }        # dial rings, gates and crystal slabs turn
+bright     = { "mix:bright" = 0.6, "curve:build" = 0.6 }                      # palette shift
+twist      = { "section:drop" = 1.0 }                                         # hue jump and extra camera roll
+
+[smooth]  # moving average over this many frames, after the sources are summed
+energy = 12
+bright = 8
+
+[hit]  # envelope per track, in frames: rise before the hit (anticipation), decay after
+default = { windup = 0, decay = 8 }
+kick    = { windup = 3, decay = 9 }
+snare   = { windup = 0, decay = 12 }
+clap    = { windup = 0, decay = 14 }
+hats    = { windup = 0, decay = 5 }
+lead    = { windup = 0, decay = 8 }
+
+[motion]
+speed_curve  = "build"  # the curve that speeds the flight up
+speed_riser  = 3.0      # forward speed added by that curve, in the units of the look's speed sliders
+roll_twist   = 1.0      # extra camera roll through the twist, same units as roll_idle
+twist_hue    = 0.15     # hue jump through the twist (1 = once around the colour wheel)
+section_ease = 30       # frames to ease a section signal in and out
